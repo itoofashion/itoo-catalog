@@ -81,6 +81,11 @@ shared link still opens the styles it carried. The rule lives in
 `app/next.config.ts` and matches any `www.` host, so a second domain pointed at
 the Worker behaves the same without another rule.
 
+The Worker's built-in `itoo.alex7golovin.workers.dev` address redirects the same
+way, and plain `http://` requests are sent to `https://` — both rules also live
+in `app/next.config.ts`, so they follow the code to any Cloudflare account
+without touching zone settings in the dashboard.
+
 ### The photo bucket
 
 Product photos are served from the catalog's own domain and kept in an R2 bucket

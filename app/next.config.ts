@@ -27,6 +27,31 @@ const nextConfig: NextConfig = {
         destination: "https://:host/:path*",
         permanent: true,
       },
+      // The Worker's own *.workers.dev address stays reachable after the real
+      // domain is attached, which is the same two-addresses problem as www.
+      // Anyone landing on it — an old link from before the domain existed, or
+      // someone typing it from a deploy log — is sent to the canonical site.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "^itoo\\.alex7golovin\\.workers\\.dev$" }],
+        destination: "https://itoo.website/:path*",
+        permanent: true,
+      },
+      // Cloudflare's "Always Use HTTPS" is a per-zone dashboard toggle that is
+      // off by default, so plain http:// reaches the Worker and serves the
+      // whole catalog unencrypted. Cloudflare reports the visitor's scheme in
+      // the cf-visitor header; when it says http, send the visitor to the same
+      // page over https. Living here instead of the dashboard, the rule
+      // survives a move to another Cloudflare account unchanged.
+      {
+        source: "/:path*",
+        has: [
+          { type: "header", key: "cf-visitor", value: '\\{"scheme":"http"\\}' },
+          { type: "host", value: "(?<host>.+)" },
+        ],
+        destination: "https://:host/:path*",
+        permanent: true,
+      },
     ];
   },
 };
