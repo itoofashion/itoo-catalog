@@ -3,26 +3,35 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
+import { packSummary } from "@/lib/catalog/pack";
 import { formatPrice } from "@/lib/catalog/pricing";
 import type { PublicProduct } from "@/lib/catalog/public";
 import { CopyOrderButton } from "./copy-order-button";
 
 type ProductCardProps = {
   product: PublicProduct;
-  /** Admin view adds the pick-for-client control; client view never shows it. */
+  /** Above the fold on open: its photo is what the page is judged on loading. */
+  eager?: boolean;
+  /** The admin view adds the pick control; a client never sees it. */
   selectable: boolean;
   selected: boolean;
+  /**
+   * Selected because its whole category was picked. The card cannot be
+   * unpicked on its own — the link means "everything in this category".
+   */
+  lockedByCategory: boolean;
   onToggleSelect: (sku: string) => void;
   onOpen: (product: PublicProduct, photoIndex: number) => void;
 };
 
 export function ProductCard({
   product,
+  eager = false,
   selectable,
   selected,
+  lockedByCategory,
   onToggleSelect,
   onOpen,
 }: ProductCardProps) {
@@ -31,6 +40,7 @@ export function ProductCard({
 
   const photos = product.images;
   const photo = photos[photoIndex];
+  const pack = packSummary(product);
 
   function step(direction: number) {
     setPhotoIndex((current) => (current + direction + photos.length) % photos.length);
@@ -40,9 +50,9 @@ export function ProductCard({
     <article
       data-sku={product.sku}
       className={cn(
-        "group flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow",
-        "shadow-[0_1px_2px_rgba(28,26,23,.04),0_8px_24px_rgba(28,26,23,.05)]",
-        selected && "ring-2 ring-brand",
+        "group flex flex-col overflow-hidden rounded-2xl bg-card transition-shadow",
+        "shadow-[0_1px_2px_rgba(28,26,23,.04),0_10px_30px_rgba(28,26,23,.06)]",
+        selected && "ring-2 ring-brand ring-offset-2 ring-offset-background",
       )}
     >
       <div className="relative aspect-[3/3.8] overflow-hidden bg-muted">
@@ -51,37 +61,51 @@ export function ProductCard({
             src={photo.url}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="cursor-zoom-in object-cover"
+            priority={eager}
             onClick={() => onOpen(product, photoIndex)}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-full items-center justify-center text-muted-foreground">
             No photo
           </div>
         )}
 
         {product.isNew && (
-          <Badge
+          <span
             data-badge="new"
-            className="absolute left-3 top-3 bg-background/90 text-brand shadow-sm"
+            className="absolute left-4 top-4 rounded-full bg-background/95 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand shadow-sm"
           >
             New
-          </Badge>
+          </span>
         )}
 
         {selectable && (
           <button
             type="button"
-            aria-label={selected ? `Remove ${product.sku} from selection` : `Add ${product.sku} to selection`}
+            disabled={lockedByCategory}
+            aria-label={
+              lockedByCategory
+                ? `${product.sku} is included through its category`
+                : selected
+                  ? `Remove ${product.sku} from selection`
+                  : `Add ${product.sku} to selection`
+            }
             aria-pressed={selected}
+            title={
+              lockedByCategory
+                ? `Included because all of ${product.category} is selected`
+                : undefined
+            }
             onClick={() => onToggleSelect(product.sku)}
             className={cn(
-              "absolute right-3 top-3 flex size-7 items-center justify-center rounded-full border-2 border-white/90 text-white transition",
-              selected ? "bg-brand" : "bg-black/20 hover:bg-black/40",
+              "absolute right-4 top-4 flex size-9 items-center justify-center rounded-full border-2 border-white/90 text-white shadow-sm transition",
+              selected ? "bg-brand" : "bg-black/25 hover:bg-black/45",
+              lockedByCategory && "cursor-default opacity-90",
             )}
           >
-            {selected && <Check className="size-4" strokeWidth={3} />}
+            {selected && <Check className="size-5" strokeWidth={3} />}
           </button>
         )}
 
@@ -91,24 +115,24 @@ export function ProductCard({
               type="button"
               aria-label="Previous photo"
               onClick={() => step(-1)}
-              className="absolute left-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 opacity-0 shadow transition group-hover:opacity-100 focus-visible:opacity-100"
+              className="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 opacity-0 shadow transition group-hover:opacity-100 focus-visible:opacity-100"
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-5" />
             </button>
             <button
               type="button"
               aria-label="Next photo"
               onClick={() => step(1)}
-              className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 opacity-0 shadow transition group-hover:opacity-100 focus-visible:opacity-100"
+              className="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 opacity-0 shadow transition group-hover:opacity-100 focus-visible:opacity-100"
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-5" />
             </button>
-            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
               {photos.map((image, index) => (
                 <span
                   key={image.url}
                   className={cn(
-                    "size-1.5 rounded-full bg-white/60 transition",
+                    "size-2 rounded-full bg-white/60 transition",
                     index === photoIndex && "scale-125 bg-white",
                   )}
                 />
@@ -118,17 +142,28 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="text-sm font-semibold leading-snug">{product.name}</h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">{product.sku}</p>
+      <div className="flex flex-1 flex-col gap-4 p-6">
+        <div>
+          <h3 className="text-lg font-semibold leading-snug">{product.name}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{product.sku}</p>
+        </div>
 
-        <p className="mt-2 text-base font-bold">
-          {formatPrice(product.price)}
-          <span className="ml-1 text-xs font-normal text-muted-foreground">/ unit</span>
-        </p>
+        <div>
+          <p className="text-2xl font-bold leading-none">
+            {formatPrice(product.price)}
+            <span className="ml-2 text-sm font-normal text-muted-foreground">/ unit</span>
+          </p>
+          {pack && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {pack.sizes}
+              {pack.split && <span className="text-foreground"> · {pack.split}</span>}
+              {pack.minimum && ` · ${pack.minimum}`}
+            </p>
+          )}
+        </div>
 
         {product.colors.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {product.colors.map((option) => (
               <button
                 key={option}
@@ -136,12 +171,14 @@ export function ProductCard({
                 onClick={() => setColor(option)}
                 aria-pressed={option === color}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border bg-secondary/60 py-1 pl-1 pr-2.5 text-[11px] transition",
-                  option === color ? "ring-2 ring-foreground" : "hover:border-foreground/30",
+                  "flex items-center gap-2 rounded-full border bg-secondary/50 py-1.5 pl-1.5 pr-3.5 text-sm transition",
+                  option === color
+                    ? "border-foreground/70 bg-secondary"
+                    : "hover:border-foreground/30",
                 )}
               >
                 <span
-                  className="size-3.5 rounded-full ring-1 ring-border"
+                  className="size-5 rounded-full ring-1 ring-border"
                   style={{ background: swatchFor(option) }}
                 />
                 {formatColorName(option)}
@@ -150,8 +187,8 @@ export function ProductCard({
           </div>
         )}
 
-        <div className="mt-auto pt-3">
-          <CopyOrderButton product={product} color={color} />
+        <div className="mt-auto">
+          <CopyOrderButton product={product} color={color} className="w-full" />
         </div>
       </div>
     </article>

@@ -1,4 +1,5 @@
 import { formatColorName } from "./color";
+import { packSummary } from "./pack";
 import { formatPrice } from "./pricing";
 import type { PublicProduct } from "./public";
 
@@ -14,6 +15,19 @@ export function orderText(
 ): string {
   const lines = [product.name, `SKU: ${product.sku}`];
   if (color) lines.push(`Color: ${formatColorName(color)}`);
+
+  // How the style is sold belongs in the message: a buyer pasting this into a
+  // conversation is agreeing to a pack, not to a single piece.
+  const pack = packSummary(product);
+  if (pack?.sizes) {
+    lines.push(`Sizes: ${pack.sizes}${pack.split ? ` (${pack.split})` : ""}`);
+  }
+  if (product.minimumUnits) {
+    lines.push(
+      `Minimum order: ${product.minimumUnits} ${product.minimumUnits === 1 ? "piece" : "pieces"}`,
+    );
+  }
+
   lines.push(`Price: ${formatPrice(product.price)} / unit`);
   if (catalogUrl) lines.push(catalogUrl);
   return lines.join("\n");

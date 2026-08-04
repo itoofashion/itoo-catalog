@@ -52,7 +52,9 @@ on. A local development catalog needs no secret.
 (`http://localhost:3000`) and Cloudflare Workers addresses (`*.workers.dev`).
 Add your own domain to both lists, then reload the extension.
 
-## Scope
+## How long it takes
 
-The pilot imports the first 10 active products. The full build imports the
-entire catalog and adds the weekly update flow with a review step.
+The extension imports every active style, and FashionGo needs a separate request
+per style to give up its photos — around eight hundred requests in total. Expect
+a couple of minutes; the catalog shows the progress while it runs, and the
+catalog is only replaced once everything has arrived.

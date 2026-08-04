@@ -12,5 +12,12 @@ export const EXTENSION_READY_ATTRIBUTE = "data-itoo-extension";
 
 export type SyncMessage =
   | { source: typeof SYNC_MESSAGE_SOURCE; type: "sync-request" }
+  | {
+      source: typeof SYNC_MESSAGE_SOURCE;
+      type: "sync-progress";
+      done: number;
+      total: number;
+      stage: "listing" | "details";
+    }
   | { source: typeof SYNC_MESSAGE_SOURCE; type: "sync-complete"; count: number }
   | { source: typeof SYNC_MESSAGE_SOURCE; type: "sync-failed"; error: string };

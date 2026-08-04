@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { categoriesOf, filterProducts } from "./filter";
+import { categoriesOf, filterProducts, isSelected, selectedProducts } from "./filter";
 import type { PublicProduct } from "./public";
+import { EMPTY_SELECTION, NO_FILTERS } from "./share";
 
 function product(overrides: Partial<PublicProduct> & { sku: string }): PublicProduct {
   return {
@@ -9,6 +10,9 @@ function product(overrides: Partial<PublicProduct> & { sku: string }): PublicPro
     category: "Tops",
     colors: [],
     images: [],
+    sizes: ["S", "M", "L"],
+    packBreakdown: [2, 2, 2],
+    minimumUnits: 6,
     isNew: false,
     ...overrides,
   };
@@ -34,37 +38,74 @@ describe("categoriesOf", () => {
   });
 });
 
-describe("filterProducts", () => {
-  it("returns everything when nothing is selected", () => {
-    expect(filterProducts(catalog, { skus: [], category: null })).toHaveLength(3);
+describe("isSelected", () => {
+  it("counts a style picked on its own", () => {
+    expect(isSelected(catalog[0], { categories: [], skus: ["A-1"] })).toBe(true);
   });
 
-  it("filters by category", () => {
-    const result = filterProducts(catalog, { skus: [], category: "Dresses" });
+  it("counts a style picked through its category", () => {
+    expect(isSelected(catalog[1], { categories: ["Dresses"], skus: [] })).toBe(true);
+  });
+
+  it("leaves out everything else", () => {
+    expect(isSelected(catalog[0], { categories: ["Dresses"], skus: [] })).toBe(false);
+  });
+});
+
+describe("selectedProducts", () => {
+  it("is the whole catalog when nothing is picked", () => {
+    expect(selectedProducts(catalog, EMPTY_SELECTION)).toHaveLength(3);
+  });
+
+  it("keeps the styles that were picked", () => {
+    const result = selectedProducts(catalog, { categories: [], skus: ["A-1", "A-3"] });
+    expect(result.map((p) => p.sku)).toEqual(["A-1", "A-3"]);
+  });
+
+  it("keeps everything in a picked category", () => {
+    const result = selectedProducts(catalog, { categories: ["Dresses"], skus: [] });
     expect(result.map((p) => p.sku)).toEqual(["A-2", "A-3"]);
   });
 
-  it("treats All as no category filter", () => {
-    expect(filterProducts(catalog, { skus: [], category: "All" })).toHaveLength(3);
+  it("takes a category link to mean the category, not the styles it held", () => {
+    // A dress added after the link was sent is in the link too.
+    const later = [...catalog, product({ sku: "A-4", category: "Dresses" })];
+    const result = selectedProducts(later, { categories: ["Dresses"], skus: [] });
+    expect(result.map((p) => p.sku)).toContain("A-4");
   });
 
-  it("keeps only hand-picked items", () => {
-    const result = filterProducts(catalog, { skus: ["A-1", "A-3"], category: null });
-    expect(result.map((p) => p.sku)).toEqual(["A-1", "A-3"]);
+  it("combines categories with individually picked styles", () => {
+    const result = selectedProducts(catalog, { categories: ["Tops"], skus: ["A-2"] });
+    expect(result.map((p) => p.sku)).toEqual(["A-1", "A-2"]);
   });
 
-  it("ignores picked SKUs that are no longer in the catalog", () => {
-    const result = filterProducts(catalog, { skus: ["A-1", "GONE"], category: null });
+  it("ignores styles that are no longer in the catalog", () => {
+    const result = selectedProducts(catalog, { categories: [], skus: ["A-1", "GONE"] });
     expect(result.map((p) => p.sku)).toEqual(["A-1"]);
   });
+});
 
-  it("combines a picked set with a category", () => {
-    const result = filterProducts(catalog, { skus: ["A-1", "A-3"], category: "Dresses" });
-    expect(result.map((p) => p.sku)).toEqual(["A-3"]);
+describe("filterProducts", () => {
+  it("returns everything with no filters", () => {
+    expect(filterProducts(catalog, NO_FILTERS)).toHaveLength(3);
   });
 
-  it("shows only new arrivals when asked", () => {
-    const result = filterProducts(catalog, { skus: [], category: null, newOnly: true });
+  it("narrows to a category", () => {
+    const result = filterProducts(catalog, { category: "Dresses", newOnly: false });
+    expect(result.map((p) => p.sku)).toEqual(["A-2", "A-3"]);
+  });
+
+  it("treats All as no filter", () => {
+    expect(filterProducts(catalog, { category: "All", newOnly: false })).toHaveLength(3);
+  });
+
+  it("narrows to new arrivals", () => {
+    const result = filterProducts(catalog, { category: null, newOnly: true });
     expect(result.map((p) => p.sku)).toEqual(["A-1", "A-3"]);
+  });
+
+  it("applies both together", () => {
+    const result = filterProducts(catalog, { category: "Dresses", newOnly: true });
+    expect(result.map((p) => p.sku)).toEqual(["A-3"]);
   });
 });

@@ -14,6 +14,9 @@ const ADMIN_URL = "https://vendoradmin.fashiongo.net/";
 /** FashionGo rejects other page sizes; 20 is the smallest it accepts. */
 const PAGE_SIZE = 20;
 
+/** Polite towards an admin API that was never meant to be crawled. */
+const DETAIL_CONCURRENCY = 4;
+
 export class SyncError extends Error {}
 
 /**
@@ -93,21 +96,48 @@ export async function fetchCategories(token) {
 }
 
 /**
- * Products, newest first, with each one's detail — that is where the per-color
- * photos live.
+ * Every active product, with each one's detail — that is where the per-color
+ * photos and the size run live.
+ *
+ * This is around eight hundred requests against a vendor admin that was never
+ * meant to be crawled, so details are fetched a few at a time and progress is
+ * reported back to whoever started the sync.
  */
-export async function fetchProducts(token, limit) {
-  const list = await get(token, `items?pn=1&ps=${PAGE_SIZE}&saleType=W&pageType=1`);
-  const records = list?.data?.active?.records ?? [];
+export async function fetchProducts(token, onProgress = () => {}) {
+  const records = [];
+  let total = Infinity;
+
+  for (let page = 1; records.length < total; page += 1) {
+    const list = await get(token, `items?pn=${page}&ps=${PAGE_SIZE}&saleType=W&pageType=1`);
+    const active = list?.data?.active;
+    const batch = active?.records ?? [];
+    total = active?.total?.totalCount ?? records.length;
+    if (batch.length === 0) break;
+    records.push(...batch);
+    onProgress(records.length, total, "listing");
+  }
+
   if (records.length === 0) {
     throw new SyncError("FashionGo returned no active products.");
   }
 
-  const wanted = records.slice(0, limit);
-  const products = [];
-  for (const record of wanted) {
-    const detail = await get(token, `item/${record.productId}`).catch(() => null);
-    products.push({ record, detail: detail?.data ?? null });
+  const products = new Array(records.length);
+  let next = 0;
+  let done = 0;
+
+  async function worker() {
+    for (;;) {
+      const index = next++;
+      if (index >= records.length) return;
+      const record = records[index];
+      const detail = await get(token, `item/${record.productId}`).catch(() => null);
+      products[index] = { record, detail: detail?.data ?? null };
+      onProgress(++done, records.length, "details");
+    }
   }
+
+  await Promise.all(
+    Array.from({ length: Math.min(DETAIL_CONCURRENCY, records.length) }, worker),
+  );
   return products;
 }

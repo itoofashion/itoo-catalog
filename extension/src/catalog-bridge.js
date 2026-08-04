@@ -18,6 +18,14 @@ function reply(message) {
   window.postMessage({ source: SYNC_MESSAGE_SOURCE, ...message }, window.location.origin);
 }
 
+// Progress arrives from the background worker and is handed to the page, which
+// cannot listen to extension messages itself.
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.source === SYNC_MESSAGE_SOURCE && message.type === "sync-progress") {
+    reply(message);
+  }
+});
+
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
   if (event.data?.source !== SYNC_MESSAGE_SOURCE || event.data?.type !== "sync-request") {

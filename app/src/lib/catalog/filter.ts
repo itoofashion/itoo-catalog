@@ -1,31 +1,56 @@
 import type { PublicProduct } from "./public";
-import { ALL_CATEGORIES, type CatalogSelection } from "./share";
+import {
+  ALL_CATEGORIES,
+  isEmptySelection,
+  type CatalogFilters,
+  type CatalogSelection,
+} from "./share";
 
-export type CatalogFilter = CatalogSelection & {
-  newOnly?: boolean;
-};
-
-/** Categories present in the catalog, "All" first, the rest alphabetical. */
+/** Categories present in a set of products, "All" first, the rest alphabetical. */
 export function categoriesOf(products: PublicProduct[]): string[] {
   const names = [...new Set(products.map((p) => p.category).filter(Boolean))];
   names.sort((a, b) => a.localeCompare(b));
   return [ALL_CATEGORIES, ...names];
 }
 
+/** A style is in the selection either on its own, or through its category. */
+export function isSelected(
+  product: PublicProduct,
+  selection: CatalogSelection,
+): boolean {
+  return (
+    selection.categories.includes(product.category) ||
+    selection.skus.includes(product.sku)
+  );
+}
+
+/**
+ * What a visitor can reach at all.
+ *
+ * With nothing selected that is the whole catalog. Following a shared link it is
+ * only what was shared — and because a category is stored as a category rather
+ * than as the styles it held at the time, a link to Dresses picks up dresses
+ * added after it was sent.
+ */
+export function selectedProducts(
+  products: PublicProduct[],
+  selection: CatalogSelection,
+): PublicProduct[] {
+  if (isEmptySelection(selection)) return products;
+  return products.filter((product) => isSelected(product, selection));
+}
+
+/** Narrows what is on screen. Filters are a view, not part of the selection. */
 export function filterProducts(
   products: PublicProduct[],
-  filter: CatalogFilter,
+  filters: CatalogFilters,
 ): PublicProduct[] {
   let result = products;
 
-  if (filter.skus.length > 0) {
-    const picked = new Set(filter.skus);
-    result = result.filter((p) => picked.has(p.sku));
+  if (filters.category && filters.category !== ALL_CATEGORIES) {
+    result = result.filter((p) => p.category === filters.category);
   }
-  if (filter.category && filter.category !== ALL_CATEGORIES) {
-    result = result.filter((p) => p.category === filter.category);
-  }
-  if (filter.newOnly) {
+  if (filters.newOnly) {
     result = result.filter((p) => p.isNew);
   }
   return result;

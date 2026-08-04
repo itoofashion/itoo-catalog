@@ -161,3 +161,26 @@
   --color-brand: oklch(0.66 0.062 70);
   --color-brand-foreground: oklch(0.985 0.003 85);
 }
+
+/* ---------------------------------------------------------------------------
+   Scale.
+
+   The catalog is read by buyers on a phone, in a hurry, mid-conversation — not
+   by anyone sitting at a dashboard. Everything is a step larger than a typical
+   web app: the base size lifts every rem-based measurement with it, so type,
+   controls and spacing grow together instead of drifting apart.
+   --------------------------------------------------------------------------- */
+html {
+  font-size: 17px;
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Photographs carry this interface, so the frames around them stay soft. */
+:root {
+  --radius: 1rem;
+}
