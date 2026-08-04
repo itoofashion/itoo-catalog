@@ -12,8 +12,16 @@ const stored: Product = {
   category: "Tops",
   colors: ["Beige"],
   images: [
-    { url: "https://fg-image.fashiongo.net/Vendors/x/ProductImage/large/a.jpg", color: "Beige" },
+    {
+      url: "/i/0123456789abcdef0123456789abcdef",
+      sourceUrl:
+        "https://fg-image.fashiongo.net/Vendors/x/ProductImage/large/26144615_a.jpg",
+      color: "Beige",
+    },
   ],
+  sizes: ["S", "M", "L"],
+  packBreakdown: [2, 2, 2],
+  minimumUnits: 6,
   createdAt: "2026-07-28T15:02:43.153Z",
   sourceId: 26144615,
 };
@@ -30,6 +38,9 @@ const PUBLISHED_FIELDS: Array<keyof PublicProduct> = [
   "category",
   "colors",
   "images",
+  "sizes",
+  "packBreakdown",
+  "minimumUnits",
   "isNew",
 ];
 
@@ -62,6 +73,26 @@ describe("the published product", () => {
     expect(Object.keys(image).sort()).toEqual(["color", "url"]);
   });
 
+  it("keeps the FashionGo address a photo is downloaded from off the page", () => {
+    const published = toPublicProduct(stored, now);
+    expect(JSON.stringify(published)).not.toContain("fashiongo");
+    expect(published.images[0].url).toBe("/i/0123456789abcdef0123456789abcdef");
+  });
+
+  it("publishes what a buyer needs to order: the run, the split and the total", () => {
+    const published = toPublicProduct(stored, now);
+    expect(published.sizes).toEqual(["S", "M", "L"]);
+    expect(published.packBreakdown).toEqual([2, 2, 2]);
+    expect(published.minimumUnits).toBe(6);
+  });
+
+  it("publishes a loose style without inventing a split", () => {
+    const loose = { ...stored, packBreakdown: null, minimumUnits: 6 };
+    const published = toPublicProduct(loose, now);
+    expect(published.packBreakdown).toBeNull();
+    expect(published.sizes).toEqual(["S", "M", "L"]);
+  });
+
   it("publishes the catalog price and never the FashionGo price it came from", () => {
     // The source price is the vendor's margin and is not in the stored product
     // either — this asserts the published price is the discounted one.
@@ -83,20 +114,12 @@ describe("the published catalog, built from the real export", () => {
     }
   });
 
-  it("leaks no FashionGo product ids in the data", () => {
-    // Photo addresses are excluded on purpose: FashionGo names its image files
-    // after the product id, and the address is what makes the photo load. The
-    // id stops being visible at all in Milestone 2, when photos move to our own
-    // storage. Everything that is ours to control is checked here.
-    const withoutPhotoUrls = JSON.stringify(
-      published.products.map(({ images, ...rest }) => ({
-        ...rest,
-        images: images.map(({ color }) => ({ color })),
-      })),
-    );
-
+  it("leaks no FashionGo product ids, photo addresses included", () => {
+    // Photo addresses used to be the exception here: FashionGo names its image
+    // files after the product id, and the address was what made the photo load.
+    // Photos are served from /i now, so nothing is excluded from this check.
     for (const product of seedProducts()) {
-      expect(withoutPhotoUrls, `id of ${product.sku} is published`).not.toContain(
+      expect(serialized, `id of ${product.sku} is published`).not.toContain(
         String(product.sourceId),
       );
     }

@@ -70,6 +70,29 @@ After deploying:
    and enter the same value in the extension popup. The catalog is public, so
    without this the sync endpoint would let anyone replace the catalog — a
    deployed Worker with no secret configured refuses to sync at all.
+3. Create the photo bucket and switch the binding on (below). The site works
+   without it, just slower on the first view of each photo.
+
+### The photo bucket
+
+Product photos are served from the catalog's own domain and cached in an R2
+bucket, so the site does not depend on FashionGo's CDN and does not publish
+FashionGo's product ids in photo addresses. The bucket is created once:
+
+```bash
+cd app
+npx wrangler r2 bucket create itoo-images
+```
+
+Then uncomment the `r2_buckets` line in `app/wrangler.jsonc` — the leading comma
+is part of it — and deploy. The binding is commented out until then on purpose:
+a Worker bound to a bucket that does not exist fails to deploy.
+
+Without the bucket the Worker keeps photos in memory instead, so each new
+instance downloads a photo once from FashionGo and serves it from then on.
+Nothing breaks — it is just extra work the bucket removes. Nothing else needs
+configuring: the bucket only ever holds photos the catalog itself has published,
+and it fills up as clients view them.
 
 ## What the browser can see
 
@@ -80,6 +103,13 @@ category, colors, photos and whether the style is a new arrival — and nothing
 else. FashionGo's internal product ids, the dates behind the "New" badge and the
 source prices stay on the server. `app/src/lib/catalog/public.ts` is that
 boundary, and its tests fail if a new internal field starts being published.
+
+Photos are part of that boundary. FashionGo names its image files after its
+internal product id, so a page linking to their CDN would publish those ids in
+every photo address. Photos are served from `/i/<key>` instead, where the key is
+a hash of the FashionGo address: it says nothing about the product, and the
+address it was made from is only ever resolved through the catalog, so the route
+cannot be talked into downloading anything else.
 
 ## Testing
 

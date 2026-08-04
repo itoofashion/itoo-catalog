@@ -1,5 +1,6 @@
 import type { Product } from "@/lib/catalog/types";
-import { categoryNameMap, mapProduct } from "./map";
+import { isImageSource } from "@/lib/images/source";
+import { categoryNameMap, dedupeBySku, mapProduct } from "./map";
 import type { FashionGoCategory, FashionGoDetail, FashionGoListRecord } from "./types";
 
 /**
@@ -16,8 +17,6 @@ export type SyncRequestResult =
   | { ok: true; products: Product[] }
   | { ok: false; error: string };
 
-const IMAGE_HOST = "https://fg-image.fashiongo.net/";
-
 export function parseSyncRequest(input: unknown): SyncRequestResult {
   if (!isRecord(input)) return fail("Expected a JSON object");
   if (!Array.isArray(input.categories)) return fail("Expected a categories array");
@@ -31,7 +30,6 @@ export function parseSyncRequest(input: unknown): SyncRequestResult {
   );
 
   const products: Product[] = [];
-  const seen = new Set<string>();
 
   for (const [index, entry] of input.products.entries()) {
     const at = `products[${index}]`;
@@ -47,8 +45,17 @@ export function parseSyncRequest(input: unknown): SyncRequestResult {
     if (typeof price !== "number" || !Number.isFinite(price) || price < 0) {
       return fail(`${at} (${record.productName}) has an invalid price`);
     }
-    if (typeof record._createdOn !== "string") {
-      return fail(`${at} (${record.productName}) has no creation date`);
+    // Either date will do: the mapping prefers the activation date and falls
+    // back to the upload date, so a record is only unusable when it has neither.
+    if (typeof record._activatedOn !== "string" && typeof record._createdOn !== "string") {
+      return fail(`${at} (${record.productName}) has no date`);
+    }
+    // The list thumbnail is the fallback photo, so it is held to the same rule
+    // as the detail photos. A product with no thumbnail at all is fine.
+    if (record.imageUrl != null && record.imageUrl !== "") {
+      if (typeof record.imageUrl !== "string" || !isImageSource(record.imageUrl)) {
+        return fail(`${at} (${record.productName}) has a photo from outside FashionGo`);
+      }
     }
 
     const detail = entry.detail == null ? null : parseDetail(entry.detail);
@@ -56,17 +63,14 @@ export function parseSyncRequest(input: unknown): SyncRequestResult {
       return fail(`${at} (${record.productName}) has invalid detail`);
     }
 
-    const product = mapProduct(
-      record as unknown as FashionGoListRecord,
-      detail,
-      categories,
+    products.push(
+      mapProduct(record as unknown as FashionGoListRecord, detail, categories),
     );
-    if (seen.has(product.sku)) return fail(`${at} repeats style ${product.sku}`);
-    seen.add(product.sku);
-    products.push(product);
   }
 
-  return { ok: true, products };
+  // A style listed twice is the vendor re-listing it, not a broken push, so it
+  // is collapsed rather than rejected — see dedupeBySku.
+  return { ok: true, products: dedupeBySku(products) };
 }
 
 /** Returns false — not null — when the detail is present but malformed. */
@@ -78,9 +82,11 @@ function parseDetail(input: unknown): FashionGoDetail | null | false {
 
   for (const image of images ?? []) {
     if (!isRecord(image) || typeof image.imageUrl !== "string") return false;
-    // Only FashionGo's own CDN, so a tampered payload cannot point the catalog
-    // at someone else's images.
-    if (!image.imageUrl.startsWith(IMAGE_HOST)) return false;
+    // Only FashionGo's own CDN. The image route refuses to download from
+    // anywhere else anyway, so this is not what stops a tampered payload — it is
+    // what makes it loud: a push carrying foreign addresses is rejected whole
+    // instead of quietly producing products with photos that never load.
+    if (!isImageSource(image.imageUrl)) return false;
   }
 
   return input as unknown as FashionGoDetail;

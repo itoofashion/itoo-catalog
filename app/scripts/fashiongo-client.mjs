@@ -151,6 +151,26 @@ export async function listActiveProducts(get, pageNumber = 1) {
   };
 }
 
+/**
+ * Every active product, walked page by page. The API reports the total up front,
+ * but it is trusted only as a stop condition alongside an empty page — a vendor
+ * adding a style mid-walk must not turn into an endless loop.
+ */
+export async function listAllActiveProducts(get, onPage = () => {}) {
+  const records = [];
+  let total = Infinity;
+
+  for (let pageNumber = 1; records.length < total; pageNumber++) {
+    const page = await listActiveProducts(get, pageNumber);
+    total = page.total;
+    if (page.records.length === 0) break;
+    records.push(...page.records);
+    onPage(records.length, total);
+  }
+
+  return records;
+}
+
 /** Full product record — this is where per-color photos live. */
 export async function getProductDetail(get, productId) {
   const body = await get(`item/${productId}`);

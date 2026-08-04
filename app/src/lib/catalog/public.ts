@@ -1,5 +1,5 @@
 import { isNewArrival } from "./arrivals";
-import type { Catalog, Product, ProductImage } from "./types";
+import type { Catalog, Product } from "./types";
 
 /**
  * What a browser is allowed to see.
@@ -14,13 +14,27 @@ import type { Catalog, Product, ProductImage } from "./types";
  * "New arrival" is resolved here rather than shipped as a date, because the
  * badge is the only thing the interface needs from that date.
  */
+/** A photo as the browser gets it: an address of ours, and what color it shows. */
+export type PublicImage = {
+  url: string;
+  color: string | null;
+};
+
 export type PublicProduct = {
   sku: string;
   name: string;
   price: number;
   category: string;
   colors: string[];
-  images: ProductImage[];
+  images: PublicImage[];
+  /**
+   * What a wholesale buyer has to know before ordering: which sizes come in the
+   * pack, how many of each, and how many pieces that adds up to. None of it says
+   * anything about the vendor's own numbers, so all three are published.
+   */
+  sizes: string[];
+  packBreakdown: number[] | null;
+  minimumUnits: number | null;
   isNew: boolean;
 };
 
@@ -37,7 +51,13 @@ export function toPublicProduct(product: Product, now: Date): PublicProduct {
     price: product.price,
     category: product.category,
     colors: product.colors,
+    // A photo is published as our own address and its color. Where we download
+    // it from is a FashionGo address with their product id in the filename, and
+    // hiding that is the whole point of serving photos ourselves.
     images: product.images.map((image) => ({ url: image.url, color: image.color })),
+    sizes: product.sizes,
+    packBreakdown: product.packBreakdown,
+    minimumUnits: product.minimumUnits,
     isNew: isNewArrival(product.createdAt, now),
   };
 }
