@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { parseSyncPayload } from "@/lib/catalog/sync-payload";
 import { catalogStore } from "@/lib/catalog/store";
+import { parseSyncRequest } from "@/lib/fashiongo/sync-request";
 
 /**
- * Receives the products the Chrome extension read out of FashionGo and replaces
- * the catalog with them. A sync is a mirror, not a merge: what FashionGo has is
- * what the catalog shows.
+ * Receives what the Chrome extension read out of the FashionGo vendor admin and
+ * replaces the catalog with it. A sync is a mirror, not a merge: whatever
+ * FashionGo has is what the catalog shows.
  */
 export async function POST(request: Request) {
   let body: unknown;
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Expected a JSON body" }, { status: 400 });
   }
 
-  const parsed = parseSyncPayload(body);
+  const parsed = parseSyncRequest(body);
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
@@ -25,4 +25,10 @@ export async function POST(request: Request) {
     count: catalog.products.length,
     syncedAt: catalog.syncedAt,
   });
+}
+
+/** The extension checks this before importing, to confirm it found the catalog. */
+export async function GET() {
+  const { products, syncedAt } = await catalogStore.read();
+  return NextResponse.json({ count: products.length, syncedAt });
 }

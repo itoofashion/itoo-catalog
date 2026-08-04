@@ -9,8 +9,8 @@ import type { Catalog, Product } from "./types";
  * design — FashionGo is the source of truth.
  *
  * The pilot keeps the catalog in memory and falls back to the shipped seed, so
- * the site works with no database. Milestone 2 swaps in a D1-backed store
- * behind this same interface.
+ * the site works with no database. Milestone 2 swaps in a D1-backed store behind
+ * this same interface.
  */
 export interface CatalogStore {
   read(): Promise<Catalog>;
@@ -31,8 +31,25 @@ export function createMemoryStore(initial: Catalog = seedCatalog()): CatalogStor
 }
 
 /**
- * Module-level so a sync survives between requests within a Worker isolate.
- * Isolates are recycled, at which point the catalog returns to the seed —
- * acceptable for the pilot, and the reason M2 moves this into D1.
+ * Held on globalThis rather than in a module variable on purpose: the page and
+ * the sync route are bundled separately, so a plain module-level store would
+ * give each of them its own copy and a sync would never show up on the page.
+ *
+ * The catalog still lives only in this isolate's memory. When the isolate is
+ * recycled the catalog returns to the seed — acceptable for the pilot, and the
+ * reason Milestone 2 moves this into D1.
  */
-export const catalogStore: CatalogStore = createMemoryStore();
+const STORE_KEY = Symbol.for("itoo.catalog.store");
+
+type GlobalWithStore = typeof globalThis & { [STORE_KEY]?: CatalogStore };
+
+function sharedStore(): CatalogStore {
+  const container = globalThis as GlobalWithStore;
+  container[STORE_KEY] ??= createMemoryStore();
+  return container[STORE_KEY];
+}
+
+export const catalogStore: CatalogStore = {
+  read: () => sharedStore().read(),
+  replace: (products) => sharedStore().replace(products),
+};

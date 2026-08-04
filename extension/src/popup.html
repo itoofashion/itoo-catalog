@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 280px;
+        margin: 0;
+        padding: 16px;
+        font:
+          13px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #1c1a17;
+        background: #faf9f7;
+      }
+      h1 {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+      }
+      p {
+        margin: 6px 0 0;
+        color: #8a8378;
+        font-size: 12px;
+      }
+      label {
+        display: block;
+        margin-top: 14px;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #8a8378;
+      }
+      input {
+        width: 100%;
+        margin-top: 4px;
+        padding: 7px 9px;
+        border: 1px solid #e7e2da;
+        border-radius: 8px;
+        font: inherit;
+        background: #fff;
+        box-sizing: border-box;
+      }
+      button {
+        width: 100%;
+        margin-top: 14px;
+        padding: 10px;
+        border: 0;
+        border-radius: 9px;
+        background: #3d3a35;
+        color: #fff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      #status {
+        margin-top: 10px;
+        font-size: 12px;
+        min-height: 1.4em;
+      }
+      #status.error {
+        color: #a33b2c;
+      }
+      #status.done {
+        color: #2e7d4f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>itoo sync</h1>
+    <p>Imports products from FashionGo into the catalog.</p>
+
+    <label for="origin">Catalog address</label>
+    <input id="origin" type="url" placeholder="http://localhost:3000" />
+
+    <button id="import" type="button">Import products</button>
+    <div id="status"></div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

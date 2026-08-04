@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMemoryStore } from "./store";
+import { catalogStore, createMemoryStore, type CatalogStore } from "./store";
 import { seedProducts } from "./seed";
 import type { Product } from "./types";
 
@@ -35,5 +35,27 @@ describe("catalog store", () => {
     const before = Date.now();
     const { syncedAt } = await store.replace(replacement);
     expect(new Date(syncedAt).getTime()).toBeGreaterThanOrEqual(before);
+  });
+});
+
+describe("the shared store", () => {
+  /**
+   * The page and the sync route are bundled separately, so each gets its own
+   * copy of this module. Without a shared home, syncing would report success
+   * while the page kept showing the old products.
+   *
+   * A second bundle reaches the store the same way this module does: through the
+   * global registry, under a symbol looked up by name.
+   */
+  it("is the same catalog for every copy of this module", async () => {
+    await catalogStore.replace(replacement);
+
+    const asAnotherBundleSeesIt = (
+      globalThis as typeof globalThis & Record<symbol, CatalogStore | undefined>
+    )[Symbol.for("itoo.catalog.store")];
+
+    expect(asAnotherBundleSeesIt, "store is not shared globally").toBeDefined();
+    const catalog = await asAnotherBundleSeesIt!.read();
+    expect(catalog.products.map((p: Product) => p.sku)).toEqual(["NEW-1"]);
   });
 });
