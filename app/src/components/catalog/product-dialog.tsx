@@ -87,7 +87,7 @@ export function ProductDialog({
                     aria-label={`Photo ${index + 1} of ${photos.length}`}
                     aria-current={index === photoIndex ? "true" : undefined}
                     className={cn(
-                      "relative aspect-[3/4] shrink-0 overflow-hidden border transition",
+                      "relative aspect-[3/4] shrink-0 cursor-pointer overflow-hidden border transition",
                       index === photoIndex
                         ? "border-foreground"
                         : "border-transparent opacity-60 hover:opacity-100",
@@ -122,7 +122,7 @@ export function ProductDialog({
                       type="button"
                       aria-label="Previous photo"
                       onClick={() => showPhoto(photoIndex - 1)}
-                      className="absolute left-2 top-1/2 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow sm:flex"
+                      className="absolute left-2 top-1/2 hidden size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background/90 shadow sm:flex"
                     >
                       <ChevronLeft className="size-4" />
                     </button>
@@ -132,7 +132,7 @@ export function ProductDialog({
                       type="button"
                       aria-label="Next photo"
                       onClick={() => showPhoto(photoIndex + 1)}
-                      className="absolute right-2 top-1/2 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow sm:flex"
+                      className="absolute right-2 top-1/2 hidden size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background/90 shadow sm:flex"
                     >
                       <ChevronRight className="size-4" />
                     </button>
@@ -145,107 +145,111 @@ export function ProductDialog({
             </div>
           </div>
 
-          <div className="flex flex-col border-t p-6 sm:border-t-0 sm:border-l sm:p-7">
-            <div>
-              {product.isNew && (
-                <span className="tracked mb-3 inline-block bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-foreground">
-                  New
+          {/* The spec sheet is also the preview for the copy button below it:
+              every fact printed here is a line of what lands on the clipboard. */}
+          <div className="copy-source flex flex-col border-t p-6 sm:border-t-0 sm:border-l sm:p-7">
+            <div className="copy-facts flex flex-col sm:flex-1">
+              <div>
+                {product.isNew && (
+                  <span className="tracked mb-3 inline-block bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-foreground">
+                    New
+                  </span>
+                )}
+                <DialogTitle className="pr-8 text-xl font-semibold leading-snug">
+                  {product.name}
+                </DialogTitle>
+                <DialogDescription className="mt-1.5 text-sm">
+                  {product.sku} · {product.category}
+                </DialogDescription>
+              </div>
+
+              <p className="mt-5 flex items-baseline gap-2">
+                <span className="text-[2rem] font-bold leading-none">
+                  {formatPrice(product.price)}
                 </span>
-              )}
-              <DialogTitle className="pr-8 text-xl font-semibold leading-snug">
-                {product.name}
-              </DialogTitle>
-              <DialogDescription className="mt-1.5 text-sm">
-                {product.sku} · {product.category}
-              </DialogDescription>
-            </div>
+                <span className="text-sm text-muted-foreground">per unit</span>
+              </p>
 
-            <p className="mt-5 flex items-baseline gap-2">
-              <span className="text-[2rem] font-bold leading-none">
-                {formatPrice(product.price)}
-              </span>
-              <span className="text-sm text-muted-foreground">per unit</span>
-            </p>
-
-            <dl className="spec-sheet mt-6 sm:flex-1">
-              {sizes.length > 0 && (
-                <div className="flex flex-col justify-center gap-2 border-t py-3">
-                  <dt className="tracked text-[10px] text-muted-foreground">
-                    {perSize ? "Size run" : "Sizes"}
-                  </dt>
-                  <dd className="flex flex-wrap gap-1.5">
-                    {sizes.map((size, index) => (
-                      <span
-                        key={size}
-                        className="min-w-11 border border-border px-2 py-1 text-center"
-                      >
-                        <span className="tracked block text-[10px] text-muted-foreground">
-                          {size}
-                        </span>
-                        {perSize && (
-                          <span className="block text-sm font-semibold">{perSize[index]}</span>
-                        )}
-                      </span>
-                    ))}
-                  </dd>
-                </div>
-              )}
-
-              {product.minimumUnits ? (
-                <div className="flex items-center justify-between gap-4 border-t py-3">
-                  <dt className="tracked text-[10px] text-muted-foreground">Minimum order</dt>
-                  <dd className="text-sm font-semibold">{product.minimumUnits} pcs</dd>
-                </div>
-              ) : null}
-
-              {/* The sum a buyer would otherwise reach for a calculator to get. */}
-              {orderValue && (
-                <div className="flex items-center justify-between gap-4 border-t py-3">
-                  <dt className="tracked text-[10px] text-muted-foreground">
-                    That comes to
-                  </dt>
-                  <dd className="text-sm font-semibold">{orderValue}</dd>
-                </div>
-              )}
-
-              {product.colors.length > 0 && (
-                <div className="flex flex-col justify-center gap-2.5 border-t py-3">
-                  <dt className="tracked text-[10px] text-muted-foreground">
-                    {product.colors.length > 1
-                      ? `Colors · ${product.colors.length}`
-                      : "Color"}
-                  </dt>
-                  <dd className="flex flex-wrap gap-1.5">
-                    {product.colors.map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setColor(option)}
-                        aria-pressed={option === color}
-                        className={cn(
-                          "flex items-center gap-1.5 rounded-sm border py-1 pl-1 pr-2.5 text-xs transition",
-                          option === color
-                            ? "border-foreground"
-                            : "border-border hover:border-foreground/40",
-                        )}
-                      >
+              <dl className="spec-sheet mt-6 sm:flex-1">
+                {sizes.length > 0 && (
+                  <div className="flex flex-col justify-center gap-2 border-t py-3">
+                    <dt className="tracked text-[10px] text-muted-foreground">
+                      {perSize ? "Size run" : "Sizes"}
+                    </dt>
+                    <dd className="flex flex-wrap gap-1.5">
+                      {sizes.map((size, index) => (
                         <span
-                          className="size-4 rounded-full ring-1 ring-border"
-                          style={{ background: swatchFor(option) }}
-                        />
-                        {formatColorName(option)}
-                      </button>
-                    ))}
-                  </dd>
-                </div>
-              )}
-            </dl>
+                          key={size}
+                          className="min-w-11 border border-border px-2 py-1 text-center"
+                        >
+                          <span className="tracked block text-[10px] text-muted-foreground">
+                            {size}
+                          </span>
+                          {perSize && (
+                            <span className="block text-sm font-semibold">{perSize[index]}</span>
+                          )}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                )}
+
+                {product.minimumUnits ? (
+                  <div className="flex items-center justify-between gap-4 border-t py-3">
+                    <dt className="tracked text-[10px] text-muted-foreground">Minimum order</dt>
+                    <dd className="text-sm font-semibold">{product.minimumUnits} pcs</dd>
+                  </div>
+                ) : null}
+
+                {/* The sum a buyer would otherwise reach for a calculator to get. */}
+                {orderValue && (
+                  <div className="flex items-center justify-between gap-4 border-t py-3">
+                    <dt className="tracked text-[10px] text-muted-foreground">
+                      That comes to
+                    </dt>
+                    <dd className="text-sm font-semibold">{orderValue}</dd>
+                  </div>
+                )}
+
+                {product.colors.length > 0 && (
+                  <div className="flex flex-col justify-center gap-2.5 border-t py-3">
+                    <dt className="tracked text-[10px] text-muted-foreground">
+                      {product.colors.length > 1
+                        ? `Colors · ${product.colors.length}`
+                        : "Color"}
+                    </dt>
+                    <dd className="flex flex-wrap gap-1.5">
+                      {product.colors.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setColor(option)}
+                          aria-pressed={option === color}
+                          className={cn(
+                            "flex cursor-pointer items-center gap-1.5 rounded-sm border py-1 pl-1 pr-2.5 text-xs transition",
+                            option === color
+                              ? "border-foreground"
+                              : "border-border hover:border-foreground/40",
+                          )}
+                        >
+                          <span
+                            className="size-4 rounded-full ring-1 ring-border"
+                            style={{ background: swatchFor(option) }}
+                          />
+                          {formatColorName(option)}
+                        </button>
+                      ))}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
 
             <div className="border-t pt-5">
               <CopyOrderButton product={product} color={color} className="w-full" />
               <p className="mt-2.5 text-xs text-muted-foreground">
-                Puts the style number, color and price on your clipboard as text to
-                paste into a chat.
+                Copies everything above as plain text — name, style number, color,
+                size run, minimum and price — ready to paste into a chat.
               </p>
             </div>
           </div>

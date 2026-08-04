@@ -129,7 +129,7 @@ export function ProductCard({
             }
             onClick={() => onToggleSelect(product.sku)}
             className={cn(
-              "absolute right-2.5 top-2.5 flex size-7 items-center justify-center rounded-full border text-white shadow-sm transition",
+              "absolute right-2.5 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-full border text-white shadow-sm transition",
               selected
                 ? "border-foreground bg-foreground"
                 : "border-white/80 bg-black/25 hover:bg-black/45",
@@ -153,7 +153,7 @@ export function ProductCard({
                 type="button"
                 aria-label="Previous photo"
                 onClick={() => showPhoto(photoIndex - 1)}
-                className="absolute left-1.5 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow-sm transition sm:flex sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                className="absolute left-1.5 top-1/2 hidden size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background/90 shadow-sm transition sm:flex sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               >
                 <ChevronLeft className="size-4" />
               </button>
@@ -163,7 +163,7 @@ export function ProductCard({
                 type="button"
                 aria-label="Next photo"
                 onClick={() => showPhoto(photoIndex + 1)}
-                className="absolute right-1.5 top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow-sm transition sm:flex sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                className="absolute right-1.5 top-1/2 hidden size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background/90 shadow-sm transition sm:flex sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               >
                 <ChevronRight className="size-4" />
               </button>
@@ -182,7 +182,7 @@ export function ProductCard({
                     aria-current={index === photoIndex ? "true" : undefined}
                     onClick={() => showPhoto(index)}
                     /* The dot is 6px; the target around it is a finger wide. */
-                    className="flex h-6 w-4 items-center justify-center"
+                    className="flex h-6 w-4 cursor-pointer items-center justify-center"
                   >
                     {/* Half these photographs are shot against white, so the dot
                         carries its own edge rather than trusting the backdrop. */}
@@ -204,58 +204,56 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col pt-3">
-        <h3 className="line-clamp-1 text-sm font-semibold" title={product.name}>
-          {product.name}
-        </h3>
+      {/* Everything printed here is everything the copy button sends, which is
+          what lets the button go without a preview of its own. */}
+      <div className="copy-source flex flex-1 flex-col pt-3">
+        <div className="copy-facts">
+          <h3 className="line-clamp-1 text-sm font-semibold" title={product.name}>
+            {product.name}
+          </h3>
 
-        <p className="mt-1.5 flex items-baseline gap-2">
-          <span className="text-base font-bold">{formatPrice(product.price)}</span>
-          {pack?.minimum && (
-            <span className="text-xs text-muted-foreground">min {pack.minimum}</span>
-          )}
-        </p>
-
-        <p className="mt-1 text-xs text-muted-foreground">
-          {product.sku}
-          {pack?.sizes && <> · {pack.sizes}</>}
-          {pack?.split && <> · {pack.split}</>}
-        </p>
-
-        {product.colors.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
-            {product.colors.slice(0, MAX_SWATCHES).map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setColor(option)}
-                aria-pressed={option === color}
-                aria-label={formatColorName(option)}
-                title={formatColorName(option)}
-                /* The swatch reads at 16px but has to be hit with a thumb. */
-                className={cn(
-                  "relative size-4 rounded-full ring-1 ring-border transition before:absolute before:-inset-1.5 before:content-['']",
-                  option === color && "ring-2 ring-foreground ring-offset-1",
-                )}
-                style={{ background: swatchFor(option) }}
-              />
-            ))}
-            {product.colors.length > MAX_SWATCHES && (
-              <span className="text-xs text-muted-foreground">
-                +{product.colors.length - MAX_SWATCHES}
-              </span>
+          <p className="mt-1.5 flex items-baseline gap-2">
+            <span className="text-base font-bold">{formatPrice(product.price)}</span>
+            {pack?.minimum && (
+              <span className="text-xs text-muted-foreground">min {pack.minimum}</span>
             )}
-          </div>
-        )}
+          </p>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+            {product.sku}
+            {pack?.sizes && <> · {pack.sizes}</>}
+            {pack?.split && <> · {pack.split}</>}
+          </p>
+
+          {product.colors.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {product.colors.slice(0, MAX_SWATCHES).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setColor(option)}
+                  aria-pressed={option === color}
+                  aria-label={formatColorName(option)}
+                  title={formatColorName(option)}
+                  /* The swatch reads at 16px but has to be hit with a thumb. */
+                  className={cn(
+                    "relative size-4 cursor-pointer rounded-full ring-1 ring-border transition before:absolute before:-inset-1.5 before:content-['']",
+                    option === color && "ring-2 ring-foreground ring-offset-1",
+                  )}
+                  style={{ background: swatchFor(option) }}
+                />
+              ))}
+              {product.colors.length > MAX_SWATCHES && (
+                <span className="text-xs text-muted-foreground">
+                  +{product.colors.length - MAX_SWATCHES}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="mt-auto pt-3">
-          <CopyOrderButton
-            product={product}
-            color={color}
-            size="sm"
-            variant="outline"
-            className="w-full"
-          />
+          <CopyOrderButton product={product} color={color} tone="card" className="w-full" />
         </div>
       </div>
     </article>

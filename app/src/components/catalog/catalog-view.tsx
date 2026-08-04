@@ -196,7 +196,7 @@ export function CatalogView({
                   setBrowsingAll(false);
                   changeFilters({ page: 1 });
                 }}
-                className="underline underline-offset-4"
+                className="cursor-pointer underline underline-offset-4"
               >
                 Back to your selection
               </button>
@@ -212,7 +212,7 @@ export function CatalogView({
                   setBrowsingAll(true);
                   changeFilters({ page: 1 });
                 }}
-                className="underline underline-offset-4"
+                className="cursor-pointer underline underline-offset-4"
               >
                 See everything
               </button>

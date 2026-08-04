@@ -352,22 +352,73 @@ describe("signing in", () => {
   });
 });
 
-describe("copy to order", () => {
-  it("shows the line before it is copied", async () => {
+describe("copying a style into a chat", () => {
+  const copyButtonOf = (card: ReturnType<typeof within>) =>
+    card.getByRole("button", { name: /^Copy details/ });
+
+  it("copies on the first press, with no step in between", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(within(cards()[0]).getByRole("button", { name: /Copy to order/ }));
+    await user.click(copyButtonOf(within(cards()[0])));
 
-    const popover = await screen.findByText(/This is what gets copied/);
-    expect(popover).toBeInTheDocument();
-    expect(screen.getByText(/SKU: TOP-1/)).toBeInTheDocument();
+    await expect(navigator.clipboard.readText()).resolves.toContain("SKU: TOP-1");
   });
 
-  it("copies that line", async () => {
+  it("copies the whole line sheet row, not just the style number", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(within(cards()[0]).getByRole("button", { name: /Copy to order/ }));
-    await user.click(await screen.findByRole("button", { name: /^Copy$/ }));
+    await user.click(copyButtonOf(within(cards()[0])));
+
+    const copied = await navigator.clipboard.readText();
+    expect(copied).toContain("Style TOP-1");
+    expect(copied).toContain("Color: Beige");
+    expect(copied).toContain("Sizes: S·M·L (pack 2-2-2)");
+    expect(copied).toContain("Minimum order: 6 pieces");
+    expect(copied).toContain("$19.75");
+  });
+
+  it("says on the button itself that the copy happened", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    const button = copyButtonOf(within(cards()[0]));
+    await user.click(button);
+
+    expect(button).toHaveTextContent(/Copied/);
+    // The name has to follow the words, or a screen reader hears the old label.
+    expect(button).toHaveAccessibleName(/^Copied/);
+  });
+
+  it("names the style it copied, so forty-eight buttons stay apart", () => {
+    renderCatalog();
+    expect(copyButtonOf(within(cards()[0]))).toHaveAccessibleName(/TOP-1/);
+  });
+
+  it("copies the color the buyer picked, not the first one", async () => {
+    const user = userEvent.setup();
+    render(
+      <CatalogView
+        products={[product({ sku: "TOP-7", colors: ["Beige", "Black"] })]}
+        syncedAt={NOW}
+        selection={EMPTY_SELECTION}
+        filters={NO_FILTERS}
+        isTeam={false}
+      />,
+    );
+    const card = within(screen.getByRole("article"));
+
+    await user.click(card.getByRole("button", { name: "Black" }));
+    await user.click(copyButtonOf(card));
+
+    await expect(navigator.clipboard.readText()).resolves.toContain("Color: Black");
+  });
+
+  it("copies from the open style as well as from its card", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(within(cards()[0]).getByRole("img"));
+
+    const dialog = within(await screen.findByRole("dialog"));
+    await user.click(copyButtonOf(dialog));
 
     await expect(navigator.clipboard.readText()).resolves.toContain("SKU: TOP-1");
   });

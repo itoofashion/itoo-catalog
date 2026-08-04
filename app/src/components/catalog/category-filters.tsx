@@ -84,7 +84,7 @@ export function CategoryFilters({
         onClick={onToggleNew}
         aria-pressed={newOnly}
         className={cn(
-          "tracked flex shrink-0 items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
+          "tracked flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
           newOnly
             ? "border-foreground bg-foreground text-background"
             : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
@@ -130,7 +130,7 @@ export function CategoryFilters({
                         : `Add all of ${name} to the link`
                     }
                     className={cn(
-                      "my-1 ml-1.5 flex size-4 items-center justify-center rounded-[2px] border transition",
+                      "my-1 ml-1.5 flex size-4 cursor-pointer items-center justify-center rounded-[2px] border transition",
                       isPicked
                         ? "border-foreground bg-background text-foreground"
                         : isActive
@@ -145,7 +145,10 @@ export function CategoryFilters({
                   type="button"
                   onClick={() => onSelect(name)}
                   aria-pressed={isActive}
-                  className={cn("whitespace-nowrap px-3 py-1.5 text-[13px]", canPick && "pl-2")}
+                  className={cn(
+                    "cursor-pointer whitespace-nowrap px-3 py-1.5 text-[13px]",
+                    canPick && "pl-2",
+                  )}
                 >
                   {name}
                 </button>

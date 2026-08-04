@@ -228,6 +228,53 @@ html {
 }
 
 /*
+ * The copy button has no preview of its own. What it puts on the clipboard is
+ * the block of facts printed right beside it — name, style number, colour, size
+ * run, minimum, price — so pointing at the button rules that block in the
+ * margin, the way a buyer marks a row on a printed line sheet, and a copy holds
+ * the mark for as long as the button reads "Copied". A popover said the same
+ * thing by reprinting text already on screen, and charged a press for it.
+ *
+ * The rule lives in the gutter beside the block, so nothing moves when it
+ * appears.
+ */
+.copy-facts {
+  position: relative;
+}
+
+.copy-facts::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: -0.625rem;
+  width: 2px;
+  background: var(--foreground);
+  opacity: 0;
+  transform: scaleY(0.3);
+  transform-origin: top;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.copy-source:has([data-copy-order]:hover) .copy-facts::before,
+.copy-source:has([data-copy-order]:focus-visible) .copy-facts::before {
+  opacity: 0.3;
+  transform: scaleY(1);
+}
+
+.copy-source:has([data-copy-order][data-copied]) .copy-facts::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-facts::before {
+    transition: none;
+  }
+}
+
+/*
  * How many columns fit is decided by the width available, not by breakpoints,
  * so a wider screen simply shows more of the catalogue. The 46% floor is what
  * keeps a phone at two cards across rather than one enormous one.
