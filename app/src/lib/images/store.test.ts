@@ -23,10 +23,22 @@ function fakeBucket() {
     ) {
       objects.set(key, { body: value, contentType: options?.httpMetadata?.contentType });
     },
+    async head(key: string) {
+      return objects.get(key) ?? null;
+    },
   };
 }
 
 describe("the R2 image store", () => {
+  it("reports whether a photo is there without reading it back", async () => {
+    const bucket = fakeBucket();
+    const store = createR2ImageStore(bucket);
+
+    expect(await store.has("abc")).toBe(false);
+    await store.put("abc", photo, "image/jpeg");
+    expect(await store.has("abc")).toBe(true);
+  });
+
   it("returns nothing for a photo it has never been given", async () => {
     const store = createR2ImageStore(fakeBucket());
     expect(await store.get("missing")).toBeNull();

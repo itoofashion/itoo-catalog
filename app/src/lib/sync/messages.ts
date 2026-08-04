@@ -17,7 +17,7 @@ export type SyncMessage =
       type: "sync-progress";
       done: number;
       total: number;
-      stage: "listing" | "details";
+      stage: "listing" | "details" | "photos";
     }
   | { source: typeof SYNC_MESSAGE_SOURCE; type: "sync-complete"; count: number }
   | { source: typeof SYNC_MESSAGE_SOURCE; type: "sync-failed"; error: string };

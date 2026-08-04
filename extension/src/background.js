@@ -32,7 +32,35 @@ async function runImport(catalogOrigin, report) {
   if (!response.ok) {
     throw new SyncError(body.error ?? `The catalog rejected the import (${response.status})`);
   }
+
+  // The catalog holds addresses, not photos, until someone asks for them. Doing
+  // that now means the first client to open the link is not the one paying for
+  // six thousand downloads.
+  await warmPhotos(catalogOrigin, headers, report);
+
   return body.count ?? products.length;
+}
+
+async function warmPhotos(catalogOrigin, headers, report) {
+  let cursor = 0;
+
+  for (;;) {
+    const response = await fetch(`${catalogOrigin}/api/images/warm`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ cursor }),
+    });
+    if (!response.ok) {
+      // Photos are not worth failing a sync over: the catalog still shows them,
+      // it just fetches each one the first time it is opened.
+      return;
+    }
+
+    const progress = await response.json();
+    cursor = progress.cursor;
+    report(cursor, progress.total, "photos");
+    if (progress.done) return;
+  }
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

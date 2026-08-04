@@ -15,6 +15,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 export interface ImageStore {
   get(key: string): Promise<Response | null>;
   put(key: string, body: ArrayBuffer, contentType: string): Promise<void>;
+  /** Whether a photo is already here, without paying to read it back. */
+  has(key: string): Promise<boolean>;
 }
 
 const DEFAULT_CONTENT_TYPE = "image/jpeg";
@@ -35,6 +37,7 @@ type ImageBucket = {
     value: ArrayBuffer,
     options?: { httpMetadata?: { contentType?: string } },
   ): Promise<unknown>;
+  head(key: string): Promise<unknown | null>;
 };
 
 export function createR2ImageStore(bucket: ImageBucket): ImageStore {
@@ -50,6 +53,9 @@ export function createR2ImageStore(bucket: ImageBucket): ImageStore {
     },
     async put(key, body, contentType) {
       await bucket.put(key, body, { httpMetadata: { contentType } });
+    },
+    async has(key) {
+      return (await bucket.head(key)) !== null;
     },
   };
 }
@@ -92,6 +98,9 @@ export function createMemoryImageStore(limitBytes = MEMORY_LIMIT_BYTES): ImageSt
         heldBytes -= stored.body.byteLength;
       }
     },
+    async has(key) {
+      return held.has(key);
+    },
   };
 }
 
@@ -129,7 +138,11 @@ async function imageBucket(): Promise<ImageBucket | null> {
 function isBucket(value: unknown): value is ImageBucket {
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Partial<ImageBucket>;
-  return typeof candidate.get === "function" && typeof candidate.put === "function";
+  return (
+    typeof candidate.get === "function" &&
+    typeof candidate.put === "function" &&
+    typeof candidate.head === "function"
+  );
 }
 
 export async function imageStore(): Promise<ImageStore> {

@@ -53,7 +53,9 @@ export function StatusBar({
         setMessage(
           stage === "listing"
             ? `Listing products — ${done} of ${total}`
-            : `Reading details — ${done} of ${total}`,
+            : stage === "details"
+              ? `Reading details — ${done} of ${total}`
+              : `Downloading photos — ${done} of ${total}`,
         );
       }
       if (event.data.type === "sync-complete") {
