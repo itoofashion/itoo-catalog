@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Link2, Loader2, X } from "lucide-react";
+import { Check, Link2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CatalogSelection } from "@/lib/catalog/share";
+import { encodeSelection } from "@/lib/links/code";
 
 /**
  * The whole point of the admin view: pick what a client asked for, get one link
@@ -23,7 +24,6 @@ export function LinkPanel({
   productCount: number;
   onClear: () => void;
 }) {
-  const [state, setState] = useState<"idle" | "working" | "ready" | "failed">("idle");
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -34,28 +34,13 @@ export function LinkPanel({
   }, [copied]);
 
   async function makeLink() {
-    setState("working");
+    const url = `${window.location.origin}/s/${encodeSelection(selection)}`;
+    setLink(url);
     try {
-      const response = await fetch("/api/links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(selection),
-      });
-      if (!response.ok) throw new Error(String(response.status));
-
-      const { code } = (await response.json()) as { code: string };
-      const url = `${window.location.origin}/s/${code}`;
-      setLink(url);
-      setState("ready");
-
-      try {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-      } catch {
-        // Clipboard access can be denied; the link stays on screen to copy by hand.
-      }
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
     } catch {
-      setState("failed");
+      // Clipboard access can be denied; the link stays on screen to copy by hand.
     }
   }
 
@@ -70,20 +55,14 @@ export function LinkPanel({
         <div className="min-w-0 flex-1">
           <p className="text-base font-semibold">{summary}</p>
           <p className="mt-1 truncate text-sm text-muted-foreground">
-            {state === "ready" ? link : "One link, ready to send in chat."}
+            {link || "One link, ready to send in chat."}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={makeLink} disabled={state === "working"} className="flex-1 sm:flex-none">
-            {state === "working" ? (
-              <Loader2 className="animate-spin" />
-            ) : copied ? (
-              <Check />
-            ) : (
-              <Link2 />
-            )}
-            {copied ? "Copied" : state === "ready" ? "Copy again" : "Get link"}
+          <Button onClick={makeLink} className="flex-1 sm:flex-none">
+            {copied ? <Check /> : <Link2 />}
+            {copied ? "Copied" : link ? "Copy again" : "Get link"}
           </Button>
           <Button
             variant="ghost"
@@ -95,10 +74,6 @@ export function LinkPanel({
             <X />
           </Button>
         </div>
-
-        {state === "failed" && (
-          <p className="text-sm text-destructive sm:hidden">Could not make a link.</p>
-        )}
       </div>
     </div>
   );
