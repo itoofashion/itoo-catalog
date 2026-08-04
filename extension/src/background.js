@@ -41,18 +41,33 @@ async function runImport(catalogOrigin, report) {
   return body.count ?? products.length;
 }
 
+/**
+ * How many photos to ask for per call. Every photo costs the worker a handful of
+ * outbound requests, and how many it may make depends on the Cloudflare plan —
+ * so rather than guessing, this starts optimistic and halves on failure until it
+ * finds a size that goes through.
+ */
+const FIRST_BATCH = 100;
+const SMALLEST_BATCH = 10;
+
 async function warmPhotos(catalogOrigin, headers, report) {
   let cursor = 0;
+  let batch = FIRST_BATCH;
 
   for (;;) {
     const response = await fetch(`${catalogOrigin}/api/images/warm`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ cursor }),
+      body: JSON.stringify({ cursor, batch }),
     });
+
     if (!response.ok) {
+      if (batch > SMALLEST_BATCH) {
+        batch = Math.max(SMALLEST_BATCH, Math.floor(batch / 2));
+        continue;
+      }
       // Photos are not worth failing a sync over: the catalog still shows them,
-      // it just fetches each one the first time it is opened.
+      // it just fetches each one the first time somebody opens it.
       return;
     }
 
