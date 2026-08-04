@@ -138,6 +138,28 @@ describe("CatalogView", () => {
       renderCatalog({ skus: [], category: "Pants" });
       expect(within(grid()).getAllByRole("article")).toHaveLength(2);
     });
+
+    it("offers only categories present in what was shared", () => {
+      // Offering the whole catalog's categories would let a client filter their
+      // own selection down to an empty page.
+      renderCatalog({ skus: ["TOP-1"], category: null });
+
+      expect(screen.getByRole("button", { name: "Tops" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Pants" })).not.toBeInTheDocument();
+    });
+
+    it("never empties the page through a category the selection cannot fill", async () => {
+      const user = userEvent.setup();
+      renderCatalog();
+      // Pick a top, then leave the category filter on Pants before previewing:
+      // the shared page has no Pants in it and must not open on an empty grid.
+      await user.click(screen.getByRole("button", { name: /Add TOP-1 to selection/ }));
+      await user.click(screen.getByRole("button", { name: "Pants" }));
+      await user.click(screen.getByRole("button", { name: "Admin view" }));
+
+      expect(within(grid()).getAllByRole("article")).toHaveLength(1);
+      expect(within(grid()).getByText("Style TOP-1")).toBeInTheDocument();
+    });
   });
 
   it("opens a product when its photo is clicked", async () => {

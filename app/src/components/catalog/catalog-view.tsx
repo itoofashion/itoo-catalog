@@ -32,14 +32,27 @@ export function CatalogView({ products, syncedAt, selection }: CatalogViewProps)
     null,
   );
 
-  const categories = useMemo(() => categoriesOf(products), [products]);
+  // What this visitor can reach at all. In the admin view that is the whole
+  // catalog — picking items must not make them disappear from the grid you are
+  // picking from. A client following a shared link can only reach what was
+  // shared with them.
+  const scope = useMemo(
+    () => (isAdmin ? products : filterProducts(products, { skus: [...picked], category: null })),
+    [products, isAdmin, picked],
+  );
 
-  const visible = useMemo(() => {
-    // In the admin view every product stays visible — picking items must not
-    // make them disappear from the grid you are picking from.
-    const skus = isAdmin ? [] : [...picked];
-    return filterProducts(products, { skus, category, newOnly });
-  }, [products, isAdmin, picked, category, newOnly]);
+  // Categories come from what is reachable, so a client is never offered a
+  // filter that would empty the page.
+  const categories = useMemo(() => categoriesOf(scope), [scope]);
+
+  // A category chosen before the view changed may not exist in the new scope;
+  // falling back to All is better than showing an empty page.
+  const activeCategory = categories.includes(category) ? category : ALL_CATEGORIES;
+
+  const visible = useMemo(
+    () => filterProducts(scope, { skus: [], category: activeCategory, newOnly }),
+    [scope, activeCategory, newOnly],
+  );
 
   function togglePicked(sku: string) {
     setPicked((current) => {
@@ -49,7 +62,7 @@ export function CatalogView({ products, syncedAt, selection }: CatalogViewProps)
     });
   }
 
-  const shareQuery = buildShareQuery({ skus: [...picked], category });
+  const shareQuery = buildShareQuery({ skus: [...picked], category: activeCategory });
 
   return (
     <>
@@ -86,10 +99,10 @@ export function CatalogView({ products, syncedAt, selection }: CatalogViewProps)
               key={name}
               type="button"
               onClick={() => setCategory(name)}
-              aria-pressed={name === category}
+              aria-pressed={name === activeCategory}
               className={cn(
                 "rounded-full border px-4 py-1.5 text-sm transition",
-                name === category
+                name === activeCategory
                   ? "border-primary bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground hover:border-foreground/30 hover:text-foreground",
               )}
