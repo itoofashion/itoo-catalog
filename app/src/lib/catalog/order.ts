@@ -1,0 +1,20 @@
+import { formatColorName } from "./color";
+import { formatPrice } from "./pricing";
+import type { Product } from "./types";
+
+/**
+ * What "Copy to order" puts on the clipboard. Buyers paste this straight into a
+ * chat, so it has to be readable as plain text and carry everything the sales
+ * team needs to identify the item: style number, color and price.
+ */
+export function orderText(
+  product: Product,
+  color: string | null,
+  catalogUrl?: string,
+): string {
+  const lines = [product.name, `SKU: ${product.sku}`];
+  if (color) lines.push(`Color: ${formatColorName(color)}`);
+  lines.push(`Price: ${formatPrice(product.price)} / unit`);
+  if (catalogUrl) lines.push(catalogUrl);
+  return lines.join("\n");
+}

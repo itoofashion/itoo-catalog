@@ -1,0 +1,607 @@
+{
+  "pulledAt": "2026-08-04T11:17:02.938Z",
+  "categories": [
+    {
+      "catID": 501,
+      "catName": "Activewear (8) "
+    },
+    {
+      "catID": 213,
+      "catName": "Clutches & Pouches (1) "
+    },
+    {
+      "catID": 13,
+      "catName": "Dresses (72) "
+    },
+    {
+      "catID": 12,
+      "catName": "Jeans & Denim (31) "
+    },
+    {
+      "catID": 34,
+      "catName": "Jumpsuits & Rompers (10) "
+    },
+    {
+      "catID": 9,
+      "catName": "Outerwear (128) "
+    },
+    {
+      "catID": 10,
+      "catName": "Pants (83) "
+    },
+    {
+      "catID": 14,
+      "catName": "Sets (35) "
+    },
+    {
+      "catID": 33,
+      "catName": "Shorts (21) "
+    },
+    {
+      "catID": 226,
+      "catName": "Shoulder Bags (2) "
+    },
+    {
+      "catID": 11,
+      "catName": "Skirts (8) "
+    },
+    {
+      "catID": 11,
+      "catName": "Skirts (36) "
+    },
+    {
+      "catID": 517,
+      "catName": "Special Occasions (1) "
+    },
+    {
+      "catID": 518,
+      "catName": "Sweaters & Cardigans (40) "
+    },
+    {
+      "catID": 8,
+      "catName": "Tops (299) "
+    }
+  ],
+  "products": [
+    {
+      "record": {
+        "productId": 26144615,
+        "productName": "Y-542",
+        "itemName": "Romantic Lace Top",
+        "sellingPrice": 20.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144615_6cd21f5c-b101-49a4-96e7-41332ba7b76c.jpg",
+        "_createdOn": "2026-07-28T15:02:43.153",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144615,
+          "categoryId": 22,
+          "parentCategoryId": 8,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144615_6cd21f5c-b101-49a4-96e7-41332ba7b76c.jpg",
+            "color": "Beige",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144615_3c1dbc1c-6829-437e-9271-cafe7b691e24.jpg",
+            "color": "Beige",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144615_8963febd-9b0a-4162-aae9-ea964d2ce969.jpg",
+            "color": "Beige",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144615_27e18c1a-461c-498b-adce-da3f37687189.jpg",
+            "color": "Beige",
+            "listOrder": 4,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26148658,
+        "productName": "ITP9005",
+        "itemName": "Leopard jeans",
+        "sellingPrice": 33.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26148658_286568bb-9cfa-4fde-8b92-3e0c32cc4863.jpg",
+        "_createdOn": "2026-07-29T10:42:08.413",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26148658,
+          "categoryId": 1627,
+          "parentCategoryId": 12,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26148658_286568bb-9cfa-4fde-8b92-3e0c32cc4863.jpg",
+            "color": "Blue",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26148658_1ddc2c97-1e18-48f3-b9b7-3e822d55f8a5.jpg",
+            "color": "Blue",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26148658_86ed6c49-dc2a-401f-9b01-2cc72a9addea.jpg",
+            "color": "Blue",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26148658_7a3348ca-4ac9-4f75-bb06-6f322558281f.jpg",
+            "color": "Blue",
+            "listOrder": 4,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144663,
+        "productName": "WP-2088",
+        "itemName": "Ribbed Top",
+        "sellingPrice": 14.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_fe2058ee-f8ef-4669-b1af-58681a8220c1.jpg",
+        "_createdOn": "2026-07-28T15:13:33.67",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144663,
+          "categoryId": 28,
+          "parentCategoryId": 518,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_fe2058ee-f8ef-4669-b1af-58681a8220c1.jpg",
+            "color": "Mocha",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_f26ed4f5-245d-4a42-9933-f4421c0e918c.jpg",
+            "color": "Beige",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_45812ee4-6816-4f62-bde4-3cd8cdb53de7.jpg",
+            "color": "Beige",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_c7bf1912-eb1a-495c-9c88-32a46dc5aba4.jpg",
+            "color": "Beige",
+            "listOrder": 4,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_a198c36f-4e77-4348-8e3b-9bdd02a7438d.jpg",
+            "color": "Mocha",
+            "listOrder": 5,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144663_927f7f14-0690-4fd1-8f3a-3726da9c7d4d.jpg",
+            "color": "Mocha",
+            "listOrder": 6,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144652,
+        "productName": "60910",
+        "itemName": "Double Lux Blouse",
+        "sellingPrice": 20.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_95352c2d-2f9d-4f91-b70a-6622f999197a.jpg",
+        "_createdOn": "2026-07-28T15:08:44.1",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144652,
+          "categoryId": 22,
+          "parentCategoryId": 8,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_95352c2d-2f9d-4f91-b70a-6622f999197a.jpg",
+            "color": "celeste",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_9a091fff-b568-482d-9ed9-d3f9f8b471ca.jpg",
+            "color": "celeste",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_98b15f81-b4c4-45ad-a36a-d43576b59ea6.jpg",
+            "color": "celeste",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_5dfa1a5c-f51e-4d9f-8144-595081549a7b.jpg",
+            "color": "PINK",
+            "listOrder": 4,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_7682e174-e257-4ca1-8ea8-22ee673ef302.jpg",
+            "color": "PINK",
+            "listOrder": 5,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144652_0638845f-5598-4e10-841f-3e0de4c936ac.jpg",
+            "color": "PINK",
+            "listOrder": 6,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144575,
+        "productName": "7803620",
+        "itemName": "Silver Long Sleeve open in the middle",
+        "sellingPrice": 15.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144575_ef044e23-7a81-43e9-9003-7eae89df329d.jpg",
+        "_createdOn": "2026-07-28T14:57:20.063",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144575,
+          "categoryId": 28,
+          "parentCategoryId": 518,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144575_ef044e23-7a81-43e9-9003-7eae89df329d.jpg",
+            "color": "BEIGE W SILVER",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144575_ccb58260-6593-4696-be70-0e1db3a8e3a1.jpg",
+            "color": "BEIGE W SILVER",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144575_821c26fc-8f4c-4acc-ba08-65d786f19fd3.jpg",
+            "color": "BEIGE W SILVER",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144575_83343c8b-5b37-4843-92fc-68157cb0798a.jpg",
+            "color": "BEIGE W SILVER",
+            "listOrder": 4,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144844,
+        "productName": "21349-9",
+        "itemName": "Cove Pants",
+        "sellingPrice": 23.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_7f2cf146-0206-4c60-958d-11aadfabbdf6.jpg",
+        "_createdOn": "2026-07-28T15:49:44.37",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144844,
+          "categoryId": 31,
+          "parentCategoryId": 10,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_7f2cf146-0206-4c60-958d-11aadfabbdf6.jpg",
+            "color": "Grey",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_d55ff83c-cd41-47e4-8e78-fc123c63aab5.jpg",
+            "color": "Grey",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_ca5f883f-419d-4f7f-890a-e91ee07d4c60.jpg",
+            "color": "Grey",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_e7320791-3759-4dc7-b8ba-2ec96d73af3b.jpg",
+            "color": "Beige",
+            "listOrder": 4,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_422d7a2c-45d8-402d-8d4e-6c2498241b14.jpg",
+            "color": "Beige",
+            "listOrder": 5,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144844_3158d284-a5c1-4d3e-9fc1-3a46734121f6.jpg",
+            "color": "Beige",
+            "listOrder": 6,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144871,
+        "productName": "21034",
+        "itemName": "Big Dream Pants",
+        "sellingPrice": 21.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_a28c3c58-5214-4014-8614-2ee532abdf7f.jpg",
+        "_createdOn": "2026-07-28T15:54:06.83",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144871,
+          "categoryId": 31,
+          "parentCategoryId": 10,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_a28c3c58-5214-4014-8614-2ee532abdf7f.jpg",
+            "color": "BLUE JEANS",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_c9f2685a-9292-4654-a65f-0b1769f5cae7.jpg",
+            "color": "BLUE JEANS",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_6af4158c-10c1-4d6c-b48d-229cab0b6eac.jpg",
+            "color": "BLUE JEANS",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_78bae88a-bbc9-43f2-b86c-9410ddb53a43.jpg",
+            "color": "Beige",
+            "listOrder": 4,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_ba117bc9-3071-4512-9d2f-0b290f5b2bc8.jpg",
+            "color": "Beige",
+            "listOrder": 5,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144871_32da5c72-65b9-4349-a26b-32acc9c273c6.jpg",
+            "color": "Beige",
+            "listOrder": 6,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144804,
+        "productName": "WP-2164",
+        "itemName": "Lock Tank",
+        "sellingPrice": 12.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_a186f2f5-d4d1-4f15-8e3b-14cdb94e02be.jpg",
+        "_createdOn": "2026-07-28T15:42:18.813",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144804,
+          "categoryId": 129,
+          "parentCategoryId": 8,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_a186f2f5-d4d1-4f15-8e3b-14cdb94e02be.jpg",
+            "color": "BLACK",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_9c794e68-f406-429a-b98b-8afbe371361c.jpg",
+            "color": "BLACK",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_39ed817a-fe6c-4b18-8a0f-4e8a5b77ffc6.jpg",
+            "color": "Cream",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_74c9e647-cf34-481a-b16c-d1b7982d5818.jpg",
+            "color": "Cream",
+            "listOrder": 4,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_8bcaeeea-38b2-423a-95dc-6f0b4dbd84ae.jpg",
+            "color": "Coffee",
+            "listOrder": 5,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144804_b8cb71e6-25e7-41da-be60-e0adbd3f67ab.jpg",
+            "color": "Coffee",
+            "listOrder": 6,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144500,
+        "productName": "MY38026",
+        "itemName": "Tie Shirt",
+        "sellingPrice": 19.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_d6ba6af2-cfee-49a1-9b68-70e5104fa0a2.jpg",
+        "_createdOn": "2026-07-28T14:46:03.01",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144500,
+          "categoryId": 22,
+          "parentCategoryId": 8,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_d6ba6af2-cfee-49a1-9b68-70e5104fa0a2.jpg",
+            "color": "Yellow",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_906cd2bc-2300-4749-be91-56ee4205b628.jpg",
+            "color": "Yellow",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_74ba4107-eaab-45fd-b9dd-bdcdb0e72a18.jpg",
+            "color": "Yellow",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_79860a84-e019-4509-b8b5-caf11798eccd.jpg",
+            "color": "PINK",
+            "listOrder": 4,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_8d9e87e5-2e80-472e-9779-081d92c9059f.jpg",
+            "color": "PINK",
+            "listOrder": 5,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_a1362cdf-4855-4c38-9779-726bbdf01826.jpg",
+            "color": "PINK",
+            "listOrder": 6,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_84ab7352-c88c-4570-bf25-dbd51a29982c.jpg",
+            "color": "celeste",
+            "listOrder": 7,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_d3ff24c7-9b31-4af4-9b6d-4c4e3a153a3e.jpg",
+            "color": "celeste",
+            "listOrder": 8,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144500_4217f58a-6dc1-402e-8a9f-0449eef60fea.jpg",
+            "color": "celeste",
+            "listOrder": 9,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "record": {
+        "productId": 26144542,
+        "productName": "60950",
+        "itemName": "Off The Shoulder Shirt",
+        "sellingPrice": 21.75,
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/list/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144542_e38338db-a206-40f1-ad3a-63aee1d8d757.jpg",
+        "_createdOn": "2026-07-28T14:51:47.047",
+        "active": true
+      },
+      "detail": {
+        "item": {
+          "productId": 26144542,
+          "categoryId": 22,
+          "parentCategoryId": 8,
+          "parentParentCategoryId": 1
+        },
+        "image": [
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144542_e38338db-a206-40f1-ad3a-63aee1d8d757.jpg",
+            "color": "Yellow",
+            "listOrder": 1,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144542_8f1c2594-0b9e-494d-bf01-ea1c0aff3ec4.jpg",
+            "color": "Yellow",
+            "listOrder": 2,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144542_8ae34a0f-19e7-4327-b9ce-1a98c545e1a1.jpg",
+            "color": "Yellow",
+            "listOrder": 3,
+            "active": true
+          },
+          {
+            "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/large/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26144542_50fff48b-c349-481f-85c1-58ba49060699.jpg",
+            "color": "Yellow",
+            "listOrder": 4,
+            "active": true
+          }
+        ]
+      }
+    }
+  ]
+}
