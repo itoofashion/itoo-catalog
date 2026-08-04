@@ -3,7 +3,7 @@
  *
  * Product data now comes from FashionGo's published REST API
  * (pubapi.fashiongo.net, `GET /v1.0/items`), which the catalog calls directly on
- * a schedule — so there is nothing for an extension to do, and this file is kept
+ * a schedule, so there is nothing for an extension to do, and this file is kept
  * only until that changeover is finished.
  */
 
@@ -28,7 +28,7 @@ export class SyncError extends Error {}
 export async function getVendorToken() {
   if (!ENABLED) {
     throw new SyncError(
-      "Importing through the vendor admin is switched off — the catalog syncs " +
+      "Importing through the vendor admin is switched off. The catalog syncs " +
         "itself from FashionGo's API.",
     );
   }
@@ -104,7 +104,7 @@ export async function fetchCategories(token) {
 }
 
 /**
- * Every active product, with each one's detail — that is where the per-color
+ * Every active product, with each one's detail. That is where the per-color
  * photos and the size run live.
  *
  * This is around eight hundred requests against a vendor admin that was never

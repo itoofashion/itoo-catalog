@@ -90,7 +90,7 @@ export async function login(username, password) {
   if (process.env.FASHIONGO_ALLOW_ADMIN !== "1") {
     throw new Error(
       "The vendor-admin path is disabled. Product data now comes from FashionGo's " +
-        "REST API — see docs/PLAN.md.",
+        "REST API (see docs/PLAN.md).",
     );
   }
 
@@ -165,7 +165,7 @@ export async function listActiveProducts(get, pageNumber = 1) {
 
 /**
  * Every active product, walked page by page. The API reports the total up front,
- * but it is trusted only as a stop condition alongside an empty page — a vendor
+ * but it is trusted only as a stop condition alongside an empty page: a vendor
  * adding a style mid-walk must not turn into an endless loop.
  */
 export async function listAllActiveProducts(get, onPage = () => {}) {
@@ -183,7 +183,7 @@ export async function listAllActiveProducts(get, onPage = () => {}) {
   return records;
 }
 
-/** Full product record — this is where per-color photos live. */
+/** Full product record. This is where per-color photos live. */
 export async function getProductDetail(get, productId) {
   const body = await get(`item/${productId}`);
   return body?.data ?? null;

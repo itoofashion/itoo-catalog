@@ -7,8 +7,8 @@ import type { Catalog, Product } from "./types";
  * The catalog is served from a public address and anything handed to a page is
  * readable by whoever opens it, so the stored product and the published product
  * are deliberately different types. Everything that came out of the vendor admin
- * and is nobody else's business — FashionGo's internal product ids, the source
- * price the catalog price is derived from, when a style was created — stays in
+ * and is nobody else's business (FashionGo's internal product ids, the source
+ * price the catalog price is derived from, when a style was created) stays in
  * the store and never crosses this boundary.
  *
  * "New arrival" is resolved here rather than shipped as a date, because the

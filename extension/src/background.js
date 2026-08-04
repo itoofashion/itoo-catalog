@@ -43,7 +43,7 @@ async function runImport(catalogOrigin, report) {
 
 /**
  * How many photos to ask for per call. Every photo costs the worker a handful of
- * outbound requests, and how many it may make depends on the Cloudflare plan —
+ * outbound requests, and how many it may make depends on the Cloudflare plan,
  * so rather than guessing, this starts optimistic and halves on failure until it
  * finds a size that goes through.
  */

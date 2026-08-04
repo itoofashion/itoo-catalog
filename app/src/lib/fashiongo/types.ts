@@ -9,7 +9,7 @@ export type FashionGoListRecord = {
   sellingPrice: number | null;
   _unitPrice?: number | null;
   imageUrl: string | null;
-  /** When the vendor uploaded the style — it may sit unpublished for weeks after. */
+  /** When the vendor uploaded the style. It may sit unpublished for weeks after. */
   _createdOn: string;
   /** When the style went live for buyers. This is the date the admin shows. */
   _activatedOn?: string | null;
@@ -39,7 +39,7 @@ export type FashionGoSize = {
   sizeQtyCount?: number | null;
 };
 
-/** A row of the vendor's pack table: `packDescription` is "2-2-2" — the split. */
+/** A row of the vendor's pack table: `packDescription` is the split, "2-2-2". */
 export type FashionGoPack = {
   packId: number;
   packDescription: string | null;
@@ -60,7 +60,7 @@ export type FashionGoDetail = {
   };
   image: FashionGoImage[] | null;
   /**
-   * The vendor's whole size and pack tables, not this product's values —
+   * The vendor's whole size and pack tables, not this product's values.
    * FashionGo sends them with every detail because the admin's edit form needs
    * them as dropdowns. The product's own run is the row matching `item.sizeId`.
    */

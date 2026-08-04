@@ -1,4 +1,4 @@
-# local scratch — never commit (may contain client data dumps and credentials)
+# local scratch, never commit (may contain client data dumps and credentials)
 /tmp/
 
 # secrets

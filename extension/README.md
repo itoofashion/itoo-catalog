@@ -1,4 +1,4 @@
-# itoo Catalog Sync — Chrome extension
+# itoo Catalog Sync, the Chrome extension
 
 **Switched off.** The catalog now reads products from FashionGo's REST API
 (`pubapi.fashiongo.net`) on a schedule, so nobody has to press anything and this
@@ -21,7 +21,7 @@ The extension appears in the toolbar as *itoo Catalog Sync*.
 2. Open the catalog and switch to **Admin view**.
 3. Click **Sync from FashionGo**.
 
-The catalog is replaced with what FashionGo currently has — it is a mirror, so
+The catalog is replaced with what FashionGo currently has. It is a mirror, so
 nothing needs to be tidied up afterwards.
 
 You can also run the import from the extension's own popup, which is useful when
@@ -39,11 +39,11 @@ on. A local development catalog needs no secret.
 
 | What you see | What it means |
 | --- | --- |
-| *Chrome extension not detected* | The extension is not installed, or the catalog is running on an address the extension does not cover — see below. |
+| *Chrome extension not detected* | The extension is not installed, or the catalog is running on an address the extension does not cover (see below). |
 | *Not signed in to FashionGo* | Sign in at vendoradmin.fashiongo.net, then sync again. |
 | *The FashionGo session expired* | FashionGo signed you out. Sign in again and re-run the sync. |
 | *The catalog rejected the sync secret* | The secret in the popup does not match the one set on the catalog. |
-| *Sync is not configured* | The catalog has no `SYNC_SECRET` set yet — see the deployment notes in the main README. |
+| *Sync is not configured* | The catalog has no `SYNC_SECRET` set yet. See the deployment notes in the main README. |
 
 ## Pointing it at a different catalog address
 
@@ -55,6 +55,6 @@ Add your own domain to both lists, then reload the extension.
 ## How long it takes
 
 The extension imports every active style, and FashionGo needs a separate request
-per style to give up its photos — around eight hundred requests in total. Expect
+per style to give up its photos, around eight hundred requests in total. Expect
 a couple of minutes; the catalog shows the progress while it runs, and the
 catalog is only replaced once everything has arrived.

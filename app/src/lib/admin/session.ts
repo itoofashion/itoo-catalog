@@ -4,7 +4,7 @@
  * The cookie holds an expiry and a signature over it, never the password: a
  * cookie that leaks tells the finder when it stops working and nothing else, and
  * a stolen one cannot be extended without the signing key. Sessions are verified
- * from the value alone — there is no session list to keep, which suits a Worker
+ * from the value alone: there is no session list to keep, which suits a Worker
  * with no database.
  */
 import { timingSafeEqual } from "./constant-time";

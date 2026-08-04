@@ -181,7 +181,7 @@ describe("mapProduct", () => {
 
   it("drops photos hosted anywhere but FashionGo instead of storing them", () => {
     // mapProduct is what fills the store, so an address from elsewhere must not
-    // survive it — the image route would refuse to load it anyway.
+    // survive it; the image route would refuse to load it anyway.
     const foreign = {
       ...detail,
       image: [{ ...detail.image![0], imageUrl: "https://evil.example/x.jpg" }],

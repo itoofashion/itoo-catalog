@@ -16,7 +16,7 @@ import {
  * catalog is a shop window, and the tools for running it should not be the first
  * thing in the frame.
  *
- * Sync is performed by the Chrome extension, not by the server — FashionGo has
+ * Sync is performed by the Chrome extension, not by the server. FashionGo has
  * no export API, so the products are read through the vendor admin session that
  * already exists in the operator's browser.
  */
@@ -52,10 +52,10 @@ export function StatusBar({
         const { done, total, stage } = event.data;
         setMessage(
           stage === "listing"
-            ? `Listing products — ${done} of ${total}`
+            ? `Listing products · ${done} of ${total}`
             : stage === "details"
-              ? `Reading details — ${done} of ${total}`
-              : `Downloading photos — ${done} of ${total}`,
+              ? `Reading details · ${done} of ${total}`
+              : `Downloading photos · ${done} of ${total}`,
         );
       }
       if (event.data.type === "sync-complete") {

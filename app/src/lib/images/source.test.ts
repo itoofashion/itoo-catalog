@@ -31,7 +31,7 @@ describe("image keys", () => {
     const key = imageKey(source);
     expect(key).not.toContain("26144615");
     expect(key).not.toContain("fashiongo");
-    // Not an encoding of the address either — a hash of it, and a short one.
+    // Not an encoding of the address either, but a hash of it, and a short one.
     expect(key.length).toBeLessThan(source.length / 2);
   });
 

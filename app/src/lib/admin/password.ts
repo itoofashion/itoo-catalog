@@ -2,7 +2,7 @@
  * The team password, kept as a PBKDF2-HMAC-SHA256 hash rather than as itself.
  *
  * The hash lives in a Cloudflare secret, and a secret is readable by everyone
- * who can open the Worker's settings — which for a small team is everyone. A
+ * who can open the Worker's settings, which for a small team is everyone. A
  * password that is also used elsewhere should not be sitting there in the clear,
  * and a hash cannot be typed into a login form.
  *
@@ -15,9 +15,9 @@ import { timingSafeEqual } from "./constant-time";
 
 /**
  * Also the count the generator uses. PBKDF2 is deliberately slow, and it runs on
- * the Worker's request budget — but only when someone signs in, which happens
- * once a month per person, so the floor is set by what is safe rather than by
- * what is fast.
+ * the Worker's request budget. That budget is only touched when someone signs
+ * in, which happens once a month per person, so the floor is set by what is
+ * safe rather than by what is fast.
  */
 export const MINIMUM_ITERATIONS = 100_000;
 
@@ -50,7 +50,7 @@ export function parsePasswordHash(encoded: string | undefined): PasswordHash | n
 }
 
 /**
- * Answers only "is this the password", never "how far did it get" — a wrong
+ * Answers only "is this the password", never "how far did it get". A wrong
  * password and a malformed hash are the same "no" to the caller.
  */
 export async function verifyPassword(

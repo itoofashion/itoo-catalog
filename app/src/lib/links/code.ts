@@ -3,8 +3,8 @@ import type { CatalogSelection } from "@/lib/catalog/share";
 /**
  * A short link that carries its own meaning.
  *
- * The obvious design — mint a random six-character code and remember what it
- * points at — needs somewhere to remember it. On Cloudflare a Worker is many
+ * The obvious design, minting a random six-character code and remembering what
+ * it points at, needs somewhere to remember it. On Cloudflare a Worker is many
  * isolates: the link is created in one and opened in another, so anything held
  * in memory is a link that works for whoever made it and 404s for the client it
  * was sent to. That is worse than a long link.
@@ -13,7 +13,7 @@ import type { CatalogSelection } from "@/lib/catalog/share";
  * one token and base64url'd. It stays short for the common case (one category
  * is a dozen characters), it cannot go stale, and it needs no database. When
  * Milestone 2 brings one, this can become a real six-character key without the
- * links already sent breaking — they decode on their own.
+ * links already sent breaking: they decode on their own.
  */
 const GROUP_SEPARATOR = "!";
 const ITEM_SEPARATOR = "~";

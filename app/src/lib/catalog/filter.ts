@@ -28,7 +28,7 @@ export function isSelected(
  * What a visitor can reach at all.
  *
  * With nothing selected that is the whole catalog. Following a shared link it is
- * only what was shared — and because a category is stored as a category rather
+ * only what was shared. And because a category is stored as a category rather
  * than as the styles it held at the time, a link to Dresses picks up dresses
  * added after it was sent.
  */

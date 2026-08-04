@@ -22,7 +22,7 @@ export function SignInForm() {
         autoFocus
         required
         placeholder="Password"
-        className="h-11 w-full rounded-full border border-border bg-card px-5 text-base outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="h-11 w-full rounded-sm border border-border bg-card px-4 text-base outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
       />
 
       <Button type="submit" disabled={pending}>

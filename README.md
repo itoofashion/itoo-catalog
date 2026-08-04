@@ -1,4 +1,4 @@
-# itoo — Wholesale Product Catalog
+# itoo Wholesale Product Catalog
 
 A shareable, always-current wholesale catalog for itoo, sourced from FashionGo.
 
@@ -11,7 +11,7 @@ and prices.
 
 | Path         | What it is                                                     |
 | ------------ | -------------------------------------------------------------- |
-| `app/`       | The catalog web app — Next.js, deployed as a Cloudflare Worker  |
+| `app/`       | The catalog web app: Next.js, deployed as a Cloudflare Worker  |
 | `extension/` | Chrome extension that imports products from FashionGo           |
 | `reference/` | Design mockup used as the visual reference                      |
 | `docs/`      | Project notes                                                   |
@@ -35,7 +35,7 @@ prices, colors and photos come from the FashionGo vendor account; catalog prices
 are derived from the FashionGo price, and products added in the last 30 days are
 marked as new arrivals automatically.
 
-Syncing is a full replacement rather than a merge — whatever FashionGo has is
+Syncing is a full replacement rather than a merge: whatever FashionGo has is
 what the catalog shows, so there is never a half-updated state to reconcile.
 
 FashionGo publishes no API for exporting a catalog with its images, so the
@@ -51,7 +51,7 @@ unfurls into a preview card with the product photo when pasted into a chat.
 
 ### Signing in
 
-The catalog itself is public — the address is the product. What is behind a
+The catalog itself is public. The address is the product. What is behind a
 password is the working view: the checkboxes, the link panel and the sync
 button. The team signs in at `/admin` with one shared password and stays signed
 in for 30 days; the page decides who sees the tools on the server, from a signed
@@ -76,10 +76,10 @@ After deploying:
    it.
 2. Set a `SYNC_SECRET` secret on the Worker (Settings → Variables and secrets)
    and enter the same value in the extension popup. The catalog is public, so
-   without this the sync endpoint would let anyone replace the catalog — a
+   without this the sync endpoint would let anyone replace the catalog, so a
    deployed Worker with no secret configured refuses to sync at all.
 3. Set an `ADMIN_PASSWORD_HASH` secret with the team's sign-in password. Never
-   the password itself — generate the value with
+   the password itself: generate the value with
 
    ```bash
    cd app && node scripts/make-admin-password.mjs "the-password"
@@ -90,7 +90,7 @@ After deploying:
    refuses to sync. Optionally set `ADMIN_SESSION_SECRET` as well: sessions are
    signed with it instead of with the password hash, so changing the password
    then does not sign everyone out.
-4. Make sure the photo bucket exists (below) — it already does for the live
+4. Make sure the photo bucket exists (below). It already does for the live
    deployment.
 
 ### Domains
@@ -102,7 +102,7 @@ shared link still opens the styles it carried. The rule lives in
 the Worker behaves the same without another rule.
 
 The Worker's built-in `itoo.alex7golovin.workers.dev` address redirects the same
-way, and plain `http://` requests are sent to `https://` — both rules also live
+way, and plain `http://` requests are sent to `https://`. Both rules also live
 in `app/next.config.ts`, so they follow the code to any Cloudflare account
 without touching zone settings in the dashboard.
 
@@ -126,7 +126,7 @@ binding the Worker keeps photos in memory instead: nothing breaks, each new
 instance just downloads a photo once from FashionGo and serves it from then on.
 
 Nothing else needs configuring. The bucket only ever holds photos the catalog
-itself has published, and it fills up as clients view them — around 6,000 photos
+itself has published, and it fills up as clients view them: around 6,000 photos
 and 700 MB for the current catalog, against R2's 10 GB free tier.
 
 ## What the browser can see
@@ -134,7 +134,7 @@ and 700 MB for the current catalog, against R2's 10 GB free tier.
 The catalog is served from a public address, so anything the app hands to a page
 is public. The stored product and the published product are deliberately
 different types: the browser gets the style number, name, catalog price,
-category, colors, photos and whether the style is a new arrival — and nothing
+category, colors, photos and whether the style is a new arrival, and nothing
 else. FashionGo's internal product ids, the dates behind the "New" badge and the
 source prices stay on the server. `app/src/lib/catalog/public.ts` is that
 boundary, and its tests fail if a new internal field starts being published.

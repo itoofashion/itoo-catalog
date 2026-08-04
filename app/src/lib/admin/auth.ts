@@ -3,14 +3,14 @@
  *
  * The catalog is public by design, so this guards the tools rather than the
  * products: picking styles, building a client link and running a sync. There is
- * no user list — the team shares one password, which is what a three-person
+ * no user list. The team shares one password, which is what a three-person
  * wholesale operation actually does, and one Cloudflare secret is the whole of
  * the account management.
  *
  * Locally there is nothing to protect and no secret to configure, so an
  * unconfigured development server treats everyone as the team. A deployed one
  * does not: it refuses to sign anyone in and says so, the same way the sync
- * endpoint refuses to accept a sync — see lib/sync/auth.ts.
+ * endpoint refuses to accept a sync (see lib/sync/auth.ts).
  */
 import { verifyPassword } from "./password";
 import { sessionExpiry, signSession, verifySession, SESSION_DAYS } from "./session";
@@ -109,7 +109,7 @@ export function sessionCookieOptions(maxAge: number = SESSION_DAYS * 24 * 60 * 6
 /**
  * A second secret would be a second thing to remember to set, and a demo that
  * forgets it is a demo with unsigned sessions. Falling back to the password hash
- * gives a key that is already secret and already deployed — with the side effect
+ * gives a key that is already secret and already deployed, with the side effect
  * that changing the password signs everyone out, which is what changing a shared
  * password is for.
  */

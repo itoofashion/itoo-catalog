@@ -135,7 +135,7 @@
    Taken from the brand's own storefront so a buyer meets the same shop twice:
    Raleway throughout, a near-monochrome palette, and structural text set in
    caps with wide tracking. What is deliberately not borrowed is the retail
-   restraint — a wholesale buyer needs the style number, the pack and the price
+   restraint: a wholesale buyer needs the style number, the pack and the price
    on the card, so it carries more than a shop card would.
    --------------------------------------------------------------------------- */
 :root {
@@ -145,7 +145,7 @@
   --card-foreground: oklch(0.16 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0 0);
-  /* #111 — the storefront's button fill. */
+  /* #111, the storefront's button fill. */
   --primary: oklch(0.19 0 0);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.968 0 0);
@@ -154,7 +154,7 @@
   --muted-foreground: oklch(0.52 0 0);
   --accent: oklch(0.955 0 0);
   --accent-foreground: oklch(0.19 0 0);
-  /* #E8E8E1 — warm hairline, the one place the palette is not neutral grey. */
+  /* #E8E8E1, a warm hairline, the one place the palette is not neutral grey. */
   --border: oklch(0.918 0.006 95);
   --input: oklch(0.918 0.006 95);
   --ring: oklch(0.55 0 0);
@@ -163,7 +163,7 @@
 }
 
 @theme inline {
-  /* #FBE8EC — the blush from their site, used only to mark new arrivals. */
+  /* #FBE8EC, the blush from their site, used only to mark new arrivals. */
   --color-brand: oklch(0.93 0.028 5);
   --color-brand-foreground: oklch(0.35 0.06 15);
 }
@@ -229,8 +229,8 @@ html {
 
 /*
  * The copy button has no preview of its own. What it puts on the clipboard is
- * the block of facts printed right beside it — name, style number, colour, size
- * run, minimum, price — so pointing at the button rules that block in the
+ * the block of facts printed right beside it (name, style number, colour, size
+ * run, minimum, price), so pointing at the button rules that block in the
  * margin, the way a buyer marks a row on a printed line sheet, and a copy holds
  * the mark for as long as the button reads "Copied". A popover said the same
  * thing by reprinting text already on screen, and charged a press for it.

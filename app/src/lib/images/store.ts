@@ -4,13 +4,13 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * Where downloaded product photos are kept.
  *
  * A photo is fetched from FashionGo once and then served from here, so the
- * catalog keeps working — and keeps loading fast — without leaning on a vendor's
+ * catalog keeps working, and keeps loading fast, without leaning on a vendor's
  * CDN for every page view. On Cloudflare that is an R2 bucket bound as IMAGES.
  *
  * The binding is optional on purpose. Local development and a deployment made
  * before the bucket exists both fall back to memory: photos are re-downloaded
  * once per isolate instead of the site breaking. Milestone 2's D1 catalog store
- * follows the same shape for the same reason — see lib/catalog/store.ts.
+ * follows the same shape for the same reason (see lib/catalog/store.ts).
  */
 export interface ImageStore {
   get(key: string): Promise<Response | null>;
@@ -121,7 +121,7 @@ function sharedMemoryStore(): ImageStore {
 
 /**
  * The async form of getCloudflareContext is the one that works everywhere a
- * route can run — the sync form throws unless the worker has already put the
+ * route can run: the sync form throws unless the worker has already put the
  * context on the global scope. Off Cloudflare entirely (tests, `next build`)
  * it throws, and memory is the answer there too.
  */

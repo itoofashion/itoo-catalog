@@ -13,8 +13,8 @@
   }
   // Product photos are downloaded once from FashionGo and kept here, so the
   // catalog serves them from its own domain. Without this binding the worker
-  // falls back to memory, which costs one download per photo per instance —
-  // see lib/images/store.ts.
+  // falls back to memory, which costs one download per photo per instance
+  // (see lib/images/store.ts).
   ,"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "itoo-images" }]
   //
   // D1 binding is added in Milestone 2, once the database is provisioned:

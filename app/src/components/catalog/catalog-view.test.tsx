@@ -40,7 +40,7 @@ const products = [
   product({ sku: "PANT-2", category: "Pants" }),
 ];
 
-/** Signed in as the team unless a test says otherwise — see lib/admin/auth.ts. */
+/** Signed in as the team unless a test says otherwise (see lib/admin/auth.ts). */
 function renderCatalog(
   selection: CatalogSelection = EMPTY_SELECTION,
   filters: CatalogFilters = NO_FILTERS,
@@ -250,7 +250,7 @@ describe("picking whole categories", () => {
     renderCatalog();
     await user.click(screen.getByRole("button", { name: /Add all of Pants to the link/ }));
 
-    expect(screen.getByText(/all of Pants — 2 items/)).toBeInTheDocument();
+    expect(screen.getByText(/all of Pants · 2 items/)).toBeInTheDocument();
   });
 });
 

@@ -82,7 +82,7 @@ function sizeRunOf(description: unknown): string[] {
     .map((label) => (label.toUpperCase() === ONE_SIZE_CODE ? "One Size" : label));
 }
 
-/** A pack split: "2-2-2" — one positive count per size in the run. */
+/** A pack split like "2-2-2": one positive count per size in the run. */
 function packSplitOf(description: unknown): number[] | null {
   if (typeof description !== "string") return null;
   const counts = description.split("-").map((part) => Number(part.trim()));
@@ -95,7 +95,7 @@ function packSplitOf(description: unknown): number[] | null {
  *
  * None of it is stored on the product. The product carries a `sizeId` and a
  * `packId`, and the vendor's whole size and pack tables ride along with every
- * detail response — so the values have to be looked up. The two rows line up
+ * detail response, so the values have to be looked up. The two rows line up
  * position by position: run "S;M;L" against split "2-2-2" is two smalls, two
  * mediums and two larges, six pieces in the smallest order a buyer can place.
  */

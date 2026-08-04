@@ -24,21 +24,21 @@ export function catalogMeta(
         ? ` and ${selection.skus.length} more ${selection.skus.length === 1 ? "style" : "styles"}`
         : "";
     return {
-      title: `${BRAND} — ${named}`,
+      title: `${BRAND} · ${named}`,
       description: `${styles} in ${named}${extra}, with current prices and photos.`,
     };
   }
 
   if (selection.skus.length > 0) {
     return {
-      title: `${BRAND} — ${styles} for you`,
+      title: `${BRAND} · ${styles} for you`,
       description: `A selection of ${styles}, with current prices and photos.`,
     };
   }
 
   if (isEmptySelection(selection)) {
     return {
-      title: `${BRAND} — Wholesale Catalog`,
+      title: `${BRAND} · Wholesale Catalog`,
       description: `${styles}, with current prices and photos.`,
     };
   }

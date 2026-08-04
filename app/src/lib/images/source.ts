@@ -6,14 +6,14 @@ import type { Product } from "@/lib/catalog/types";
  *
  * Photos used to be linked straight to FashionGo's CDN. That tied the catalog to
  * a vendor's infrastructure, and it published FashionGo's internal product id in
- * every photo address — their files are named "<productId>_a.jpg". Photos are now
- * served from our own domain, from /i/<key>, and cached in R2.
+ * every photo address, since their files are named "<productId>_a.jpg". Photos
+ * are now served from our own domain, from /i/<key>, and cached in R2.
  *
  * The key is a hash of the source address, which is what keeps /i from becoming
  * an open proxy: a request never carries the address to download from, so nobody
  * can point us at a URL of their choosing. The route resolves a key back to an
  * address only through the catalog, and only addresses on FashionGo's CDN are
- * ever fetched. The hash is one-way, so the address — product id and all — cannot
+ * ever fetched. The hash is one-way, so the address (product id and all) cannot
  * be read back out of the key either.
  */
 export const IMAGE_SOURCE_ORIGIN = "https://fg-image.fashiongo.net";
@@ -54,7 +54,7 @@ export function imagePath(sourceUrl: string): string {
  * Resolves a key back to the address it was made from.
  *
  * The catalog is the only place that mapping exists, so a key that no product
- * carries is simply not downloadable — the amount of traffic and storage a
+ * carries is simply not downloadable: the amount of traffic and storage a
  * stranger can make us spend is bounded by what the vendor actually published.
  * The host is checked again here rather than trusted: whatever a sync stored is
  * still data that arrived over the network.

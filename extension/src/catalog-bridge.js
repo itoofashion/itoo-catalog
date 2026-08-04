@@ -1,6 +1,6 @@
 /**
  * Runs on the catalog page. It announces that the extension is installed, and
- * relays the page's sync request to the background worker — the page itself
+ * relays the page's sync request to the background worker. The page itself
  * never talks to FashionGo.
  *
  * Content scripts cannot be ES modules, so the shared constants are repeated

@@ -36,7 +36,7 @@ describe("buildCatalogQuery", () => {
     expect(query).toBe("?show=Dresses&new=1");
   });
 
-  it("leaves All out — it is the absence of a filter", () => {
+  it("leaves All out, because it is the absence of a filter", () => {
     expect(
       buildCatalogQuery(EMPTY_SELECTION, { category: "All", newOnly: false, page: 1 }),
     ).toBe("");

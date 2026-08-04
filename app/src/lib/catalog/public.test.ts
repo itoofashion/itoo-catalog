@@ -95,7 +95,7 @@ describe("the published product", () => {
 
   it("publishes the catalog price and never the FashionGo price it came from", () => {
     // The source price is the vendor's margin and is not in the stored product
-    // either — this asserts the published price is the discounted one.
+    // either, so this asserts the published price is the discounted one.
     expect(toPublicProduct(stored, now).price).toBe(19.75);
   });
 });

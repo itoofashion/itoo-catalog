@@ -12,6 +12,6 @@ export function isNewArrival(createdAt: string, now: Date): boolean {
   if (Number.isNaN(created.getTime())) return false;
 
   const age = now.getTime() - created.getTime();
-  if (age < 0) return true; // clock skew — a future date is certainly new
+  if (age < 0) return true; // clock skew: a future date is certainly new
   return age <= NEW_ARRIVAL_DAYS * DAY_MS;
 }

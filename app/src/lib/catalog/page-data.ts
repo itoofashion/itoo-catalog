@@ -10,8 +10,8 @@ import { catalogStore } from "./store";
  * Shared by the catalog page and by short links, which render the same catalog
  * under a different address.
  *
- * Everything here hands the browser the published catalog, never the stored one
- * — see lib/catalog/public.ts for what that leaves behind.
+ * Everything here hands the browser the published catalog, never the stored one.
+ * See lib/catalog/public.ts for what that leaves behind.
  */
 export async function publishedCatalog() {
   const catalog = await catalogStore.read();
@@ -54,7 +54,7 @@ export async function catalogMetadata(selection: CatalogSelection): Promise<Meta
  * Photos are served from our own domain, so their addresses are paths. A chat
  * app unfurling a link fetches the preview image from its own servers and has
  * nowhere to resolve a path against, so it is made absolute here, from the host
- * the request came in on — the only thing that knows whether this is the live
+ * the request came in on, the only thing that knows whether this is the live
  * domain, a preview deployment or a laptop.
  */
 async function absoluteUrl(path: string | undefined): Promise<string | undefined> {

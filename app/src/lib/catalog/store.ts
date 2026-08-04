@@ -6,7 +6,7 @@ import type { Catalog, Product } from "./types";
  *
  * Sync is a full replacement: whatever the extension pushes becomes the catalog,
  * exactly as it stands in FashionGo. There is no merge or conflict handling by
- * design — FashionGo is the source of truth.
+ * design: FashionGo is the source of truth.
  *
  * The pilot keeps the catalog in memory and falls back to the shipped seed, so
  * the site works with no database. Milestone 2 swaps in a D1-backed store behind
@@ -36,8 +36,8 @@ export function createMemoryStore(initial: Catalog = seedCatalog()): CatalogStor
  * give each of them its own copy and a sync would never show up on the page.
  *
  * The catalog still lives only in this isolate's memory. When the isolate is
- * recycled the catalog returns to the seed — acceptable for the pilot, and the
- * reason Milestone 2 moves this into D1.
+ * recycled the catalog returns to the seed. That is acceptable for the pilot,
+ * and it is the reason Milestone 2 moves this into D1.
  */
 const STORE_KEY = Symbol.for("itoo.catalog.store");
 

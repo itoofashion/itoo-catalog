@@ -1,6 +1,6 @@
 /**
  * Pulls the live FashionGo catalog and stores it as the site's seed data. Raw API
- * payloads are saved as-is — the mapping to the catalog model is done (and
+ * payloads are saved as-is. The mapping to the catalog model is done (and
  * tested) in src/lib/fashiongo/map.ts, so there is only one copy of it.
  *
  *   FASHIONGO_USERNAME=... FASHIONGO_PASSWORD=... node scripts/pull-seed.mjs [count]

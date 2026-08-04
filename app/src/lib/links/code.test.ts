@@ -26,7 +26,7 @@ describe("short link codes", () => {
     expect(decodeSelection(encodeSelection(selection))).toEqual(selection);
   });
 
-  it("is safe to put in a path — no slashes or padding", () => {
+  it("is safe to put in a path: no slashes or padding", () => {
     const code = encodeSelection({ categories: ["Jumpsuits & Rompers"], skus: ["A/B"] });
     expect(code).toMatch(/^[A-Za-z0-9_-]+$/);
   });

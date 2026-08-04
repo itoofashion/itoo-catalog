@@ -10,7 +10,7 @@
  *
  * The format is `iterations:salt:hash`, PBKDF2-HMAC-SHA256 with the salt and the
  * hash in base64. It is read back by src/lib/admin/password.ts, which is where
- * the format is defined — a test signs in with a hash this script printed, so
+ * the format is defined. A test signs in with a hash this script printed, so
  * the two cannot drift apart unnoticed.
  */
 import { pbkdf2, randomBytes } from "node:crypto";

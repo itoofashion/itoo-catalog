@@ -8,7 +8,7 @@ import { authorizeSync } from "@/lib/sync/auth";
  * Pulls the catalog's photos into storage a batch at a time.
  *
  * Called by the Chrome extension straight after a sync, over and over until it
- * is told the catalog is covered — a Worker may only make so many outbound
+ * is told the catalog is covered. A Worker may only make so many outbound
  * requests while serving one request, so this cannot be a single call. It is
  * guarded like syncing is: it costs bandwidth and storage, so it is not
  * something a stranger gets to start.

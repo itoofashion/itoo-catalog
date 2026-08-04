@@ -8,8 +8,8 @@ import type { ImageStore } from "./store";
  * The catalog is around six thousand photos and a Worker may only make so many
  * outbound requests while handling one request of its own, so warming happens in
  * batches: each call takes over where the last one stopped and reports where it
- * got to. The caller — the Chrome extension, right after it pushes a sync —
- * keeps calling until it is told the catalog is covered.
+ * got to. The caller (the Chrome extension, right after it pushes a sync) keeps
+ * calling until it is told the catalog is covered.
  *
  * Photos already in storage are skipped, and a photo's address is what its key
  * is made from, so re-running this over a catalog that has not changed costs
@@ -22,7 +22,7 @@ export type WarmProgress = {
   downloaded: number;
   /** Photos that were already stored. */
   skipped: number;
-  /** Photos that could not be fetched — they are left for a later run. */
+  /** Photos that could not be fetched. They are left for a later run. */
   failed: number;
   /** Nothing left to warm. */
   done: boolean;
@@ -39,7 +39,7 @@ export type WarmDeps = {
   /**
    * Downloads in flight at once. These are almost entirely waiting on the
    * network, so doing them one at a time makes warming take minutes it does not
-   * need to — six at a time is a fivefold difference over the whole catalog.
+   * need to: six at a time is a fivefold difference over the whole catalog.
    */
   concurrency?: number;
   fetchSource?: (url: string) => Promise<Response>;

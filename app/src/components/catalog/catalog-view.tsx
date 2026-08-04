@@ -36,7 +36,7 @@ export type CatalogViewProps = {
   filters: CatalogFilters;
   /**
    * Whether this visitor signed in as the team. Decided on the server from the
-   * session cookie, because a component cannot be trusted to decide it — see
+   * session cookie, because a component cannot be trusted to decide it. See
    * lib/admin/auth.ts.
    */
   isTeam: boolean;

@@ -1,7 +1,7 @@
 /**
  * The contract between the catalog page and the Chrome extension.
  *
- * The page never talks to FashionGo itself — it posts a request on the window
+ * The page never talks to FashionGo itself. It posts a request on the window
  * and the extension's content script picks it up. Both sides import these
  * constants so a rename cannot silently break the handshake.
  */

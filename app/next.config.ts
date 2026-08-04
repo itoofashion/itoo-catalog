@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
   redirects() {
     return [
       // Both itoo.website and www.itoo.website point at this Worker, so without
-      // this the catalog answers on two addresses with identical pages — two
+      // this the catalog answers on two addresses with identical pages: two
       // sets of share links, and search engines splitting the site in half.
       // The apex is the canonical one; www sends everyone there, keeping the
       // path and query so a shared link still opens the styles it carried.
@@ -29,8 +29,8 @@ const nextConfig: NextConfig = {
       },
       // The Worker's own *.workers.dev address stays reachable after the real
       // domain is attached, which is the same two-addresses problem as www.
-      // Anyone landing on it — an old link from before the domain existed, or
-      // someone typing it from a deploy log — is sent to the canonical site.
+      // Anyone landing on it (an old link from before the domain existed, or
+      // someone typing it from a deploy log) is sent to the canonical site.
       // The host capture group is not used in the destination; it is there
       // because the OpenNext runtime only substitutes :path* when at least one
       // parameter was captured, so without it a request to the bare root

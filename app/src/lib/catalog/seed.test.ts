@@ -119,7 +119,7 @@ describe("seed catalog, when styles were added", () => {
 
   it("marks only a small share of the catalog as new", () => {
     // The pilot's first export was ten products off the top of the list, which
-    // is sorted by activation date — every one of them looked new. Against the
+    // is sorted by activation date, so every one of them looked new. Against the
     // whole catalog the badge has to mean something again.
     const published = toPublicCatalog(seedCatalog(), new Date()).products;
     const isNew = published.filter((p) => p.isNew);

@@ -96,7 +96,7 @@ export function CategoryFilters({
       <div className="h-5 w-px shrink-0 bg-border" />
 
       <div className="relative min-w-0 flex-1">
-        {/* Scrolled, not wrapped — see the note above. */}
+        {/* Scrolled, not wrapped (see the note above). */}
         <div
           ref={row}
           className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"

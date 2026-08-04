@@ -6,8 +6,8 @@ import type { FashionGoCategory, FashionGoDetail, FashionGoListRecord } from "./
 /**
  * The Chrome extension sends FashionGo's own payloads, untouched, and the
  * mapping to catalog products happens here. Keeping the mapping on the server
- * means there is exactly one implementation of it, and it is the tested one —
- * the extension stays a dumb pipe that only knows how to read the vendor admin.
+ * means there is exactly one implementation of it, and it is the tested one.
+ * The extension stays a dumb pipe that only knows how to read the vendor admin.
  *
  * The payload arrives from a browser extension, so it is validated rather than
  * trusted: a malformed push is rejected whole instead of half-replacing the
@@ -69,11 +69,11 @@ export function parseSyncRequest(input: unknown): SyncRequestResult {
   }
 
   // A style listed twice is the vendor re-listing it, not a broken push, so it
-  // is collapsed rather than rejected — see dedupeBySku.
+  // is collapsed rather than rejected (see dedupeBySku).
   return { ok: true, products: dedupeBySku(products) };
 }
 
-/** Returns false — not null — when the detail is present but malformed. */
+/** Returns false rather than null when the detail is present but malformed. */
 function parseDetail(input: unknown): FashionGoDetail | null | false {
   if (!isRecord(input) || !isRecord(input.item)) return false;
 
@@ -83,7 +83,7 @@ function parseDetail(input: unknown): FashionGoDetail | null | false {
   for (const image of images ?? []) {
     if (!isRecord(image) || typeof image.imageUrl !== "string") return false;
     // Only FashionGo's own CDN. The image route refuses to download from
-    // anywhere else anyway, so this is not what stops a tampered payload — it is
+    // anywhere else anyway, so this is not what stops a tampered payload. It is
     // what makes it loud: a push carrying foreign addresses is rejected whole
     // instead of quietly producing products with photos that never load.
     if (!isImageSource(image.imageUrl)) return false;

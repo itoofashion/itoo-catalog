@@ -10,14 +10,14 @@ const sans = Raleway({
 });
 
 export const metadata: Metadata = {
-  title: "itoo — Wholesale Catalog",
+  title: "itoo · Wholesale Catalog",
   description: "Current styles, prices and photos from itoo.",
   icons: {
     icon: "/favicon.png",
     apple: "/apple-icon.png",
   },
   // Belt and braces with robots.ts: a shared link is for the client it was sent
-  // to, not for a search result. Chat previews are unaffected — they fetch the
+  // to, not for a search result. Chat previews are unaffected: they fetch the
   // page themselves rather than consulting robots rules.
   robots: { index: false, follow: false },
 };

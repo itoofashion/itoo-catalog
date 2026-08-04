@@ -8,7 +8,7 @@ import { authorizeSync } from "@/lib/sync/auth";
  * replaces the catalog with it. A sync is a mirror, not a merge: whatever
  * FashionGo has is what the catalog shows.
  *
- * There is no GET counterpart on purpose — how many products are loaded and when
+ * There is no GET counterpart on purpose. How many products are loaded and when
  * they were last synced is operational detail, and this endpoint is reachable by
  * anyone who knows the address.
  */

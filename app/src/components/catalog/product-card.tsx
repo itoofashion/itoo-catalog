@@ -20,7 +20,7 @@ type ProductCardProps = {
   selected: boolean;
   /**
    * Selected because its whole category was picked. The card cannot be unpicked
-   * on its own — the link means "everything in this category".
+   * on its own: the link means "everything in this category".
    */
   lockedByCategory: boolean;
   onToggleSelect: (sku: string) => void;
@@ -86,7 +86,7 @@ export function ProductCard({
                 alt={index === 0 ? product.name : ""}
                 label={
                   photos.length > 1
-                    ? `Open ${product.name} — photo ${index + 1} of ${photos.length}`
+                    ? `Open ${product.name}, photo ${index + 1} of ${photos.length}`
                     : `Open ${product.name}`
                 }
                 priority={eager && index === 0}
@@ -196,7 +196,7 @@ export function ProductCard({
                 ))}
               </div>
             ) : (
-              <span className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] text-white">
+              <span className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 rounded-sm bg-black/55 px-2 py-0.5 text-[11px] text-white">
                 {photoIndex + 1} / {photos.length}
               </span>
             )}

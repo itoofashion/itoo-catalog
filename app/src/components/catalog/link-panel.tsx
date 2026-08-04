@@ -9,8 +9,8 @@ import { encodeSelection } from "@/lib/links/code";
 /**
  * The outcome of the admin view: pick what a client asked for, get one link to
  * send them. It is the only thing on the page allowed to be loud, and it says
- * plainly what is in the link and how many items that comes to — a link sent to
- * a wholesale client is a promise about what they will see.
+ * plainly what is in the link and how many items that comes to, because a link
+ * sent to a wholesale client is a promise about what they will see.
  */
 export function LinkPanel({
   selection,
@@ -80,5 +80,5 @@ function describe(selection: CatalogSelection, productCount: number): string {
   }
 
   const items = `${productCount} ${productCount === 1 ? "item" : "items"}`;
-  return `${parts.join(" + ")} — ${items}`;
+  return `${parts.join(" + ")} · ${items}`;
 }

@@ -12,14 +12,14 @@ import { SignInForm } from "./sign-in-form";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "itoo — team sign-in",
+  title: "itoo team sign-in",
   // Nothing here is for a search engine, and a login page in the results only
   // advertises that there is something to log in to.
   robots: { index: false, follow: false },
 };
 
 /**
- * The way in for the team. The catalog stays public at "/" either way — signing
+ * The way in for the team. The catalog stays public at "/" either way. Signing
  * in is what turns it into the working view, with the checkboxes, the link panel
  * and the sync button.
  */
@@ -35,11 +35,9 @@ export default async function AdminPage() {
       <div className="flex flex-col gap-3 text-center">
         <span className="text-2xl font-bold tracking-[0.3em]">itoo</span>
         <h1 className="text-lg font-medium">Sign in to the itoo panel</h1>
-        <p className="text-sm text-muted-foreground">
-          {gate === "unconfigured"
-            ? NOT_CONFIGURED_MESSAGE
-            : "The catalog is public. This is for the team that puts it together."}
-        </p>
+        {gate === "unconfigured" && (
+          <p className="text-sm text-muted-foreground">{NOT_CONFIGURED_MESSAGE}</p>
+        )}
       </div>
 
       {gate === "unconfigured" ? null : <SignInForm />}

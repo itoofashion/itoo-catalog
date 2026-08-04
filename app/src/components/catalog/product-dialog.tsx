@@ -137,7 +137,7 @@ export function ProductDialog({
                       <ChevronRight className="size-4" />
                     </button>
                   )}
-                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/55 px-2.5 py-0.5 text-xs text-white sm:hidden">
+                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-sm bg-black/55 px-2.5 py-0.5 text-xs text-white sm:hidden">
                     {photoIndex + 1} / {photos.length}
                   </span>
                 </>
@@ -248,8 +248,8 @@ export function ProductDialog({
             <div className="border-t pt-5">
               <CopyOrderButton product={product} color={color} className="w-full" />
               <p className="mt-2.5 text-xs text-muted-foreground">
-                Copies everything above as plain text — name, style number, color,
-                size run, minimum and price — ready to paste into a chat.
+                Copies everything above as plain text (name, style number, color,
+                size run, minimum and price), ready to paste into a chat.
               </p>
             </div>
           </div>

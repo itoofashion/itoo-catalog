@@ -83,8 +83,8 @@ describe("verifyPassword", () => {
 
 /**
  * The generator hashes with node:crypto and the Worker verifies with WebCrypto.
- * They agree on the format by hand, so this checks it rather than trusting it —
- * a password nobody can sign in with would otherwise only show up in production.
+ * They agree on the format by hand, so this checks it rather than trusting it.
+ * A password nobody can sign in with would otherwise only show up in production.
  */
 it("signs in with a hash produced by scripts/make-admin-password.mjs", async () => {
   const script = path.join(process.cwd(), "scripts/make-admin-password.mjs");

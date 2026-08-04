@@ -5,7 +5,7 @@ import type { ImageStore } from "./store";
  * Serving one product photo, cache-through: from our storage if it is there,
  * otherwise downloaded from FashionGo once, stored, and served.
  *
- * The address to download from never comes from the request — see source.ts for
+ * The address to download from never comes from the request; see source.ts for
  * why that matters. It is resolved from the key through the catalog, and checked
  * again here, so the worst a stranger with a made-up key gets is a 404.
  */

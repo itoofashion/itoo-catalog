@@ -20,7 +20,7 @@ type Result = "idle" | "copied" | "failed";
  * line of text on their clipboard. One press puts it there.
  *
  * There used to be a popover in between, showing the line before it was copied.
- * It was answering a fair question — what exactly am I about to send? — with a
+ * It was answering a fair question ("what exactly am I about to send?") with a
  * second copy of text the buyer was already looking at, and charging two presses
  * for it. The card and the dialog print the same facts the line carries, so the
  * preview is the page itself: pointing at this button marks the block of facts
@@ -71,7 +71,7 @@ export function CopyOrderButton({
         /* Forty-eight buttons that all announce themselves as "Copy details"
            tell a screen reader nothing about which style is which. The visible
            words open the name, so the two still match. */
-        aria-label={`${label} — ${product.name}, ${product.sku}`}
+        aria-label={`${label}: ${product.name}, ${product.sku}`}
         data-copy-order=""
         data-copied={result === "copied" ? "" : undefined}
         className={cn(
