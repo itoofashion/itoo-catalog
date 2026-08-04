@@ -31,9 +31,15 @@ const nextConfig: NextConfig = {
       // domain is attached, which is the same two-addresses problem as www.
       // Anyone landing on it — an old link from before the domain existed, or
       // someone typing it from a deploy log — is sent to the canonical site.
+      // The host capture group is not used in the destination; it is there
+      // because the OpenNext runtime only substitutes :path* when at least one
+      // parameter was captured, so without it a request to the bare root
+      // redirects to the literal address "itoo.website/:path*".
       {
         source: "/:path*",
-        has: [{ type: "host", value: "^itoo\\.alex7golovin\\.workers\\.dev$" }],
+        has: [
+          { type: "host", value: "^(?<workersDev>itoo\\.alex7golovin\\.workers\\.dev)$" },
+        ],
         destination: "https://itoo.website/:path*",
         permanent: true,
       },
