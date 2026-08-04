@@ -1,11 +1,11 @@
 # itoo Catalog Sync — Chrome extension
 
-Imports itoo's products from the FashionGo vendor admin into the catalog.
+**Switched off.** The catalog now reads products from FashionGo's REST API
+(`pubapi.fashiongo.net`) on a schedule, so nobody has to press anything and this
+extension has no job to do. It is kept in the repository until that changeover
+is complete, and the import it performed is disabled in `src/fashiongo.js`.
 
-FashionGo offers no way to export the catalog with its photos, so instead of
-asking anyone to copy data by hand, this extension reads the products through
-the FashionGo session you are already signed in to and sends them to the
-catalog.
+The rest of this page describes it as it worked, for reference.
 
 ## Installing it
 

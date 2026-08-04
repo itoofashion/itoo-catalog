@@ -1,12 +1,17 @@
 /**
- * Minimal FashionGo vendor-admin API client for development scripts.
+ * Vendor-admin client, retired.
  *
- * FashionGo has no public export API, so we speak the same protocol the vendor
- * admin SPA speaks: fetch an RSA public key, encrypt the password with a random
- * AES key, wrap that AES key with RSA, and exchange the pair for a bearer token.
+ * The catalog is moving to FashionGo's published REST API (pubapi.fashiongo.net,
+ * `GET /v1.0/items`), which returns the same item data plus original image URLs
+ * and is the supported way to read a vendor's own catalogue. This module talked
+ * to the vendor admin's own endpoints instead, which was only ever a stand-in
+ * until API access was arranged.
  *
- * Credentials come from the environment, never from source:
- *   FASHIONGO_USERNAME=... FASHIONGO_PASSWORD=... node scripts/pull-seed.mjs
+ * It is disabled rather than deleted so the field mapping it established stays
+ * readable while the API key is being issued. Set FASHIONGO_ALLOW_ADMIN=1 to
+ * run it; nothing in the app does.
+ *
+ * Credentials come from the environment, never from source.
  */
 import crypto from "node:crypto";
 
@@ -82,6 +87,13 @@ function collectCookies(response) {
 }
 
 export async function login(username, password) {
+  if (process.env.FASHIONGO_ALLOW_ADMIN !== "1") {
+    throw new Error(
+      "The vendor-admin path is disabled. Product data now comes from FashionGo's " +
+        "REST API — see docs/PLAN.md.",
+    );
+  }
+
   const keyResponse = await fetch(`${VENDOR_API}crypto/key?default=false`, {
     headers: {
       "User-Agent": USER_AGENT,

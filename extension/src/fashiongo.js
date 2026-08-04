@@ -1,13 +1,14 @@
 /**
- * Reads products out of the FashionGo vendor admin.
+ * Reads products out of the FashionGo vendor admin. Superseded and switched off.
  *
- * FashionGo publishes no export API, so this rides on the session the operator
- * already has: the vendor admin keeps its bearer token in localStorage, and the
- * same API the admin screens use answers with the products behind it.
- *
- * Nothing is interpreted here — the raw payloads go to the catalog, which owns
- * the (tested) mapping into catalog products.
+ * Product data now comes from FashionGo's published REST API
+ * (pubapi.fashiongo.net, `GET /v1.0/items`), which the catalog calls directly on
+ * a schedule — so there is nothing for an extension to do, and this file is kept
+ * only until that changeover is finished.
  */
+
+/** Flipped on only if the API route is ever unavailable and someone re-enables it. */
+const ENABLED = false;
 const API = "https://vendoradmin.fashiongo.net/api/";
 const ADMIN_URL = "https://vendoradmin.fashiongo.net/";
 
@@ -25,6 +26,13 @@ export class SyncError extends Error {}
  * logged in" apart from "not open".
  */
 export async function getVendorToken() {
+  if (!ENABLED) {
+    throw new SyncError(
+      "Importing through the vendor admin is switched off — the catalog syncs " +
+        "itself from FashionGo's API.",
+    );
+  }
+
   let [tab] = await chrome.tabs.query({ url: `${ADMIN_URL}*` });
   let openedTab = false;
 
