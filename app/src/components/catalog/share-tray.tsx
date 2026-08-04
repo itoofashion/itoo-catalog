@@ -40,7 +40,10 @@ export function ShareTray({
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-40 w-72 rounded-xl border bg-card p-4 shadow-lg">
+    <div
+      data-share-tray=""
+      className="fixed bottom-5 right-5 z-40 w-72 rounded-xl border bg-card p-4 shadow-lg"
+    >
       <p className="text-sm font-semibold">
         {count} item{count === 1 ? "" : "s"} picked for a client
       </p>

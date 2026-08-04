@@ -38,6 +38,7 @@ export function ProductCard({
 
   return (
     <article
+      data-sku={product.sku}
       className={cn(
         "group flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow",
         "shadow-[0_1px_2px_rgba(28,26,23,.04),0_8px_24px_rgba(28,26,23,.05)]",
@@ -61,7 +62,10 @@ export function ProductCard({
         )}
 
         {product.isNew && (
-          <Badge className="absolute left-3 top-3 bg-background/90 text-brand shadow-sm">
+          <Badge
+            data-badge="new"
+            className="absolute left-3 top-3 bg-background/90 text-brand shadow-sm"
+          >
             New
           </Badge>
         )}

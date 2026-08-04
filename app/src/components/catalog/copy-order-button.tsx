@@ -45,6 +45,7 @@ export function CopyOrderButton({
   return (
     <Button
       type="button"
+      data-copy-order=""
       onClick={copy}
       className={className}
       variant={copied ? "secondary" : "default"}
