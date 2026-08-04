@@ -70,29 +70,31 @@ After deploying:
    and enter the same value in the extension popup. The catalog is public, so
    without this the sync endpoint would let anyone replace the catalog — a
    deployed Worker with no secret configured refuses to sync at all.
-3. Create the photo bucket and switch the binding on (below). The site works
-   without it, just slower on the first view of each photo.
+3. Make sure the photo bucket exists (below) — it already does for the live
+   deployment.
 
 ### The photo bucket
 
-Product photos are served from the catalog's own domain and cached in an R2
-bucket, so the site does not depend on FashionGo's CDN and does not publish
-FashionGo's product ids in photo addresses. The bucket is created once:
+Product photos are served from the catalog's own domain and kept in an R2 bucket
+called `itoo-images`, so the site does not depend on FashionGo's CDN and does not
+publish FashionGo's product ids in photo addresses. It is bound in
+`app/wrangler.jsonc` as `IMAGES`.
+
+Setting it up on another account takes one command and one edit:
 
 ```bash
 cd app
 npx wrangler r2 bucket create itoo-images
 ```
 
-Then uncomment the `r2_buckets` line in `app/wrangler.jsonc` — the leading comma
-is part of it — and deploy. The binding is commented out until then on purpose:
-a Worker bound to a bucket that does not exist fails to deploy.
+A Worker bound to a bucket that does not exist fails to deploy, so on a fresh
+account comment the `r2_buckets` line out until the bucket is there. Without the
+binding the Worker keeps photos in memory instead: nothing breaks, each new
+instance just downloads a photo once from FashionGo and serves it from then on.
 
-Without the bucket the Worker keeps photos in memory instead, so each new
-instance downloads a photo once from FashionGo and serves it from then on.
-Nothing breaks — it is just extra work the bucket removes. Nothing else needs
-configuring: the bucket only ever holds photos the catalog itself has published,
-and it fills up as clients view them.
+Nothing else needs configuring. The bucket only ever holds photos the catalog
+itself has published, and it fills up as clients view them — around 6,000 photos
+and 700 MB for the current catalog, against R2's 10 GB free tier.
 
 ## What the browser can see
 
