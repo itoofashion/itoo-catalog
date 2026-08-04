@@ -73,6 +73,14 @@ After deploying:
 3. Make sure the photo bucket exists (below) — it already does for the live
    deployment.
 
+### Domains
+
+The catalog answers on `itoo.website`; `www.itoo.website` is attached to the
+same Worker and redirects there permanently, keeping the path and query so a
+shared link still opens the styles it carried. The rule lives in
+`app/next.config.ts` and matches any `www.` host, so a second domain pointed at
+the Worker behaves the same without another rule.
+
 ### The photo bucket
 
 Product photos are served from the catalog's own domain and kept in an R2 bucket
