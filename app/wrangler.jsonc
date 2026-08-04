@@ -16,7 +16,15 @@
   // falls back to memory, which costs one download per photo per instance
   // (see lib/images/store.ts).
   ,"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "itoo-images" }]
-  //
-  // D1 binding is added in Milestone 2, once the database is provisioned:
-  // "d1_databases": [{ "binding": "DB", "database_name": "itoo", "database_id": "..." }]
+  // Short links and hidden styles live here. Both are small, both have to
+  // outlive the isolate that wrote them, and both want a uniqueness guarantee
+  // the store cannot give: a link code is only short because the database
+  // refuses to hand out the same one twice.
+  ,"d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "itoo",
+      "database_id": "f10fdab0-a288-40d8-b899-1e7e4e0053bf"
+    }
+  ]
 }

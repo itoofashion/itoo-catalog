@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
+import { packSummary } from "@/lib/catalog/pack";
 import { formatPrice } from "@/lib/catalog/pricing";
 import type { PublicProduct } from "@/lib/catalog/public";
 import { CopyOrderButton } from "./copy-order-button";
@@ -58,11 +59,8 @@ export function ProductDialog({
     current?.scrollIntoView?.({ block: "nearest" });
   }, [photoIndex]);
 
-  const sizes = product.sizes.filter(Boolean);
-  const perSize =
-    product.packBreakdown && product.packBreakdown.length === sizes.length
-      ? product.packBreakdown
-      : null;
+  const pack = packSummary(product);
+  const sizes = pack?.sizes ?? [];
   const orderValue = product.minimumUnits
     ? formatPrice(Math.round(product.price * product.minimumUnits * 100) / 100)
     : null;
@@ -74,10 +72,16 @@ export function ProductDialog({
           {/* The photographs arrive at 4:5 and at 2:3; a frame close to the taller
               of the two fits either without cropping and without a visible edge. */}
           <div className="flex aspect-[3/4] gap-2 p-2 sm:aspect-auto sm:h-[min(76vh,38rem)] sm:p-3">
+            {/* The rail keeps the width it was given and gaps its thumbnails
+                from the inside: 4px between them, and a hairline round each,
+                because half of these are shot against white and without an edge
+                of their own they run into one another and into the page. The
+                thumbnails take their height from their width, so the gap is
+                spent on the scroll inside the rail, not on the frame. */}
             {photos.length > 1 && (
               <div
                 ref={rail}
-                className="hidden w-16 shrink-0 flex-col gap-2 overflow-y-auto [scrollbar-width:thin] sm:flex"
+                className="hidden w-16 shrink-0 flex-col gap-1 overflow-y-auto [scrollbar-width:thin] sm:flex"
               >
                 {photos.map((image, index) => (
                   <button
@@ -90,7 +94,7 @@ export function ProductDialog({
                       "relative aspect-[3/4] shrink-0 cursor-pointer overflow-hidden border transition",
                       index === photoIndex
                         ? "border-foreground"
-                        : "border-transparent opacity-60 hover:opacity-100",
+                        : "border-border opacity-60 hover:opacity-100",
                     )}
                   >
                     <Image src={image.url} alt="" fill sizes="4rem" className="object-cover" />
@@ -174,19 +178,21 @@ export function ProductDialog({
                 {sizes.length > 0 && (
                   <div className="flex flex-col justify-center gap-2 border-t py-3">
                     <dt className="tracked text-[10px] text-muted-foreground">
-                      {perSize ? "Size run" : "Sizes"}
+                      {pack?.perSize ? "Size run" : "Sizes"}
                     </dt>
+                    {/* The same pairing the card prints as "S ×2 · M ×2 · L ×2",
+                        with room here to stack the count under its size. */}
                     <dd className="flex flex-wrap gap-1.5">
-                      {sizes.map((size, index) => (
+                      {sizes.map((size) => (
                         <span
-                          key={size}
+                          key={size.label}
                           className="min-w-11 border border-border px-2 py-1 text-center"
                         >
                           <span className="tracked block text-[10px] text-muted-foreground">
-                            {size}
+                            {size.label}
                           </span>
-                          {perSize && (
-                            <span className="block text-sm font-semibold">{perSize[index]}</span>
+                          {size.units !== null && (
+                            <span className="block text-sm font-semibold">{size.units}</span>
                           )}
                         </span>
                       ))}
@@ -225,6 +231,7 @@ export function ProductDialog({
                           type="button"
                           onClick={() => setColor(option)}
                           aria-pressed={option === color}
+                          data-swatch=""
                           className={cn(
                             "flex cursor-pointer items-center gap-1.5 rounded-sm border py-1 pl-1 pr-2.5 text-xs transition",
                             option === color

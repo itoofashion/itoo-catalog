@@ -22,12 +22,11 @@ export default async function ShortLinkPage({ params }: PageProps) {
   const selection = decodeSelection((await params).code);
   if (!selection) notFound();
 
-  const { products, syncedAt } = await publishedCatalog();
+  const { products } = await publishedCatalog();
 
   return (
     <CatalogView
       products={products}
-      syncedAt={syncedAt}
       selection={selection}
       filters={NO_FILTERS}
       isTeam={await isTeamViewer()}

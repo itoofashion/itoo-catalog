@@ -4,12 +4,12 @@ import { categoryNameMap, dedupeBySku, mapProduct } from "./map";
 import type { FashionGoCategory, FashionGoDetail, FashionGoListRecord } from "./types";
 
 /**
- * The Chrome extension sends FashionGo's own payloads, untouched, and the
- * mapping to catalog products happens here. Keeping the mapping on the server
- * means there is exactly one implementation of it, and it is the tested one.
- * The extension stays a dumb pipe that only knows how to read the vendor admin.
+ * The importer sends FashionGo's own payloads, untouched, and the mapping to
+ * catalog products happens here. Keeping the mapping on the server means there
+ * is exactly one implementation of it, and it is the tested one; whatever calls
+ * the endpoint stays a dumb pipe that only knows how to read FashionGo.
  *
- * The payload arrives from a browser extension, so it is validated rather than
+ * The payload arrives over a public endpoint, so it is validated rather than
  * trusted: a malformed push is rejected whole instead of half-replacing the
  * catalog.
  */

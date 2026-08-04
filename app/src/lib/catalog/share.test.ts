@@ -6,6 +6,8 @@ import {
   NO_FILTERS,
   parseCatalogQuery,
   selectionSize,
+  toggleCategory,
+  toggleStyle,
 } from "./share";
 
 describe("buildCatalogQuery", () => {
@@ -98,5 +100,63 @@ describe("selection helpers", () => {
 
   it("counts categories and styles together", () => {
     expect(selectionSize({ categories: ["Tops", "Pants"], skus: ["Y-542"] })).toBe(3);
+  });
+});
+
+describe("ticking a category", () => {
+  /** What the catalog holds, as the caller reads it off the products. */
+  const PANTS = ["P-1", "P-2"];
+
+  it("swallows styles of that category that were picked one by one", () => {
+    const before = { categories: [], skus: ["P-1"] };
+    expect(toggleCategory(before, "Pants", PANTS)).toEqual({
+      categories: ["Pants"],
+      skus: [],
+    });
+  });
+
+  it("leaves styles of other categories alone", () => {
+    const before = { categories: [], skus: ["P-1", "T-9"] };
+    expect(toggleCategory(before, "Pants", PANTS)).toEqual({
+      categories: ["Pants"],
+      skus: ["T-9"],
+    });
+  });
+
+  it("takes what it swallowed away with it when it is unticked", () => {
+    const picked = toggleCategory({ categories: [], skus: ["P-1"] }, "Pants", PANTS);
+    expect(toggleCategory(picked, "Pants", PANTS)).toEqual(EMPTY_SELECTION);
+  });
+
+  it("does not release a style back when another category is unticked", () => {
+    let selection = toggleCategory({ categories: [], skus: ["P-1"] }, "Pants", PANTS);
+    selection = toggleCategory(selection, "Tops", ["T-9"]);
+    expect(toggleCategory(selection, "Tops", ["T-9"])).toEqual({
+      categories: ["Pants"],
+      skus: [],
+    });
+  });
+
+  it("stops the same style being counted twice", () => {
+    const before = { categories: [], skus: ["P-1"] };
+    expect(selectionSize(toggleCategory(before, "Pants", PANTS))).toBe(1);
+  });
+
+  it("keeps the link free of styles the category already covers", () => {
+    const selection = toggleCategory({ categories: [], skus: ["P-1"] }, "Pants", PANTS);
+    expect(buildCatalogQuery(selection)).toBe("?cats=Pants");
+  });
+});
+
+describe("ticking a single style", () => {
+  it("adds one and removes one", () => {
+    const added = toggleStyle(EMPTY_SELECTION, "Y-542");
+    expect(added.skus).toEqual(["Y-542"]);
+    expect(toggleStyle(added, "Y-542").skus).toEqual([]);
+  });
+
+  it("leaves the picked categories untouched", () => {
+    const selection = toggleStyle({ categories: ["Tops"], skus: [] }, "P-1");
+    expect(selection.categories).toEqual(["Tops"]);
   });
 });

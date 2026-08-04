@@ -22,8 +22,10 @@ export function orderText(
   // How the style is sold belongs in the message: a buyer pasting this into a
   // conversation is agreeing to a pack, not to a single piece.
   const pack = packSummary(product);
-  if (pack?.sizes) {
-    lines.push(`Sizes: ${pack.sizes}${pack.split ? ` (${pack.split})` : ""}`);
+  if (pack?.run) {
+    // Same words the card and the dialog print: the sizes, each with the pieces
+    // of it the pack holds, so nobody has to line "2-2-2" up against "S M L".
+    lines.push(`${pack.perSize ? "Pack" : "Sizes"}: ${pack.run}`);
   }
   if (product.minimumUnits) {
     lines.push(

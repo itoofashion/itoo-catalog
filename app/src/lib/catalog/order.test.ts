@@ -22,11 +22,16 @@ describe("orderText", () => {
         "Romantic Lace Top",
         "SKU: Y-542",
         "Color: Beige W Silver",
-        "Sizes: S·M·L (pack 2-2-2)",
+        "Pack: S ×2 · M ×2 · L ×2",
         "Minimum order: 6 pieces",
         "Price: $19.75 / unit",
       ].join("\n"),
     );
+  });
+
+  it("sends the sizes bare when the vendor fixed no split", () => {
+    const loose = { ...product, packBreakdown: null };
+    expect(orderText(loose, null)).toContain("Sizes: S · M · L");
   });
 
   it("omits the color line for a single-color style", () => {
@@ -37,6 +42,7 @@ describe("orderText", () => {
     const loose = { ...product, sizes: [], packBreakdown: null, minimumUnits: null };
     const text = orderText(loose, null);
     expect(text).not.toContain("Sizes:");
+    expect(text).not.toContain("Pack:");
     expect(text).not.toContain("Minimum order:");
   });
 

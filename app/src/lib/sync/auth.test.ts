@@ -9,7 +9,7 @@ function request(secret?: string) {
 }
 
 describe("authorizeSync", () => {
-  it("accepts the extension when it presents the configured secret", () => {
+  it("accepts the importer when it presents the configured secret", () => {
     expect(
       authorizeSync(request("s3cret"), { secret: "s3cret", isProduction: true }),
     ).toEqual({ ok: true });

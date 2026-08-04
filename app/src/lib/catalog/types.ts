@@ -12,8 +12,8 @@ export type ProductImage = {
 
 /**
  * A product as the catalog shows it. This is the shape the app renders and the
- * shape the Chrome extension pushes to /api/sync. FashionGo's own field names
- * never leak past the mapping layer.
+ * shape a sync pushes to /api/sync. FashionGo's own field names never leak past
+ * the mapping layer.
  */
 export type Product = {
   /** Vendor style number, e.g. "Y-542". Unique within the catalog. */

@@ -18,12 +18,11 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 export default async function CatalogPage({ searchParams }: PageProps) {
   const { selection, filters } = parseCatalogQuery(await searchParams);
-  const { products, syncedAt } = await publishedCatalog();
+  const { products } = await publishedCatalog();
 
   return (
     <CatalogView
       products={products}
-      syncedAt={syncedAt}
       selection={selection}
       filters={filters}
       // The same address for everyone: the team gets their tools on top of it,

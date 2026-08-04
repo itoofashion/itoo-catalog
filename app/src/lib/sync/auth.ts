@@ -2,9 +2,9 @@
  * Guards the sync endpoint.
  *
  * The catalog is served from a public address, so without this anyone who found
- * the URL could replace the whole catalog with their own products. The Chrome
- * extension proves it is ours by sending a shared secret, set as a Cloudflare
- * secret on the Worker.
+ * the URL could replace the whole catalog with their own products. The importer
+ * proves it is ours by sending a shared secret, set as a Cloudflare secret on
+ * the Worker.
  *
  * Locally there is no secret to configure and nothing to protect, so an
  * unconfigured development server accepts the sync. A deployed one does not:

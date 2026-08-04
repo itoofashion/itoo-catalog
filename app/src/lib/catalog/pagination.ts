@@ -26,25 +26,23 @@ export function paginate<T>(items: T[], page: number, perPage = PER_PAGE): Paged
   return { items: items.slice(start, start + perPage), page: current, pages, total };
 }
 
+/** How many page numbers the bar offers at once. */
+export const WINDOW_SIZE = 5;
+
 /**
- * Page numbers to offer, with gaps marked by null: first, last, and a window
- * around where the visitor is. Long catalogues would otherwise print forty
- * buttons nobody presses.
+ * A run of consecutive page numbers to offer, never longer than WINDOW_SIZE and
+ * never broken by an ellipsis. The window holds still at the start of the
+ * catalogue, carries the current page in its middle once past that, and holds
+ * still again at the end rather than running off past the last page.
  */
-export function pageWindow(page: number, pages: number, span = 1): (number | null)[] {
-  if (pages <= 1) return [1];
+export function pageWindow(page: number, pages: number, size = WINDOW_SIZE): number[] {
+  const total = Math.max(1, Math.floor(pages) || 1);
+  const width = Math.min(Math.max(1, Math.floor(size) || 1), total);
+  // A page number out of a stale link should still draw a sensible window.
+  const current = Math.min(Math.max(1, Math.floor(page) || 1), total);
 
-  const wanted = new Set<number>([1, pages]);
-  for (let offset = -span; offset <= span; offset += 1) {
-    const candidate = page + offset;
-    if (candidate >= 1 && candidate <= pages) wanted.add(candidate);
-  }
+  const centred = current - Math.floor(width / 2);
+  const start = Math.min(Math.max(1, centred), total - width + 1);
 
-  const sorted = [...wanted].sort((a, b) => a - b);
-  const out: (number | null)[] = [];
-  for (const [index, value] of sorted.entries()) {
-    if (index > 0 && value - sorted[index - 1] > 1) out.push(null);
-    out.push(value);
-  }
-  return out;
+  return Array.from({ length: width }, (_, index) => start + index);
 }

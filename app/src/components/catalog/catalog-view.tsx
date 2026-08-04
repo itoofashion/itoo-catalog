@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { Eye, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -17,20 +18,20 @@ import {
   ALL_CATEGORIES,
   buildCatalogQuery,
   isEmptySelection,
+  toggleCategory,
+  toggleStyle,
   type CatalogFilters,
   type CatalogSelection,
 } from "@/lib/catalog/share";
 import { paginate } from "@/lib/catalog/pagination";
-import { CategoryFilters } from "./category-filters";
+import { CategoryRow, NewFilterToggle } from "./category-filters";
 import { LinkPanel } from "./link-panel";
 import { PaginationBar } from "./pagination-bar";
 import { ProductCard } from "./product-card";
 import { ProductDialog } from "./product-dialog";
-import { StatusBar } from "./status-bar";
 
 export type CatalogViewProps = {
   products: PublicProduct[];
-  syncedAt: string;
   /** What the address asked for when the page opened. */
   selection: CatalogSelection;
   filters: CatalogFilters;
@@ -46,7 +47,6 @@ export type CatalogViewProps = {
 
 export function CatalogView({
   products,
-  syncedAt,
   selection: initialSelection,
   filters: initialFilters,
   isTeam,
@@ -98,18 +98,23 @@ export function CatalogView({
     syncAddress(next, filters);
   }
 
-  function toggleCategory(category: string) {
-    const categories = selection.categories.includes(category)
-      ? selection.categories.filter((name) => name !== category)
-      : [...selection.categories, category];
-    changeSelection({ ...selection, categories });
+  /**
+   * The rule itself is in lib/catalog/share.ts; what the page contributes is the
+   * one thing a pure function cannot know, which styles the category holds
+   * right now, so ticking it can absorb the ones already ticked by hand.
+   */
+  function pickCategory(category: string) {
+    changeSelection(
+      toggleCategory(
+        selection,
+        category,
+        products.filter((product) => product.category === category).map((p) => p.sku),
+      ),
+    );
   }
 
-  function toggleStyle(sku: string) {
-    const skus = selection.skus.includes(sku)
-      ? selection.skus.filter((value) => value !== sku)
-      : [...selection.skus, sku];
-    changeSelection({ ...selection, skus });
+  function pickStyle(sku: string) {
+    changeSelection(toggleStyle(selection, sku));
   }
 
   // What this visitor can reach: the whole catalog for the team, only what was
@@ -146,42 +151,49 @@ export function CatalogView({
   return (
     <>
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1680px] items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6 lg:px-10">
-          <Link href="/" className="shrink-0 text-xl font-bold tracking-[0.3em]">
-            itoo
+        {/* One wrapping row that reads as two on a phone: the logo and New sit
+            on the first line, the categories drop onto the second and scroll
+            sideways. On a laptop nothing wraps and it is a single line, which is
+            where the filters have always been: every pixel above the first
+            photograph is one the catalogue does not get. */}
+        <div className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:flex-nowrap sm:gap-x-5 sm:px-6 lg:px-10">
+          <Link href="/" className="shrink-0" aria-label="itoo, back to the catalog">
+            {/* Served at its full 1050px because the image optimizer is off on
+                Workers (see next.config.ts) and the file is only 15 KB: the
+                browser scales it down to the 28px line, so it stays sharp on a
+                retina screen at any density. */}
+            <Image
+              src="/logo.png"
+              alt="itoo"
+              width={1050}
+              height={483}
+              priority
+              className="h-6 w-auto sm:h-7"
+            />
           </Link>
 
-          {/* The filters live in the header rather than under it: the row was
-              empty, and every pixel above the first photograph is one the
-              catalogue does not get. */}
-          <div className="min-w-0 flex-1">
-            <CategoryFilters
-              categories={categories}
-              active={activeCategory}
-              onSelect={(category) =>
-                changeFilters({
-                  category: category === ALL_CATEGORIES ? null : category,
-                  page: 1,
-                })
-              }
-              newOnly={filters.newOnly}
-              onToggleNew={() => changeFilters({ newOnly: !filters.newOnly, page: 1 })}
-              selectable={showTools}
-              selectedCategories={selection.categories}
-              onToggleCategory={toggleCategory}
-            />
-          </div>
+          <NewFilterToggle
+            newOnly={filters.newOnly}
+            onToggle={() => changeFilters({ newOnly: !filters.newOnly, page: 1 })}
+            className="ml-auto sm:ml-0"
+          />
 
-          {isTeam && previewingAsClient && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              onClick={() => setPreviewingAsClient(false)}
-            >
-              <ArrowLeft /> Back
-            </Button>
-          )}
+          <div className="hidden h-5 w-px shrink-0 bg-border sm:block" />
+
+          <CategoryRow
+            categories={categories}
+            active={activeCategory}
+            onSelect={(category) =>
+              changeFilters({
+                category: category === ALL_CATEGORIES ? null : category,
+                page: 1,
+              })
+            }
+            selectable={showTools}
+            selectedCategories={selection.categories}
+            onToggleCategory={pickCategory}
+            className="w-full sm:w-auto sm:flex-1"
+          />
         </div>
       </header>
 
@@ -221,22 +233,53 @@ export function CatalogView({
         </div>
       )}
 
-      {/* The team's controls float over the last row, so the page has to end
-          above them; nobody else is given that much empty page to scroll past. */}
+      {/* The link panel floats over the last row, so the page has to end above
+          it; nobody else is given that much empty page to scroll past. */}
       <main
         className={cn(
           "mx-auto w-full max-w-[1680px] flex-1 px-4 sm:px-6 lg:px-10",
-          showTools ? "pb-44" : "pb-16",
+          showTools ? "pb-36" : "pb-16",
         )}
       >
-        <p className="tracked py-4 text-right text-[11px] text-muted-foreground">
-          {page.total} {page.total === 1 ? "item" : "items"}
-          {page.pages > 1 && (
-            <span className="ml-2">
-              · page {page.page} of {page.pages}
-            </span>
+        {/* The count on the left is the answer to "did that filter do
+            anything": it is the first thing under the filters that just moved,
+            and it changes as they do. The page number is not repeated here, the
+            pagination at the foot of the grid already carries it. */}
+        <div className="flex min-h-[3.25rem] items-center justify-between gap-3 py-3">
+          <p className="tracked text-[11px] text-muted-foreground" data-style-count="">
+            {page.total} {page.total === 1 ? "style" : "styles"}
+          </p>
+
+          {/* One slot, the same slot in both views, so pressing it does not move
+              the thing that was just pressed. */}
+          {isTeam && (
+            <div className="flex shrink-0 items-center gap-1">
+              {showTools && (
+                <Link
+                  href="/admin"
+                  className="tracked px-2 text-[11px] text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Admin
+                </Link>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPreviewingAsClient(!previewingAsClient)}
+              >
+                {showTools ? (
+                  <>
+                    <Eye /> Public view
+                  </>
+                ) : (
+                  <>
+                    <Undo2 /> Admin view
+                  </>
+                )}
+              </Button>
+            </div>
           )}
-        </p>
+        </div>
 
         {visible.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-28 text-center">
@@ -266,8 +309,10 @@ export function CatalogView({
                 eager={index < 6}
                 selectable={showTools}
                 selected={isSelected(product, selection)}
+                // Its category was ticked, so this box is shown ticked and is
+                // not pressable: see toggleCategory in lib/catalog/share.ts.
                 lockedByCategory={selection.categories.includes(product.category)}
-                onToggleSelect={toggleStyle}
+                onToggleSelect={pickStyle}
                 onOpen={(item, photoIndex) => setOpened({ product: item, photoIndex })}
               />
             ))}
@@ -284,26 +329,19 @@ export function CatalogView({
         />
       </main>
 
-      {/* Stacked in one column so the link panel never covers the status bar,
-          which is what happened when both were pinned to a corner. */}
-      {showTools && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-stretch gap-2 p-3 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:items-end sm:p-0">
-          <StatusBar
-            productCount={products.length}
-            syncedAt={syncedAt}
-            onPreview={() => setPreviewingAsClient(true)}
+      {/* The only thing left floating over the catalogue. The team's other
+          controls are on /admin, and the view switch is in the row above the
+          grid, where it stays put instead of jumping into the header. */}
+      {showTools && !isEmptySelection(selection) && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:justify-end sm:p-0">
+          <LinkPanel
+            // A different selection is a different link: remounting drops the
+            // one made for the previous selection rather than resetting it.
+            key={`${selection.categories.join()}|${selection.skus.join()}`}
+            selection={selection}
+            productCount={picked.length}
+            onClear={() => changeSelection({ categories: [], skus: [] })}
           />
-
-          {!isEmptySelection(selection) && (
-                <LinkPanel
-              // A different selection is a different link: remounting drops the
-              // one made for the previous selection rather than resetting it.
-              key={`${selection.categories.join()}|${selection.skus.join()}`}
-              selection={selection}
-              productCount={picked.length}
-              onClear={() => changeSelection({ categories: [], skus: [] })}
-            />
-          )}
         </div>
       )}
 

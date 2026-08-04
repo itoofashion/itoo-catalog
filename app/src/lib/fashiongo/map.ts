@@ -70,8 +70,8 @@ const ONE_SIZE_CODE = "O~S";
 
 /**
  * A size run: "S;M;L" is how FashionGo's own admin stores and splits it. The
- * argument is typed loose because these tables also arrive from the extension,
- * where nothing guarantees the vendor admin put a string there.
+ * argument is typed loose because these tables arrive over the network, where
+ * nothing guarantees FashionGo put a string there.
  */
 function sizeRunOf(description: unknown): string[] {
   if (typeof description !== "string") return [];

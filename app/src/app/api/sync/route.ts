@@ -4,9 +4,9 @@ import { parseSyncRequest } from "@/lib/fashiongo/sync-request";
 import { authorizeSync } from "@/lib/sync/auth";
 
 /**
- * Receives what the Chrome extension read out of the FashionGo vendor admin and
- * replaces the catalog with it. A sync is a mirror, not a merge: whatever
- * FashionGo has is what the catalog shows.
+ * Receives what the importer read out of FashionGo and replaces the catalog
+ * with it. A sync is a mirror, not a merge: whatever FashionGo has is what the
+ * catalog shows.
  *
  * There is no GET counterpart on purpose. How many products are loaded and when
  * they were last synced is operational detail, and this endpoint is reachable by

@@ -31,28 +31,22 @@ export function PaginationBar({
         <ChevronLeft className="size-4" />
       </button>
 
-      {pageWindow(page, pages).map((entry, index) =>
-        entry === null ? (
-          <span key={`gap-${index}`} className="px-1.5 text-muted-foreground">
-            …
-          </span>
-        ) : (
-          <button
-            key={entry}
-            type="button"
-            onClick={() => onGo(entry)}
-            aria-current={entry === page ? "page" : undefined}
-            className={cn(
-              "flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-sm border px-2.5 text-sm transition",
-              entry === page
-                ? "border-foreground bg-foreground text-background"
-                : "border-border text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {entry}
-          </button>
-        ),
-      )}
+      {pageWindow(page, pages).map((entry) => (
+        <button
+          key={entry}
+          type="button"
+          onClick={() => onGo(entry)}
+          aria-current={entry === page ? "page" : undefined}
+          className={cn(
+            "flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-sm border px-2.5 text-sm transition",
+            entry === page
+              ? "border-foreground bg-foreground text-background"
+              : "border-border text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {entry}
+        </button>
+      ))}
 
       <button
         type="button"

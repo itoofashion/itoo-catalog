@@ -12,7 +12,6 @@ and prices.
 | Path         | What it is                                                     |
 | ------------ | -------------------------------------------------------------- |
 | `app/`       | The catalog web app: Next.js, deployed as a Cloudflare Worker  |
-| `extension/` | Chrome extension that imports products from FashionGo           |
 | `reference/` | Design mockup used as the visual reference                      |
 | `docs/`      | Project notes                                                   |
 
@@ -26,8 +25,6 @@ pnpm test         # run the test suite
 pnpm preview      # run the production build on the Cloudflare runtime locally
 ```
 
-To load the Chrome extension, follow [`extension/README.md`](extension/README.md).
-
 ## How it works
 
 FashionGo is the single source of truth and the catalog mirrors it. Products,
@@ -38,10 +35,10 @@ marked as new arrivals automatically.
 Syncing is a full replacement rather than a merge: whatever FashionGo has is
 what the catalog shows, so there is never a half-updated state to reconcile.
 
-FashionGo publishes no API for exporting a catalog with its images, so the
-import runs in the browser: the Chrome extension reads the products through the
-vendor admin session the operator is already signed in to, and hands them to the
-app, which maps and stores them.
+The import reads FashionGo's published REST API (`pubapi.fashiongo.net`) and
+posts the payloads to the app's `/api/sync`, which maps and stores them. The
+mapping lives on the server, in `app/src/lib/fashiongo/map.ts`, so there is one
+tested copy of it whatever calls the endpoint.
 
 ### Sharing a catalogue
 
@@ -52,10 +49,11 @@ unfurls into a preview card with the product photo when pasted into a chat.
 ### Signing in
 
 The catalog itself is public. The address is the product. What is behind a
-password is the working view: the checkboxes, the link panel and the sync
-button. The team signs in at `/admin` with one shared password and stays signed
-in for 30 days; the page decides who sees the tools on the server, from a signed
-cookie, so a client cannot get them by fiddling with the browser.
+password is the working view: the checkboxes, the link panel, and the admin page
+with the sync details on it. The team signs in at `/admin` with one shared
+password and stays signed in for 30 days; the page decides who sees the tools on
+the server, from a signed cookie, so a client cannot get them by fiddling with
+the browser.
 
 ## Deploying
 
@@ -72,13 +70,11 @@ Or deploy from a terminal with `pnpm deploy` inside `app/`.
 
 After deploying:
 
-1. Add the live address to `extension/manifest.json` so the extension can reach
-   it.
-2. Set a `SYNC_SECRET` secret on the Worker (Settings → Variables and secrets)
-   and enter the same value in the extension popup. The catalog is public, so
+1. Set a `SYNC_SECRET` secret on the Worker (Settings → Variables and secrets)
+   and send the same value with every sync request. The catalog is public, so
    without this the sync endpoint would let anyone replace the catalog, so a
    deployed Worker with no secret configured refuses to sync at all.
-3. Set an `ADMIN_PASSWORD_HASH` secret with the team's sign-in password. Never
+2. Set an `ADMIN_PASSWORD_HASH` secret with the team's sign-in password. Never
    the password itself: generate the value with
 
    ```bash
@@ -90,7 +86,7 @@ After deploying:
    refuses to sync. Optionally set `ADMIN_SESSION_SECRET` as well: sessions are
    signed with it instead of with the password hash, so changing the password
    then does not sign everyone out.
-4. Make sure the photo bucket exists (below). It already does for the live
+3. Make sure the photo bucket exists (below). It already does for the live
    deployment.
 
 ### Domains

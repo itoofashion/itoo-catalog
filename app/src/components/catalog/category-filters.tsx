@@ -6,6 +6,41 @@ import { cn } from "@/lib/utils";
 import { ALL_CATEGORIES } from "@/lib/catalog/share";
 
 /**
+ * The header's two filters, kept as separate pieces because they do not sit
+ * together on every screen: a phone gets the logo and the New toggle on one
+ * line and the categories on the line below, a laptop gets all of it in a row.
+ * Composing them in the header is what lets one set of controls do both.
+ */
+
+/** New arrivals, on or off. */
+export function NewFilterToggle({
+  newOnly,
+  onToggle,
+  className,
+}: {
+  newOnly: boolean;
+  onToggle: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={newOnly}
+      className={cn(
+        "tracked flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
+        newOnly
+          ? "border-foreground bg-foreground text-background"
+          : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+        className,
+      )}
+    >
+      <Sparkles className="size-3" /> New
+    </button>
+  );
+}
+
+/**
  * One row, scrolled sideways rather than wrapped. Fifteen categories wrapped
  * into three rows pushed the photographs below the fold on a laptop and made a
  * phone unusable; a single row keeps the catalogue itself the first thing seen.
@@ -18,24 +53,22 @@ import { ALL_CATEGORIES } from "@/lib/catalog/share";
  * pressing the name narrows what is on screen, ticking the box puts the whole
  * category into the link being built for a client.
  */
-export function CategoryFilters({
+export function CategoryRow({
   categories,
   active,
   onSelect,
-  newOnly,
-  onToggleNew,
   selectable,
   selectedCategories,
   onToggleCategory,
+  className,
 }: {
   categories: string[];
   active: string;
   onSelect: (category: string) => void;
-  newOnly: boolean;
-  onToggleNew: () => void;
   selectable: boolean;
   selectedCategories: string[];
   onToggleCategory: (category: string) => void;
+  className?: string;
 }) {
   const row = useRef<HTMLDivElement>(null);
   const activeChip = useRef<HTMLSpanElement>(null);
@@ -78,100 +111,85 @@ export function CategoryFilters({
   }, [active]);
 
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <button
-        type="button"
-        onClick={onToggleNew}
-        aria-pressed={newOnly}
-        className={cn(
-          "tracked flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
-          newOnly
-            ? "border-foreground bg-foreground text-background"
-            : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-        )}
+    <div className={cn("relative min-w-0", className)}>
+      {/* Scrolled, not wrapped (see the note above). */}
+      <div
+        ref={row}
+        className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <Sparkles className="size-3" /> New
-      </button>
+        {categories.map((name) => {
+          const isActive = name === active;
+          const isPicked = selectedCategories.includes(name);
+          const canPick = selectable && name !== ALL_CATEGORIES;
 
-      <div className="h-5 w-px shrink-0 bg-border" />
-
-      <div className="relative min-w-0 flex-1">
-        {/* Scrolled, not wrapped (see the note above). */}
-        <div
-          ref={row}
-          className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {categories.map((name) => {
-            const isActive = name === active;
-            const isPicked = selectedCategories.includes(name);
-            const canPick = selectable && name !== ALL_CATEGORIES;
-
-            return (
-              <span
-                key={name}
-                ref={isActive ? activeChip : undefined}
-                data-category={name}
-                className={cn(
-                  "flex shrink-0 items-center rounded-sm border transition",
-                  isActive
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
-                  isPicked && !isActive && "border-border",
-                )}
-              >
-                {canPick && (
-                  <button
-                    type="button"
-                    onClick={() => onToggleCategory(name)}
-                    aria-pressed={isPicked}
-                    aria-label={
-                      isPicked
-                        ? `Remove all of ${name} from the link`
-                        : `Add all of ${name} to the link`
-                    }
-                    className={cn(
-                      "my-1 ml-1.5 flex size-4 cursor-pointer items-center justify-center rounded-[2px] border transition",
-                      isPicked
-                        ? "border-foreground bg-background text-foreground"
-                        : isActive
-                          ? "border-background/50"
-                          : "border-border",
-                    )}
-                  >
-                    {isPicked && <Check className="size-3" strokeWidth={3} />}
-                  </button>
-                )}
+          return (
+            <span
+              key={name}
+              ref={isActive ? activeChip : undefined}
+              data-category={name}
+              className={cn(
+                "flex shrink-0 items-center rounded-sm border transition",
+                isActive
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+                isPicked && !isActive && "border-border",
+              )}
+            >
+              {canPick && (
                 <button
                   type="button"
-                  onClick={() => onSelect(name)}
-                  aria-pressed={isActive}
+                  onClick={() => onToggleCategory(name)}
+                  aria-pressed={isPicked}
+                  aria-label={
+                    isPicked
+                      ? `Remove all of ${name} from the link`
+                      : `Add all of ${name} to the link`
+                  }
+                  /* The same box as the one on a card, to the pixel: they tick
+                     the same kind of thing, one style at a time or a whole
+                     column of them. */
                   className={cn(
-                    "cursor-pointer whitespace-nowrap px-3 py-1.5 text-[13px]",
-                    canPick && "pl-2",
+                    "my-1 ml-1.5 flex size-5 cursor-pointer items-center justify-center rounded-sm border transition",
+                    isPicked
+                      ? "border-foreground bg-background text-foreground"
+                      : isActive
+                        ? "border-background/50"
+                        : "border-border",
                   )}
                 >
-                  {name}
+                  {isPicked && <Check className="size-3.5" strokeWidth={3} />}
                 </button>
-              </span>
-            );
-          })}
-        </div>
-
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-y-0 left-0 w-10 bg-linear-to-r from-background to-transparent transition-opacity duration-200",
-            more.before ? "opacity-100" : "opacity-0",
-          )}
-        />
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-y-0 right-0 w-14 bg-linear-to-l from-background to-transparent transition-opacity duration-200",
-            more.after ? "opacity-100" : "opacity-0",
-          )}
-        />
+              )}
+              <button
+                type="button"
+                onClick={() => onSelect(name)}
+                aria-pressed={isActive}
+                className={cn(
+                  "cursor-pointer whitespace-nowrap px-3 py-1.5 text-[13px]",
+                  canPick && "pl-2",
+                )}
+              >
+                {name}
+              </button>
+            </span>
+          );
+        })}
       </div>
+
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-y-0 left-0 w-10 bg-linear-to-r from-background to-transparent transition-opacity duration-200",
+          more.before ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute inset-y-0 right-0 w-14 bg-linear-to-l from-background to-transparent transition-opacity duration-200",
+          more.after ? "opacity-100" : "opacity-0",
+        )}
+      />
     </div>
   );
 }

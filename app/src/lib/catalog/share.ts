@@ -39,6 +39,51 @@ export function selectionSize(selection: CatalogSelection): number {
   return selection.categories.length + selection.skus.length;
 }
 
+/**
+ * Ticking a category is the checkbox in a table's column header: it owns every
+ * row under it. Styles of that category that had been ticked one by one are
+ * absorbed by it, so the same style is never in the link twice, the count never
+ * doubles, and unticking the category takes everything it swallowed with it.
+ *
+ * The other half of that behaviour lives on the card: inside a ticked category
+ * the individual boxes are shown ticked but cannot be pressed. Letting one style
+ * be un-ticked would mean dropping the category and listing the rest of it by
+ * hand, which turns "all of Dresses" into two hundred style numbers in the
+ * address and quietly changes what the link promises: a category link keeps
+ * meaning "everything in Dresses", including styles added after it was sent.
+ */
+export function toggleCategory(
+  selection: CatalogSelection,
+  category: string,
+  /** Every style currently in that category. */
+  skusInCategory: string[],
+): CatalogSelection {
+  if (selection.categories.includes(category)) {
+    // Whatever the category absorbed on the way in went with it; nothing of it
+    // is left hanging around individually.
+    return {
+      categories: selection.categories.filter((name) => name !== category),
+      skus: selection.skus,
+    };
+  }
+
+  const absorbed = new Set(skusInCategory);
+  return {
+    categories: [...selection.categories, category],
+    skus: selection.skus.filter((sku) => !absorbed.has(sku)),
+  };
+}
+
+/** Ticking a single style. Styles of a ticked category never get here. */
+export function toggleStyle(selection: CatalogSelection, sku: string): CatalogSelection {
+  return {
+    ...selection,
+    skus: selection.skus.includes(sku)
+      ? selection.skus.filter((value) => value !== sku)
+      : [...selection.skus, sku],
+  };
+}
+
 export function buildCatalogQuery(
   selection: CatalogSelection,
   filters: CatalogFilters = NO_FILTERS,

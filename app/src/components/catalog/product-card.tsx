@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Lock } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
 import { packSummary } from "@/lib/catalog/pack";
@@ -121,53 +121,55 @@ export function ProductCard({
                   ? `Remove ${product.sku} from selection`
                   : `Add ${product.sku} to selection`
             }
-            aria-pressed={selected}
+            aria-pressed={selected || lockedByCategory}
             title={
               lockedByCategory
                 ? `Included because all of ${product.category} is selected`
                 : undefined
             }
             onClick={() => onToggleSelect(product.sku)}
+            /* The same box as the one on a category, down to the corner: one
+               control, picked in two places. It reads at 20px and is hit with a
+               thumb, so the target around it is grown by a pseudo-element.
+
+               A style held by its category shows the same tick, faded and
+               unpressable. A padlock was tried here and read as a puzzle: a
+               dimmed tick says "already in, not yours to take out" without
+               anyone having to work out what the picture means. */
             className={cn(
-              "absolute right-2.5 top-2.5 flex size-7 cursor-pointer items-center justify-center rounded-full border text-white shadow-sm transition",
-              selected
+              "absolute right-2.5 top-2.5 flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
+              selected || lockedByCategory
                 ? "border-foreground bg-foreground"
                 : "border-white/80 bg-black/25 hover:bg-black/45",
-              lockedByCategory && "cursor-default",
+              lockedByCategory ? "cursor-not-allowed opacity-45" : "cursor-pointer",
             )}
           >
-            {lockedByCategory ? (
-              <Lock className="size-3" strokeWidth={2.5} />
-            ) : (
-              selected && <Check className="size-4" strokeWidth={3} />
-            )}
+            {(selected || lockedByCategory) && <Check className="size-3.5" strokeWidth={3} />}
           </button>
         )}
 
         {photos.length > 1 && (
           <>
             {/* Where there is a pointer the arrows are the way through; where
-                there is a finger the strip is swiped, so they only take up room. */}
-            {photoIndex > 0 && (
-              <button
-                type="button"
-                aria-label="Previous photo"
-                onClick={() => showPhoto(photoIndex - 1)}
-                className="absolute left-1.5 top-1/2 hidden size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background/90 shadow-sm transition sm:flex sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-              >
-                <ChevronLeft className="size-4" />
-              </button>
-            )}
-            {photoIndex < photos.length - 1 && (
-              <button
-                type="button"
-                aria-label="Next photo"
-                onClick={() => showPhoto(photoIndex + 1)}
-                className="absolute right-1.5 top-1/2 hidden size-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-background/90 shadow-sm transition sm:flex sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
-              >
-                <ChevronRight className="size-4" />
-              </button>
-            )}
+                there is a finger the strip is swiped, so they only take up room.
+
+                Both arrows stay in the layout the whole time and only fade,
+                and both keep taking the pointer even faded: unmounting the one
+                that had run out of photos made it flick away under the cursor
+                and dropped that last click onto the photo, which opened a
+                dialog nobody asked for. */}
+            <StripArrow
+              side="left"
+              label="Previous photo"
+              available={photoIndex > 0}
+              onGo={() => showPhoto(photoIndex - 1)}
+            />
+            <StripArrow
+              side="right"
+              label="Next photo"
+              available={photoIndex < photos.length - 1}
+              onGo={() => showPhoto(photoIndex + 1)}
+            />
 
             {photos.length <= MAX_DOTS ? (
               <div
@@ -214,15 +216,17 @@ export function ProductCard({
 
           <p className="mt-1.5 flex items-baseline gap-2">
             <span className="text-base font-bold">{formatPrice(product.price)}</span>
-            {pack?.minimum && (
+            {/* Where every size carries its own count the total is already on
+                the card, in the line below, and stating it twice only invites
+                the reader to check one against the other. */}
+            {pack?.minimum && !pack.perSize && (
               <span className="text-xs text-muted-foreground">min {pack.minimum}</span>
             )}
           </p>
 
           <p className="mt-1 text-xs text-muted-foreground">
             {product.sku}
-            {pack?.sizes && <> · {pack.sizes}</>}
-            {pack?.split && <> · {pack.split}</>}
+            {pack?.run && <> · {pack.run}</>}
           </p>
 
           {product.colors.length > 0 && (
@@ -235,6 +239,10 @@ export function ProductCard({
                   aria-pressed={option === color}
                   aria-label={formatColorName(option)}
                   title={formatColorName(option)}
+                  /* Only the chosen colour goes on the clipboard, which the
+                     others show by stepping back while the copy button is
+                     pointed at (see [data-swatch] in globals.css). */
+                  data-swatch=""
                   /* The swatch reads at 16px but has to be hit with a thumb. */
                   className={cn(
                     "relative size-4 cursor-pointer rounded-full ring-1 ring-border transition before:absolute before:-inset-1.5 before:content-['']",
@@ -257,6 +265,49 @@ export function ProductCard({
         </div>
       </div>
     </article>
+  );
+}
+
+/**
+ * One step through the gallery. It is always rendered, always in the layout and
+ * always the thing under the pointer at that spot; what changes is whether it
+ * can be seen and pressed, which is a fade rather than an appearance.
+ *
+ * At the end of the strip it goes quiet but stays a shield. Someone clicking
+ * their way to the last photo lands one more click after the last one, and if
+ * the arrow had stepped aside that click would open the style in a dialog they
+ * never asked for.
+ */
+function StripArrow({
+  side,
+  label,
+  available,
+  onGo,
+}: {
+  side: "left" | "right";
+  label: string;
+  /** False at the ends of the strip: there is no photo that way. */
+  available: boolean;
+  onGo: () => void;
+}) {
+  const Icon = side === "left" ? ChevronLeft : ChevronRight;
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={!available}
+      onClick={onGo}
+      className={cn(
+        "absolute top-1/2 hidden size-8 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 opacity-0 shadow-sm transition-opacity duration-200 motion-reduce:transition-none sm:flex",
+        side === "left" ? "left-1.5" : "right-1.5",
+        available
+          ? "cursor-pointer group-hover:opacity-100 focus-visible:opacity-100"
+          : "cursor-not-allowed text-muted-foreground group-hover:opacity-45",
+      )}
+    >
+      <Icon className="size-4" />
+    </button>
   );
 }
 

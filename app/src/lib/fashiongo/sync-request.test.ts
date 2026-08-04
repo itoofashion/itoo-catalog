@@ -45,7 +45,7 @@ describe("parseSyncRequest", () => {
   });
 
   it("accepts exactly what the seed export contains", () => {
-    // The live catalog is what the extension pushes, so it has to survive the
+    // The live catalog is what a sync pushes, so it has to survive the
     // validation whole, including the styles the vendor listed more than once,
     // which collapse instead of failing the push.
     const result = parseSyncRequest({

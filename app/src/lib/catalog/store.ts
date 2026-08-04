@@ -4,8 +4,8 @@ import type { Catalog, Product } from "./types";
 /**
  * Where the live catalog lives.
  *
- * Sync is a full replacement: whatever the extension pushes becomes the catalog,
- * exactly as it stands in FashionGo. There is no merge or conflict handling by
+ * Sync is a full replacement: whatever is pushed becomes the catalog, exactly
+ * as it stands in FashionGo. There is no merge or conflict handling by
  * design: FashionGo is the source of truth.
  *
  * The pilot keeps the catalog in memory and falls back to the shipped seed, so

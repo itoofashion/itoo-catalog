@@ -268,8 +268,28 @@ html {
   transform: scaleY(1);
 }
 
+/*
+ * A style is copied in one colour, the one that is chosen, and the row of
+ * swatches is the one place on the card where that is easy to forget. So while
+ * the copy button is pointed at, the colours that are not going with it step
+ * back and the chosen one is left standing at full strength.
+ *
+ * It is the button's own state that says this, so nothing about it lives in
+ * React: the swatches only mark themselves as swatches.
+ */
+.copy-source [data-swatch] {
+  transition: opacity 160ms ease;
+}
+
+.copy-source:has([data-copy-order]:hover) [data-swatch]:not([aria-pressed="true"]),
+.copy-source:has([data-copy-order]:focus-visible) [data-swatch]:not([aria-pressed="true"]),
+.copy-source:has([data-copy-order][data-copied]) [data-swatch]:not([aria-pressed="true"]) {
+  opacity: 0.3;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .copy-facts::before {
+  .copy-facts::before,
+  .copy-source [data-swatch] {
     transition: none;
   }
 }
