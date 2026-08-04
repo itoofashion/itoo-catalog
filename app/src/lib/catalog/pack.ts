@@ -11,9 +11,9 @@ import type { PublicProduct } from "./public";
 export type PackSummary = {
   /** "S · M · L" */
   sizes: string;
-  /** "2 · 2 · 2", or null when the vendor did not fix a split. */
+  /** "pack 2-2-2", or null when the vendor did not fix a split. */
   split: string | null;
-  /** "6 pieces per pack" or "6 pieces minimum". */
+  /** "6 pcs" — the smallest order, whether that comes from a pack or not. */
   minimum: string | null;
 };
 
@@ -25,14 +25,10 @@ export function packSummary(
 
   const split =
     product.packBreakdown && product.packBreakdown.length === sizes.length
-      ? product.packBreakdown.join(" · ")
+      ? `pack ${product.packBreakdown.join("-")}`
       : null;
 
-  const minimum = product.minimumUnits
-    ? `${product.minimumUnits} ${product.minimumUnits === 1 ? "piece" : "pieces"} ${
-        split ? "per pack" : "minimum"
-      }`
-    : null;
+  const minimum = product.minimumUnits ? `${product.minimumUnits} pcs` : null;
 
-  return { sizes: sizes.join(" · "), split, minimum };
+  return { sizes: sizes.join("·"), split, minimum };
 }

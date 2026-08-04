@@ -22,7 +22,7 @@ describe("orderText", () => {
         "Romantic Lace Top",
         "SKU: Y-542",
         "Color: Beige W Silver",
-        "Sizes: S · M · L (2 · 2 · 2)",
+        "Sizes: S·M·L (pack 2-2-2)",
         "Minimum order: 6 pieces",
         "Price: $19.75 / unit",
       ].join("\n"),

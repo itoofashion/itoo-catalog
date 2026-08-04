@@ -5,7 +5,7 @@ describe("packSummary", () => {
   it("states the sizes, the split and the pack size", () => {
     expect(
       packSummary({ sizes: ["S", "M", "L"], packBreakdown: [2, 2, 2], minimumUnits: 6 }),
-    ).toEqual({ sizes: "S · M · L", split: "2 · 2 · 2", minimum: "6 pieces per pack" });
+    ).toEqual({ sizes: "S·M·L", split: "pack 2-2-2", minimum: "6 pcs" });
   });
 
   it("handles an uneven split", () => {
@@ -14,7 +14,7 @@ describe("packSummary", () => {
       packBreakdown: [1, 2, 2, 1],
       minimumUnits: 6,
     });
-    expect(summary?.split).toBe("1 · 2 · 2 · 1");
+    expect(summary?.split).toBe("pack 1-2-2-1");
   });
 
   it("calls it a minimum when the vendor fixed no split", () => {
@@ -23,7 +23,7 @@ describe("packSummary", () => {
       packBreakdown: null,
       minimumUnits: 6,
     });
-    expect(summary).toEqual({ sizes: "S · M · L", split: null, minimum: "6 pieces minimum" });
+    expect(summary).toEqual({ sizes: "S·M·L", split: null, minimum: "6 pcs" });
   });
 
   it("drops a split that does not line up with the sizes", () => {
@@ -43,11 +43,11 @@ describe("packSummary", () => {
 
   it("still speaks up when only a minimum is known", () => {
     const summary = packSummary({ sizes: [], packBreakdown: null, minimumUnits: 12 });
-    expect(summary).toEqual({ sizes: "", split: null, minimum: "12 pieces minimum" });
+    expect(summary).toEqual({ sizes: "", split: null, minimum: "12 pcs" });
   });
 
-  it("keeps the grammar right for a single piece", () => {
+  it("states a minimum of one", () => {
     const summary = packSummary({ sizes: ["One size"], packBreakdown: null, minimumUnits: 1 });
-    expect(summary?.minimum).toBe("1 piece minimum");
+    expect(summary?.minimum).toBe("1 pcs");
   });
 });

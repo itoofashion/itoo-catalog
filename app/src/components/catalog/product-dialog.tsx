@@ -101,13 +101,8 @@ export function ProductDialog({
               {pack && (
                 <p className="mt-3 text-base text-muted-foreground">
                   Sizes <span className="text-foreground">{pack.sizes}</span>
-                  {pack.split && (
-                    <>
-                      {" · pack "}
-                      <span className="text-foreground">{pack.split}</span>
-                    </>
-                  )}
-                  {pack.minimum && ` · ${pack.minimum}`}
+                  {pack.split && <span className="text-foreground"> · {pack.split}</span>}
+                  {pack.minimum && ` · minimum order ${pack.minimum}`}
                 </p>
               )}
             </div>

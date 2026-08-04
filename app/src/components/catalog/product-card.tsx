@@ -155,9 +155,8 @@ export function ProductCard({
           </p>
           {pack && (
             <p className="mt-2 text-sm text-muted-foreground">
-              {pack.sizes}
-              {pack.split && <span className="text-foreground"> · {pack.split}</span>}
-              {pack.minimum && ` · ${pack.minimum}`}
+              <span className="text-foreground">{pack.sizes}</span>
+              {[pack.split, pack.minimum].filter(Boolean).map((part) => ` · ${part}`)}
             </p>
           )}
         </div>
