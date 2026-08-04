@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VELA Wholesale — Catalog Preview</title>
+<style>
+  :root{
+    --bg:#faf9f7; --ink:#1c1a17; --muted:#8a8378; --line:#e7e2da;
+    --card:#ffffff; --accent:#3d3a35; --gold:#b08d57;
+    --r:14px; --shadow:0 1px 2px rgba(28,26,23,.05),0 8px 24px rgba(28,26,23,.06);
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:96px}
+
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:20;background:rgba(250,249,247,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .hwrap{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:20px}
+  .logo{font-weight:800;letter-spacing:.35em;font-size:17px}
+  .logo span{color:var(--gold)}
+  .tag{color:var(--muted);font-size:12.5px;border-left:1px solid var(--line);padding-left:16px}
+  .share{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:99px;padding:7px 14px;cursor:pointer}
+  .share b{color:var(--ink);font-weight:600}
+  .dot{width:7px;height:7px;border-radius:99px;background:#4caf7d}
+
+  /* ---------- filters ---------- */
+  .filters{max-width:1180px;margin:0 auto;padding:18px 24px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;font-size:13.5px;color:var(--muted);cursor:pointer;transition:.15s}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chip:hover:not(.on){border-color:#c9c2b6;color:var(--ink)}
+  .count{margin-left:auto;font-size:12.5px;color:var(--muted)}
+
+  .grid{max-width:1180px;margin:0 auto;padding:18px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px}
+
+  /* ---------- card ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);transition:transform .15s}
+  .card:hover{transform:translateY(-2px)}
+  .ph{position:relative;aspect-ratio:3/3.8;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .ph .garment{position:absolute;inset:0;transition:opacity .25s}
+  .ph .label{position:relative;z-index:2;color:#fff;font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.85;padding:14px;text-shadow:0 1px 6px rgba(0,0,0,.25)}
+  .badge{position:absolute;top:12px;left:12px;z-index:2;background:rgba(255,255,255,.92);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:600;letter-spacing:.04em}
+  .badge.new{color:#a4611f}
+  .body{padding:14px 16px 16px}
+  .name{font-weight:650;font-size:14.5px}
+  .sku{color:var(--muted);font-size:12px;margin-top:2px}
+  .row{display:flex;align-items:center;margin-top:10px}
+  .price{font-weight:700;font-size:15.5px}
+  .unit{color:var(--muted);font-size:11.5px;margin-left:5px}
+  .pack{margin-left:auto;color:var(--muted);font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+
+  .swatches{display:flex;gap:7px;margin-top:11px;align-items:center}
+  .sw{width:20px;height:20px;border-radius:99px;border:2px solid #fff;outline:1px solid var(--line);cursor:pointer;transition:.12s}
+  .sw.on{outline:2px solid var(--ink);transform:scale(1.12)}
+  .swname{font-size:11.5px;color:var(--muted);margin-left:4px}
+  .colortag{margin-top:11px;font-size:11.5px;color:var(--muted)}
+  .colortag i{display:inline-block;width:11px;height:11px;border-radius:99px;vertical-align:-1px;margin-right:6px;outline:1px solid var(--line)}
+
+  /* ---------- V3 line sheet ---------- */
+  .sheetwrap{max-width:1180px;margin:0 auto;padding:18px 24px;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);font-size:13.5px}
+  th{text-align:left;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 14px;border-bottom:1px solid var(--line);background:#fcfbf9}
+  td{padding:11px 14px;border-bottom:1px solid #f0ece5;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .thumb{width:44px;height:56px;border-radius:8px;overflow:hidden;position:relative}
+  .thumb .garment{position:absolute;inset:0}
+  .dots{display:flex;gap:4px}
+  .dots i{width:13px;height:13px;border-radius:99px;outline:1px solid var(--line)}
+  td b{font-weight:650}
+
+  /* ---------- version switcher ---------- */
+  .switcher{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:50;background:#211f1c;color:#fff;border-radius:16px;padding:8px;display:flex;gap:6px;box-shadow:0 12px 40px rgba(0,0,0,.35);align-items:center}
+  .switcher .opt{border:0;background:transparent;color:#bdb7ad;font:inherit;font-size:13px;padding:9px 14px;border-radius:10px;cursor:pointer;white-space:nowrap}
+  .switcher .opt.on{background:#faf9f7;color:#1c1a17;font-weight:650}
+  .switcher .divider{width:1px;height:22px;background:#4a463f;margin:0 4px}
+  .vnote{position:fixed;left:50%;bottom:74px;transform:translateX(-50%);z-index:49;background:rgba(33,31,28,.92);color:#d8d3ca;font-size:12.5px;border-radius:99px;padding:7px 18px;white-space:nowrap;backdrop-filter:blur(6px)}
+  .vnote b{color:#fff}
+  @media(max-width:640px){.vnote{display:none}.tag{display:none}}
+  .hide{display:none!important}
+
+  /* ---------- V-D admin mock ---------- */
+  .adminwrap{max-width:860px;margin:0 auto;padding:26px 24px}
+  .admincard{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 28px}
+  .adhead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .adtitle{font-weight:750;font-size:19px}
+  .adsub{color:var(--muted);font-size:13.5px;margin-top:3px}
+  .adlast{font-size:12.5px;color:var(--muted);background:#faf9f7;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+  .dropzone{margin-top:20px;border:2px dashed #d5cec2;border-radius:12px;padding:30px;text-align:center;color:var(--ink);background:#fcfbf9;cursor:pointer}
+  .dropzone:hover{border-color:var(--gold)}
+  .dz-ico{font-size:26px;margin-bottom:6px;color:var(--gold)}
+  .dz-sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .adsection{margin:24px 0 10px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .difftable{width:100%;border-collapse:collapse;font-size:13.5px}
+  .difftable td{padding:9px 10px;border-bottom:1px solid #f0ece5}
+  .difftable tr:last-child td{border-bottom:none}
+  .pill{font-size:11.5px;font-weight:650;border-radius:99px;padding:3px 10px;white-space:nowrap}
+  .pill.add{background:#e8f4ec;color:#2e7d4f}
+  .pill.chg{background:#eef1f8;color:#3d5a99}
+  .pill.warn{background:#fdf3e3;color:#a4611f}
+  .dim{color:var(--muted)}
+  .adfoot{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:22px;flex-wrap:wrap}
+  .publish{border:0;background:var(--accent);color:#fff;font:inherit;font-weight:650;font-size:14px;border-radius:10px;padding:12px 22px;cursor:pointer}
+  .publish:hover{background:#000}
+
+  /* ---------- selection / client-preview ---------- */
+  .selcheck{position:absolute;top:12px;right:12px;z-index:3;width:26px;height:26px;border-radius:99px;border:2px solid rgba(255,255,255,.9);background:rgba(0,0,0,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:800;transition:.12s}
+  .selcheck:hover{background:rgba(0,0,0,.4)}
+  .card.sel .selcheck{background:var(--gold);border-color:var(--gold)}
+  .card.sel{outline:2px solid var(--gold);outline-offset:-1px}
+  .rowcheck{width:19px;height:19px;border-radius:6px;border:1.5px solid #c9c2b6;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800}
+  tr.sel .rowcheck{background:var(--gold);border-color:var(--gold)}
+  tr.sel td{background:#fdf9f2}
+  .tray{position:fixed;right:18px;bottom:84px;z-index:48;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(28,26,23,.18);padding:14px 16px;width:270px}
+  .tray .t1{font-weight:700;font-size:14px}
+  .tray .t2{color:var(--muted);font-size:12px;margin-top:2px}
+  .tray .tbtns{display:flex;gap:8px;margin-top:12px}
+  .tray button{flex:1;border-radius:9px;padding:9px 0;font:inherit;font-size:12.5px;cursor:pointer}
+  .tray .primary{border:0;background:var(--accent);color:#fff;font-weight:650}
+  .tray .ghost{border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .clientbar{position:sticky;top:57px;z-index:19;background:#211f1c;color:#e8e3da;font-size:13px;text-align:center;padding:9px 16px}
+  .clientbar b{color:#fff}
+  .clientbar button{margin-left:14px;border:1px solid #55504a;background:transparent;color:#e8e3da;border-radius:99px;padding:4px 13px;font:inherit;font-size:12px;cursor:pointer}
+  .chip.newf.on{background:#a4611f;border-color:#a4611f}
+  .cpair{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink);background:#faf9f7;border:1px solid var(--line);border-radius:99px;padding:3px 9px 3px 4px}
+  .cpair i{width:14px;height:14px;border-radius:99px;outline:1px solid var(--line)}
+  .client .selcheck,.client .tray{display:none!important}
+
+  /* ---------- on-card photo nav ---------- */
+  .phnav{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:30px;height:30px;border-radius:99px;border:0;background:rgba(255,255,255,.92);color:var(--ink);font-size:15px;line-height:1;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.18);opacity:0;transition:.15s}
+  .phnav.prev{left:10px}.phnav.next{right:10px}
+  .ph:hover .phnav{opacity:1}
+  @media(hover:none){.phnav{opacity:.85}}
+  .phdots{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:3;display:flex;gap:5px}
+  .phdots i{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.55)}
+  .phdots i.on{background:#fff;transform:scale(1.25)}
+
+  /* ---------- copy-to-order ---------- */
+  .copybtn{width:100%;margin-top:13px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:inherit;font-weight:650;font-size:13.5px;padding:11px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .copybtn:hover{background:#000}
+  .copybtn.done{background:#2e7d4f}
+  .copybtn.big{font-size:14.5px;padding:13px}
+  .orderbox{margin-top:13px;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;background:#faf9f7;cursor:pointer}
+  .orderbox:hover{border-color:#c9c2b6}
+  .orderbox textarea{cursor:pointer;pointer-events:none}
+  .ob-head{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 11px 0}
+  .orderbox textarea{display:block;width:100%;border:0;background:transparent;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);padding:6px 11px 8px;resize:none;outline:none;white-space:pre;overflow-x:auto}
+  .ob-btn{margin-top:0;border-radius:0;background:#111;font-size:14px;padding:12px}
+  .ob-btn svg{width:17px;height:17px}
+  .modal .orderbox textarea{font-size:14px}
+  .orderbox.flash{animation:obflash .7s ease-out}
+  @keyframes obflash{0%{background:#f3e3c3;border-color:var(--gold)}100%{background:#faf9f7}}
+  .ghostbtn{width:100%;margin-top:9px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--muted);font:inherit;font-size:12.5px;padding:9px;cursor:pointer}
+  .ghostbtn.picked{border-color:var(--gold);color:var(--gold);font-weight:650}
+  .cpair.on{outline:2px solid var(--ink)}
+  .cpair{cursor:pointer}
+
+  /* ---------- photos + modal ---------- */
+  .ph img.photo,.thumb img.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+  .ph{cursor:zoom-in}
+  .modal{position:fixed;inset:0;z-index:100;background:rgba(20,18,15,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px}
+  .mbox{background:#fff;border-radius:18px;overflow:hidden;display:flex;max-width:960px;width:100%;max-height:92vh;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  .mleft{position:relative;flex:1.25;min-width:0;background:#eee}
+  .mleft img{width:100%;height:100%;object-fit:cover;display:block;min-height:420px}
+  .mnav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:99px;border:0;background:rgba(255,255,255,.92);font-size:17px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  .mnav.prev{left:14px}.mnav.next{right:14px}
+  .mcount{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:99px;padding:4px 12px}
+  .mright{flex:1;padding:28px;display:flex;flex-direction:column;min-width:280px}
+  .mclose{position:absolute;top:14px;right:14px;z-index:5;width:34px;height:34px;border-radius:99px;border:0;background:rgba(255,255,255,.92);font-size:15px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  .mname{font-weight:750;font-size:20px;padding-right:30px}
+  .msku{color:var(--muted);font-size:13px;margin-top:4px}
+  .mprice{font-size:22px;font-weight:750;margin-top:14px}
+  .mprice span{font-size:12.5px;color:var(--muted);font-weight:400}
+  .msec{margin-top:18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .mcolors{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+  .mcolors .cpair{cursor:pointer}
+  .mcolors .cpair.on{outline:2px solid var(--ink)}
+  .mmeta{margin-top:16px;color:var(--muted);font-size:13px;line-height:1.7}
+  .mmeta b{color:var(--ink)}
+  .mselect{margin-top:auto;padding-top:20px}
+  .mselect button{width:100%;border:0;border-radius:11px;background:var(--accent);color:#fff;font:inherit;font-weight:650;font-size:14.5px;padding:13px;cursor:pointer}
+  .mselect button.picked{background:var(--gold)}
+  @media(max-width:720px){.mbox{flex-direction:column;overflow-y:auto}.mleft img{min-height:300px;max-height:44vh}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="logo">VE<span>L</span>A</div>
+    <div class="tag">Wholesale · New arrivals weekly</div>
+    <div class="share" title="One link to send in chat — opens with a preview card"><span class="dot"></span> Live link&nbsp;·&nbsp;<b>vela.shop/fall-26</b></div>
+  </div>
+</header>
+
+<div class="clientbar hide" id="clientbar">Client view — <b id="cbcount"></b> hand-picked items · this is what opens from <b>vela.shop/pick-a7f3</b><button onclick="exitClient()">Exit preview</button></div>
+<div class="filters" id="filters"></div>
+
+<div id="view-grid" class="grid"></div>
+<div id="view-sheet" class="sheetwrap hide"></div>
+
+<!-- ---------- V-D: admin / weekly update flow (mock) ---------- -->
+<div id="view-admin" class="adminwrap hide">
+  <div class="admincard">
+    <div class="adhead">
+      <div>
+        <div class="adtitle">Weekly catalog update</div>
+        <div class="adsub">FashionGo stays the master — you export the CSV, the site updates itself</div>
+      </div>
+      <div class="adlast">Last update: <b>Fri, Jul 31 · 6:12 pm</b> · 8 styles live</div>
+    </div>
+    <div class="dropzone">
+      <div class="dz-ico">&#8681;</div>
+      <div><b>Drop this week's FashionGo CSV here</b></div>
+      <div class="dz-sub">or click to choose the file — that's the whole routine, once a week</div>
+    </div>
+    <div class="adsection">What the system found in this file</div>
+    <table class="difftable">
+      <tr><td><span class="pill add">&#65291; New</span></td><td><b>VL-2214</b> Sloane Satin Slip · Ivory, Blush</td><td class="dim">2 photos fetched automatically</td></tr>
+      <tr><td><span class="pill add">&#65291; New</span></td><td><b>VL-4012</b> Vera Crescent Bag · Camel, Black</td><td class="dim">2 photos fetched automatically</td></tr>
+      <tr><td><span class="pill chg">&#9998; Price</span></td><td><b>VL-3105</b> Ezra Longline Coat</td><td class="dim">$45.00 &rarr; <b>$42.00</b></td></tr>
+      <tr><td><span class="pill chg">&#9998; Colors</span></td><td><b>VL-2201</b> Aria Wrap Midi Dress</td><td class="dim">+ Sage added</td></tr>
+      <tr><td><span class="pill warn">&#9888; Check</span></td><td><b>VL-1847</b> Noa Puff-Sleeve Blouse</td><td class="dim">photo not found for "Ivory" — kept the old one, flagged for you</td></tr>
+    </table>
+    <div class="adfoot">
+      <div class="dim">Nothing goes live until you confirm. Everything else stays untouched.</div>
+      <button class="publish">Publish update &rarr; catalog</button>
+    </div>
+  </div>
+</div>
+
+<div class="vnote" id="vnote"></div>
+<div class="switcher">
+  <button class="opt" data-v="B">Catalog</button>
+  <div class="divider"></div>
+  <button class="opt" data-v="D">&#9881; How it updates</button>
+</div>
+
+<script>
+/* ---------- garment art: CSS-drawn placeholders (photos slot in later) ---------- */
+const PALETTES = {
+  Black:['#23211f','#3a3733'], Ivory:['#efe9dd','#d9d0be'], Camel:['#c09863','#a37c48'],
+  Sage:['#a9b49a','#8b9979'], Rust:['#b1603c','#8f4a2c'], Navy:['#2b3a55','#1d2a41'],
+  Blush:['#e3c2bb','#cfa39a'], Chocolate:['#5b4436','#423025'], Cream:['#f2ead9','#e0d4ba'],
+  Olive:['#7d7b52','#63613e']
+};
+/* photos are local files (photos/SKU-Color.jpg) — ad-blockers kill remote placeholders */
+function photoURL(sku, color){ return `photos/${sku}-${color}.jpg`; }
+function photoTag(sku, color){ return `<img class="photo" src="${photoURL(sku,color)}" alt="" onerror="this.remove()">`; }
+
+function garment(color, kind){
+  const [a,b] = PALETTES[color];
+  const shapes = {
+    dress:`radial-gradient(120% 90% at 50% -20%, ${b} 0%, transparent 55%), linear-gradient(165deg, ${a} 0%, ${b} 100%)`,
+    top:`radial-gradient(100% 60% at 50% 110%, ${b} 0%, transparent 60%), linear-gradient(20deg, ${a} 0%, ${b} 100%)`,
+    coat:`linear-gradient(100deg, ${a} 0 48%, ${b} 48% 52%, ${a} 52% 100%)`,
+    knit:`repeating-linear-gradient(90deg, ${a} 0 14px, ${b} 14px 16px)`,
+    skirt:`conic-gradient(from 200deg at 50% -10%, ${a}, ${b}, ${a})`,
+    bag:`radial-gradient(80% 80% at 30% 20%, ${b} 0%, ${a} 70%)`
+  };
+  return shapes[kind] || shapes.dress;
+}
+
+/* ---------- demo data ≈ FashionGo CSV rows ---------- */
+const STYLES = [
+  {sku:'VL-2201', name:'Aria Wrap Midi Dress',   cat:'Dresses',    kind:'dress', price:24.50, pack:'2-2-2', sizes:'S-M-L', colors:['Black','Rust','Sage'], badge:'New'},
+  {sku:'VL-2214', name:'Sloane Satin Slip',      cat:'Dresses',    kind:'dress', price:19.75, pack:'2-2-2', sizes:'S-M-L', colors:['Ivory','Blush'], badge:'New'},
+  {sku:'VL-1830', name:'Mara Ribbed Knit Top',   cat:'Tops',       kind:'knit',  price:11.25, pack:'2-2-2-2', sizes:'S-M-L-XL', colors:['Cream','Olive','Black']},
+  {sku:'VL-1847', name:'Noa Puff-Sleeve Blouse', cat:'Tops',       kind:'top',   price:13.50, pack:'2-2-2', sizes:'S-M-L', colors:['Ivory']},
+  {sku:'VL-3105', name:'Ezra Longline Coat',     cat:'Outerwear',  kind:'coat',  price:42.00, pack:'1-2-1', sizes:'S-M-L', colors:['Camel','Chocolate'], badge:'Best'},
+  {sku:'VL-3120', name:'Juno Cropped Jacket',    cat:'Outerwear',  kind:'coat',  price:34.25, pack:'2-2-2', sizes:'S-M-L', colors:['Black']},
+  {sku:'VL-2540', name:'Isla Pleated Skirt',     cat:'Bottoms',    kind:'skirt', price:16.00, pack:'2-2-2', sizes:'S-M-L', colors:['Navy','Blush'], badge:'New'},
+  {sku:'VL-4012', name:'Vera Crescent Bag',      cat:'Accessories',kind:'bag',   price:14.75, pack:'6 pc',  sizes:'One size', colors:['Camel','Black']}
+];
+const CATS = ['All','Dresses','Tops','Bottoms','Outerwear','Accessories'];
+
+let version='B', cat='All', newOnly=false, clientMode=false;
+const selected = new Set();
+
+function visibleRows(){
+  let rows = STYLES.filter(s=>cat==='All'||s.cat===cat);
+  if(newOnly) rows = rows.filter(s=>s.badge==='New');
+  if(clientMode) rows = rows.filter(s=>selected.has(s.sku)||[...selected].some(k=>k.startsWith(s.sku+'|')));
+  return rows;
+}
+
+/* ---------- filters ---------- */
+const $f = document.getElementById('filters');
+function drawFilters(){
+  const n = visibleRows().reduce((a,s)=>a+(version==='A'?s.colors.length:1),0);
+  $f.innerHTML = CATS.map(c=>`<button class="chip ${c===cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('')
+    + `<button class="chip newf ${newOnly?'on':''}" onclick="newOnly=!newOnly;render()">✦ New this week</button>`
+    + `<span class="count">${n} ${version==='A'?'items':'styles'} · updated from FashionGo · Fri</span>`;
+}
+function setCat(c){cat=c;render()}
+
+/* ---------- selection ---------- */
+function toggleSel(key){ selected.has(key) ? selected.delete(key) : selected.add(key); render(); }
+function selCount(){ return selected.size; }
+function clearSel(){ selected.clear(); render(); }
+function enterClient(){ clientMode=true; document.body.classList.add('client'); render(); }
+function exitClient(){ clientMode=false; document.body.classList.remove('client'); render(); }
+
+/* ---------- V-A: one card per color ---------- */
+function cardA(s,color){
+  const key = s.sku+'|'+color, on = selected.has(key);
+  return `<div class="card ${on?'sel':''}">
+    <div class="ph" onclick="openModal('${s.sku}',${s.colors.indexOf(color)})"><div class="garment" style="background:${garment(color,s.kind)}"></div>${photoTag(s.sku,color)}
+      ${s.badge?`<span class="badge ${s.badge==='New'?'new':''}">${s.badge}</span>`:''}
+      <button class="selcheck" onclick="event.stopPropagation();toggleSel('${key}')" title="Select for client">${on?'✓':''}</button>
+      <div class="label">${color}</div></div>
+    <div class="body">
+      <div class="name">${s.name}</div>
+      <div class="sku">${s.sku} · ${color}</div>
+      <div class="row"><span class="price">$${s.price.toFixed(2)}</span><span class="unit">/ unit</span><span class="pack">${s.pack}</span></div>
+      <div class="colortag"><i style="background:${PALETTES[color][0]}"></i>${s.colors.length>1?`1 of ${s.colors.length} colors`:'single color'}</div>
+    </div></div>`;
+}
+
+/* ---------- V-B: one card per style, swatch switcher ---------- */
+/* photos = a small gallery per style (NOT tied to colors — FashionGo data has no color↔photo link) */
+const chosen = {};   // per-style chosen color index (order text only)
+const photoIdx = {}; // per-style current gallery photo
+function galleryOf(s){ return s.colors.map(c=>photoURL(s.sku,c)); }
+/* in-place updates — no grid re-render, cards must not jump */
+function chooseColor(sku,i){
+  chosen[sku]=i;
+  const s = STYLES.find(x=>x.sku===sku), color = s.colors[i];
+  document.querySelectorAll(`[data-sku="${sku}"]`).forEach(scope=>{
+    scope.querySelectorAll('.cpair').forEach((ch,k)=>ch.classList.toggle('on',k===i));
+    const ta = scope.querySelector('.orderbox textarea');
+    if(ta){ ta.value = orderText(s,color);
+      const box = ta.closest('.orderbox');
+      box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash'); }
+  });
+}
+function flipPhoto(sku,d,total){
+  const pi = photoIdx[sku] = ((photoIdx[sku]||0)+d+total)%total;
+  const s = STYLES.find(x=>x.sku===sku);
+  document.querySelectorAll(`.card[data-sku="${sku}"]`).forEach(card=>{
+    const img = card.querySelector('img.photo'); if(img) img.src = galleryOf(s)[pi];
+    card.querySelectorAll('.phdots i').forEach((dt,k)=>dt.classList.toggle('on',k===pi));
+  });
+}
+
+function cardB(s){
+  const on = selected.has(s.sku), ci = chosen[s.sku]||0, pi = photoIdx[s.sku]||0;
+  const gal = galleryOf(s);
+  const sw = s.colors.map((c,i)=>`<span class="cpair ${i===ci?'on':''}" onclick="chooseColor('${s.sku}',${i})"><i style="background:${PALETTES[c][0]}"></i>${c}</span>`).join('');
+  const dots = gal.length>1 ? `<span class="phdots">${gal.map((_,i)=>`<i class="${i===pi?'on':''}"></i>`).join('')}</span>` : '';
+  const arrows = gal.length>1 ? `
+      <button class="phnav prev" onclick="event.stopPropagation();flipPhoto('${s.sku}',-1,${gal.length})">‹</button>
+      <button class="phnav next" onclick="event.stopPropagation();flipPhoto('${s.sku}',1,${gal.length})">›</button>` : '';
+  return `<div class="card ${on?'sel':''}" data-sku="${s.sku}">
+    <div class="ph" onclick="openModal('${s.sku}',photoIdx['${s.sku}']||0)"><div class="garment" style="background:${garment(s.colors[0],s.kind)}"></div><img class="photo" src="${gal[pi]}" alt="" onerror="this.remove()">
+      ${s.badge?`<span class="badge ${s.badge==='New'?'new':''}">${s.badge}</span>`:''}
+      <button class="selcheck" onclick="event.stopPropagation();toggleSel('${s.sku}')" title="Select for client">${on?'✓':''}</button>
+      ${arrows}${dots}</div>
+    <div class="body">
+      <div class="name">${s.name}</div>
+      <div class="sku">${s.sku}</div>
+      <div class="row"><span class="price">$${s.price.toFixed(2)}</span><span class="unit">/ unit</span><span class="pack">${s.sizes} · ${s.pack}</span></div>
+      <div class="swatches" style="flex-wrap:wrap">${sw}</div>
+      ${orderBox(s)}
+    </div></div>`;
+}
+
+/* one-click order info: visible textarea + copy button as one block, so it's obvious WHAT gets copied */
+function orderText(s, color){
+  return `${s.name}\nSKU: ${s.sku} · Color: ${color}\nSizes ${s.sizes} · pack ${s.pack} · $${s.price.toFixed(2)}/unit\nhttps://vela.shop/fall-26#${s.sku}-${encodeURIComponent(color)}`;
+}
+function orderBox(s){
+  const color = s.colors[chosen[s.sku]||0];
+  return `<div class="orderbox" onclick="event.stopPropagation();copyOrder(this.querySelector('.ob-btn'),'${s.sku}');this.querySelector('textarea').select()">
+    <div class="ob-head">Your order — tap to copy</div>
+    <textarea readonly rows="4">${orderText(s,color)}</textarea>
+    <button class="copybtn ob-btn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+      Copy order</button>
+  </div>`;
+}
+function copyOrder(btn, sku){
+  event.stopPropagation();
+  const s = STYLES.find(x=>x.sku===sku), color = s.colors[chosen[sku]||0];
+  const done = ()=>{ const t=btn.innerHTML; btn.innerHTML='✓ Copied — paste it in chat'; btn.classList.add('done');
+    setTimeout(()=>{btn.innerHTML=t;btn.classList.remove('done');},1800); };
+  navigator.clipboard ? navigator.clipboard.writeText(orderText(s,color)).then(done).catch(done) : done();
+}
+
+/* ---------- V-C: buyer line sheet ---------- */
+function sheet(rows){
+  return `<table><thead><tr>
+    ${clientMode?'':'<th></th>'}<th></th><th>Style</th><th>SKU</th><th>Category</th><th>Colors</th><th>Pack</th><th>Unit price</th>
+  </tr></thead><tbody>${rows.map(s=>{
+    const on = selected.has(s.sku);
+    return `<tr class="${on?'sel':''}">
+      ${clientMode?'':`<td style="width:34px"><span class="rowcheck" onclick="toggleSel('${s.sku}')">${on?'✓':''}</span></td>`}
+      <td><div class="thumb" style="cursor:zoom-in" onclick="openModal('${s.sku}',0)"><div class="garment" style="background:${garment(s.colors[0],s.kind)}"></div>${photoTag(s.sku,s.colors[0])}</div></td>
+      <td><b>${s.name}</b>${s.badge?` &nbsp;<span class="badge ${s.badge==='New'?'new':''}" style="position:static">${s.badge}</span>`:''}</td>
+      <td>${s.sku}</td><td>${s.cat}</td>
+      <td>${s.colors.map(c=>`<span class="cpair"><i style="background:${PALETTES[c][0]}"></i>${c}</span>`).join(' ')}</td>
+      <td>${s.pack}</td><td><b>$${s.price.toFixed(2)}</b></td></tr>`;}).join('')}
+  </tbody></table>`;
+}
+
+/* ---------- render ---------- */
+const NOTES = {
+  B:'Tap a color, then <b>Copy to order</b> — pastes straight into chat',
+  D:'The <b>weekly routine</b>: export CSV from FashionGo → drop it here → review → publish'
+};
+function drawTray(){
+  let tray = document.getElementById('tray');
+  if(!selCount() || clientMode || version==='D'){ tray && tray.remove(); return; }
+  if(!tray){ tray = document.createElement('div'); tray.id='tray'; tray.className='tray'; document.body.appendChild(tray); }
+  tray.innerHTML = `<div class="t1">${selCount()} item${selCount()>1?'s':''} picked for client</div>
+    <div class="t2">They'll get one link with only these — e.g. <b>vela.shop/pick-a7f3</b></div>
+    <div class="tbtns"><button class="primary" onclick="enterClient()">Preview as client</button>
+    <button class="ghost" onclick="clearSel()">Clear</button></div>`;
+}
+function render(){
+  const rows = visibleRows();
+  const grid = document.getElementById('view-grid'), sh = document.getElementById('view-sheet'),
+        adm = document.getElementById('view-admin'), cb = document.getElementById('clientbar');
+  document.querySelectorAll('.switcher .opt').forEach(b=>b.classList.toggle('on', b.dataset.v===version));
+  document.getElementById('vnote').innerHTML = NOTES[version];
+  grid.classList.add('hide'); sh.classList.add('hide'); adm.classList.add('hide');
+  $f.classList.toggle('hide', version==='D');
+  cb.classList.toggle('hide', !clientMode || version==='D');
+  document.getElementById('cbcount').textContent = selCount();
+  if(version==='D'){ adm.classList.remove('hide'); }
+  else if(version==='C'){ sh.classList.remove('hide'); sh.innerHTML = sheet(rows); }
+  else{
+    grid.classList.remove('hide');
+    grid.innerHTML = version==='A' ? rows.flatMap(s=>s.colors.map(c=>cardA(s,c))).join('') : rows.map(cardB).join('');
+  }
+  drawFilters(); drawTray();
+}
+document.querySelectorAll('.switcher .opt').forEach(b=>b.onclick=()=>{version=b.dataset.v;render()});
+
+/* ---------- product modal ---------- */
+let mS=null, mIdx=0;
+function openModal(sku, idx){
+  mS = STYLES.find(s=>s.sku===sku); mIdx = idx||0;
+  let m = document.getElementById('modal');
+  if(!m){ m = document.createElement('div'); m.id='modal'; m.className='modal';
+    m.onclick = e=>{ if(e.target===m) closeModal(); }; document.body.appendChild(m); }
+  drawModal();
+}
+function closeModal(){ const m=document.getElementById('modal'); m&&m.remove(); mS=null; render(); }
+function mGo(d){ const n=galleryOf(mS).length; mIdx = (mIdx + d + n) % n; drawModal(); }
+function mPick(){ toggleSel(mS.sku); drawModal(); }
+function drawModal(){
+  const s=mS, on=selected.has(s.sku), gal=galleryOf(s), ci=chosen[s.sku]||0;
+  mIdx = mIdx % gal.length;
+  document.getElementById('modal').innerHTML = `<div class="mbox">
+    <div class="mleft">
+      <img src="${gal[mIdx]}" alt="">
+      ${clientMode?'':`<button class="selcheck" style="top:14px;right:auto;left:14px${on?';background:var(--gold);border-color:var(--gold)':''}" onclick="mPick()" title="Select for client">${on?'✓':''}</button>`}
+      ${gal.length>1?`<button class="mnav prev" onclick="mGo(-1)">‹</button><button class="mnav next" onclick="mGo(1)">›</button>`:''}
+      <span class="mcount">photo ${mIdx+1} / ${gal.length}</span>
+    </div>
+    <div class="mright" style="position:relative" data-sku="${s.sku}">
+      <button class="mclose" onclick="closeModal()">✕</button>
+      <div class="mname">${s.name}</div>
+      <div class="msku">${s.sku} · ${s.cat}</div>
+      <div class="mprice">$${s.price.toFixed(2)} <span>/ unit · sizes ${s.sizes} · pack ${s.pack}</span></div>
+      <div class="msec">Pick your color</div>
+      <div class="mcolors">${s.colors.map((c,i)=>`<span class="cpair ${i===ci?'on':''}" onclick="chooseColor('${s.sku}',${i})"><i style="background:${PALETTES[c][0]}"></i>${c}</span>`).join('')}</div>
+      ${orderBox(s)}
+    </div></div>`;
+}
+document.addEventListener('keydown', e=>{
+  if(!mS) return;
+  if(e.key==='Escape') closeModal();
+  if(e.key==='ArrowLeft') mGo(-1);
+  if(e.key==='ArrowRight') mGo(1);
+});
+render();
+</script>
+</body>
+</html>
