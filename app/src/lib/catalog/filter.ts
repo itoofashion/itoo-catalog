@@ -1,23 +1,21 @@
-import { isNewArrival } from "./arrivals";
+import type { PublicProduct } from "./public";
 import { ALL_CATEGORIES, type CatalogSelection } from "./share";
-import type { Product } from "./types";
 
 export type CatalogFilter = CatalogSelection & {
   newOnly?: boolean;
 };
 
 /** Categories present in the catalog, "All" first, the rest alphabetical. */
-export function categoriesOf(products: Product[]): string[] {
+export function categoriesOf(products: PublicProduct[]): string[] {
   const names = [...new Set(products.map((p) => p.category).filter(Boolean))];
   names.sort((a, b) => a.localeCompare(b));
   return [ALL_CATEGORIES, ...names];
 }
 
 export function filterProducts(
-  products: Product[],
+  products: PublicProduct[],
   filter: CatalogFilter,
-  now: Date,
-): Product[] {
+): PublicProduct[] {
   let result = products;
 
   if (filter.skus.length > 0) {
@@ -28,7 +26,7 @@ export function filterProducts(
     result = result.filter((p) => p.category === filter.category);
   }
   if (filter.newOnly) {
-    result = result.filter((p) => isNewArrival(p.createdAt, now));
+    result = result.filter((p) => p.isNew);
   }
   return result;
 }

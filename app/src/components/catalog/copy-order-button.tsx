@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { orderText } from "@/lib/catalog/order";
-import type { Product } from "@/lib/catalog/types";
+import type { PublicProduct } from "@/lib/catalog/public";
 
 /**
  * Buyers work in chat, so the fastest path from "I want this" to an order is a
@@ -15,7 +15,7 @@ export function CopyOrderButton({
   color,
   className,
 }: {
-  product: Product;
+  product: PublicProduct;
   color: string | null;
   className?: string;
 }) {

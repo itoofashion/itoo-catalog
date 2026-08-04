@@ -1,6 +1,6 @@
 import { formatColorName } from "./color";
 import { formatPrice } from "./pricing";
-import type { Product } from "./types";
+import type { PublicProduct } from "./public";
 
 /**
  * What "Copy to order" puts on the clipboard. Buyers paste this straight into a
@@ -8,7 +8,7 @@ import type { Product } from "./types";
  * team needs to identify the item: style number, color and price.
  */
 export function orderText(
-  product: Product,
+  product: PublicProduct,
   color: string | null,
   catalogUrl?: string,
 ): string {

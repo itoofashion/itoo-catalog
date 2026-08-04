@@ -62,8 +62,24 @@ dashboard, connect the repository as a Worker and set:
 
 Or deploy from a terminal with `pnpm deploy` inside `app/`.
 
-After deploying, add the live address to `extension/manifest.json` so the
-extension can sync into it.
+After deploying:
+
+1. Add the live address to `extension/manifest.json` so the extension can reach
+   it.
+2. Set a `SYNC_SECRET` secret on the Worker (Settings → Variables and secrets)
+   and enter the same value in the extension popup. The catalog is public, so
+   without this the sync endpoint would let anyone replace the catalog — a
+   deployed Worker with no secret configured refuses to sync at all.
+
+## What the browser can see
+
+The catalog is served from a public address, so anything the app hands to a page
+is public. The stored product and the published product are deliberately
+different types: the browser gets the style number, name, catalog price,
+category, colors, photos and whether the style is a new arrival — and nothing
+else. FashionGo's internal product ids, the dates behind the "New" badge and the
+source prices stay on the server. `app/src/lib/catalog/public.ts` is that
+boundary, and its tests fail if a new internal field starts being published.
 
 ## Testing
 

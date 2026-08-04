@@ -5,11 +5,13 @@
 const DEFAULT_ORIGIN = "http://localhost:3000";
 
 const originInput = document.getElementById("origin");
+const secretInput = document.getElementById("secret");
 const importButton = document.getElementById("import");
 const status = document.getElementById("status");
 
-const stored = await chrome.storage.local.get("catalogOrigin");
+const stored = await chrome.storage.local.get(["catalogOrigin", "syncSecret"]);
 originInput.value = stored.catalogOrigin ?? DEFAULT_ORIGIN;
+secretInput.value = stored.syncSecret ?? "";
 
 function show(message, kind = "") {
   status.textContent = message;
@@ -25,7 +27,10 @@ importButton.addEventListener("click", async () => {
     return;
   }
 
-  await chrome.storage.local.set({ catalogOrigin: origin });
+  await chrome.storage.local.set({
+    catalogOrigin: origin,
+    syncSecret: secretInput.value.trim(),
+  });
   importButton.disabled = true;
   show("Reading products from FashionGo…");
 

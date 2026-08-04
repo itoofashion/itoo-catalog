@@ -1,4 +1,4 @@
-import { PILOT_PRODUCT_LIMIT } from "./messages.js";
+import { PILOT_PRODUCT_LIMIT, SYNC_SECRET_HEADER } from "./messages.js";
 import { fetchCategories, fetchProducts, getVendorToken, SyncError } from "./fashiongo.js";
 
 /**
@@ -13,13 +13,24 @@ async function runImport(catalogOrigin) {
     fetchProducts(token, PILOT_PRODUCT_LIMIT),
   ]);
 
+  // The catalog is on a public address, so it only accepts a sync that proves it
+  // came from us. The secret is set in the extension popup.
+  const { syncSecret } = await chrome.storage.local.get("syncSecret");
+  const headers = { "Content-Type": "application/json" };
+  if (syncSecret) headers[SYNC_SECRET_HEADER] = syncSecret;
+
   const response = await fetch(`${catalogOrigin}/api/sync`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ categories, products }),
   });
 
   const body = await response.json().catch(() => ({}));
+  if (response.status === 401) {
+    throw new SyncError(
+      "The catalog rejected the sync secret. Check it in the extension popup.",
+    );
+  }
   if (!response.ok) {
     throw new SyncError(body.error ?? `The catalog rejected the import (${response.status})`);
   }

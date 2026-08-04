@@ -5,23 +5,21 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { categoriesOf, filterProducts } from "@/lib/catalog/filter";
+import type { PublicProduct } from "@/lib/catalog/public";
 import { ALL_CATEGORIES, buildShareQuery, type CatalogSelection } from "@/lib/catalog/share";
-import type { Product } from "@/lib/catalog/types";
 import { ProductCard } from "./product-card";
 import { ProductDialog } from "./product-dialog";
 import { AdminBar } from "./admin-bar";
 import { ShareTray } from "./share-tray";
 
 export type CatalogViewProps = {
-  products: Product[];
+  products: PublicProduct[];
   syncedAt: string;
   /** What the link that opened this page asked for. */
   selection: CatalogSelection;
-  /** Rendered on the server so both sides agree on which items count as new. */
-  now: string;
 };
 
-export function CatalogView({ products, syncedAt, selection, now }: CatalogViewProps) {
+export function CatalogView({ products, syncedAt, selection }: CatalogViewProps) {
   // A link that carries items or a category is a client link: it opens in the
   // client view, showing exactly what was shared and none of the controls.
   const arrivedViaClientLink = selection.skus.length > 0 || selection.category !== null;
@@ -30,17 +28,18 @@ export function CatalogView({ products, syncedAt, selection, now }: CatalogViewP
   const [category, setCategory] = useState(selection.category ?? ALL_CATEGORIES);
   const [newOnly, setNewOnly] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set(selection.skus));
-  const [opened, setOpened] = useState<{ product: Product; photoIndex: number } | null>(null);
+  const [opened, setOpened] = useState<{ product: PublicProduct; photoIndex: number } | null>(
+    null,
+  );
 
-  const nowDate = useMemo(() => new Date(now), [now]);
   const categories = useMemo(() => categoriesOf(products), [products]);
 
   const visible = useMemo(() => {
     // In the admin view every product stays visible — picking items must not
     // make them disappear from the grid you are picking from.
     const skus = isAdmin ? [] : [...picked];
-    return filterProducts(products, { skus, category, newOnly }, nowDate);
-  }, [products, isAdmin, picked, category, newOnly, nowDate]);
+    return filterProducts(products, { skus, category, newOnly });
+  }, [products, isAdmin, picked, category, newOnly]);
 
   function togglePicked(sku: string) {
     setPicked((current) => {
@@ -126,7 +125,6 @@ export function CatalogView({ products, syncedAt, selection, now }: CatalogViewP
               <ProductCard
                 key={product.sku}
                 product={product}
-                now={nowDate}
                 selectable={isAdmin}
                 selected={picked.has(product.sku)}
                 onToggleSelect={togglePicked}

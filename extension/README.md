@@ -25,8 +25,15 @@ The catalog is replaced with what FashionGo currently has — it is a mirror, so
 nothing needs to be tidied up afterwards.
 
 You can also run the import from the extension's own popup, which is useful when
-the catalog page is not open. The popup asks for the catalog address and
-remembers it.
+the catalog page is not open. The popup asks for the catalog address and the
+sync secret, and remembers both.
+
+## The sync secret
+
+The catalog is on a public address, so it only accepts an import that proves it
+came from us. Whoever deployed the catalog sets a `SYNC_SECRET` on the Worker;
+put the same value into the extension popup once, and syncing works from then
+on. A local development catalog needs no secret.
 
 ## If something goes wrong
 
@@ -35,6 +42,8 @@ remembers it.
 | *Chrome extension not detected* | The extension is not installed, or the catalog is running on an address the extension does not cover — see below. |
 | *Not signed in to FashionGo* | Sign in at vendoradmin.fashiongo.net, then sync again. |
 | *The FashionGo session expired* | FashionGo signed you out. Sign in again and re-run the sync. |
+| *The catalog rejected the sync secret* | The secret in the popup does not match the one set on the catalog. |
+| *Sync is not configured* | The catalog has no `SYNC_SECRET` set yet — see the deployment notes in the main README. |
 
 ## Pointing it at a different catalog address
 

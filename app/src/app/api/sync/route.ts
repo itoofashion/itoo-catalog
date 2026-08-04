@@ -1,13 +1,26 @@
 import { NextResponse } from "next/server";
 import { catalogStore } from "@/lib/catalog/store";
 import { parseSyncRequest } from "@/lib/fashiongo/sync-request";
+import { authorizeSync } from "@/lib/sync/auth";
 
 /**
  * Receives what the Chrome extension read out of the FashionGo vendor admin and
  * replaces the catalog with it. A sync is a mirror, not a merge: whatever
  * FashionGo has is what the catalog shows.
+ *
+ * There is no GET counterpart on purpose — how many products are loaded and when
+ * they were last synced is operational detail, and this endpoint is reachable by
+ * anyone who knows the address.
  */
 export async function POST(request: Request) {
+  const allowed = authorizeSync(request, {
+    secret: process.env.SYNC_SECRET,
+    isProduction: process.env.NODE_ENV === "production",
+  });
+  if (!allowed.ok) {
+    return NextResponse.json({ error: allowed.error }, { status: allowed.status });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -21,14 +34,5 @@ export async function POST(request: Request) {
   }
 
   const catalog = await catalogStore.replace(parsed.products);
-  return NextResponse.json({
-    count: catalog.products.length,
-    syncedAt: catalog.syncedAt,
-  });
-}
-
-/** The extension checks this before importing, to confirm it found the catalog. */
-export async function GET() {
-  const { products, syncedAt } = await catalogStore.read();
-  return NextResponse.json({ count: products.length, syncedAt });
+  return NextResponse.json({ count: catalog.products.length });
 }

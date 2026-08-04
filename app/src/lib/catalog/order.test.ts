@@ -1,16 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { orderText } from "./order";
-import type { Product } from "./types";
+import type { PublicProduct } from "./public";
 
-const product: Product = {
+const product: PublicProduct = {
   sku: "Y-542",
   name: "Romantic Lace Top",
   price: 19.75,
   category: "Tops",
   colors: ["BEIGE W SILVER"],
   images: [],
-  createdAt: "2026-07-28T15:02:43.153Z",
-  sourceId: 26144615,
+  isNew: true,
 };
 
 describe("orderText", () => {

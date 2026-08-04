@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { categoriesOf } from "./filter";
+import { toPublicCatalog } from "./public";
 import { seedCatalog, seedProducts } from "./seed";
 import { UNCATEGORIZED } from "@/lib/fashiongo/map";
 
@@ -39,7 +40,8 @@ describe("seed catalog", () => {
   });
 
   it("covers more than one category, so filtering is demonstrable", () => {
-    expect(categoriesOf(products).length).toBeGreaterThan(2);
+    const published = toPublicCatalog(seedCatalog(), new Date()).products;
+    expect(categoriesOf(published).length).toBeGreaterThan(2);
   });
 
   it("serves photos over https from the FashionGo CDN", () => {

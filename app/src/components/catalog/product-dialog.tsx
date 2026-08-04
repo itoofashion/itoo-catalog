@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
 import { formatPrice } from "@/lib/catalog/pricing";
-import type { Product } from "@/lib/catalog/types";
+import type { PublicProduct } from "@/lib/catalog/public";
 import { CopyOrderButton } from "./copy-order-button";
 
 /**
@@ -24,7 +24,7 @@ export function ProductDialog({
   initialPhotoIndex,
   onClose,
 }: {
-  product: Product;
+  product: PublicProduct;
   initialPhotoIndex: number;
   onClose: () => void;
 }) {

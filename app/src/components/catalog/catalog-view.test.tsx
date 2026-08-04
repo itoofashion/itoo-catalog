@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CatalogView } from "./catalog-view";
-import type { Product } from "@/lib/catalog/types";
+import type { PublicProduct } from "@/lib/catalog/public";
 import type { CatalogSelection } from "@/lib/catalog/share";
 
 vi.mock("next/navigation", () => ({
@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
 
 const NOW = "2026-08-04T12:00:00.000Z";
 
-function product(overrides: Partial<Product> & { sku: string }): Product {
+function product(overrides: Partial<PublicProduct> & { sku: string }): PublicProduct {
   return {
     name: `Style ${overrides.sku}`,
     price: 19.75,
@@ -20,14 +20,13 @@ function product(overrides: Partial<Product> & { sku: string }): Product {
     images: [
       { url: "https://fg-image.fashiongo.net/Vendors/x/ProductImage/large/a.jpg", color: "Beige" },
     ],
-    createdAt: "2026-01-01T00:00:00.000Z",
-    sourceId: 1,
+    isNew: false,
     ...overrides,
   };
 }
 
 const products = [
-  product({ sku: "TOP-1", category: "Tops", createdAt: "2026-08-01T00:00:00.000Z" }),
+  product({ sku: "TOP-1", category: "Tops", isNew: true }),
   product({ sku: "PANT-1", category: "Pants" }),
   product({ sku: "PANT-2", category: "Pants" }),
 ];
@@ -40,7 +39,6 @@ function renderCatalog(
       products={products}
       syncedAt={NOW}
       selection={selection}
-      now={NOW}
     />,
   );
 }

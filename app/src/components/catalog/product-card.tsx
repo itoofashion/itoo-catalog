@@ -5,25 +5,22 @@ import { useState } from "react";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { isNewArrival } from "@/lib/catalog/arrivals";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
 import { formatPrice } from "@/lib/catalog/pricing";
-import type { Product } from "@/lib/catalog/types";
+import type { PublicProduct } from "@/lib/catalog/public";
 import { CopyOrderButton } from "./copy-order-button";
 
 type ProductCardProps = {
-  product: Product;
-  now: Date;
+  product: PublicProduct;
   /** Admin view adds the pick-for-client control; client view never shows it. */
   selectable: boolean;
   selected: boolean;
   onToggleSelect: (sku: string) => void;
-  onOpen: (product: Product, photoIndex: number) => void;
+  onOpen: (product: PublicProduct, photoIndex: number) => void;
 };
 
 export function ProductCard({
   product,
-  now,
   selectable,
   selected,
   onToggleSelect,
@@ -34,7 +31,6 @@ export function ProductCard({
 
   const photos = product.images;
   const photo = photos[photoIndex];
-  const isNew = isNewArrival(product.createdAt, now);
 
   function step(direction: number) {
     setPhotoIndex((current) => (current + direction + photos.length) % photos.length);
@@ -64,7 +60,7 @@ export function ProductCard({
           </div>
         )}
 
-        {isNew && (
+        {product.isNew && (
           <Badge className="absolute left-3 top-3 bg-background/90 text-brand shadow-sm">
             New
           </Badge>
