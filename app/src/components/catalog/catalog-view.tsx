@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   categoriesOf,
   filterProducts,
@@ -18,8 +20,10 @@ import {
   type CatalogFilters,
   type CatalogSelection,
 } from "@/lib/catalog/share";
+import { paginate } from "@/lib/catalog/pagination";
 import { CategoryFilters } from "./category-filters";
 import { LinkPanel } from "./link-panel";
+import { PaginationBar } from "./pagination-bar";
 import { ProductCard } from "./product-card";
 import { ProductDialog } from "./product-dialog";
 import { StatusBar } from "./status-bar";
@@ -30,28 +34,22 @@ export type CatalogViewProps = {
   /** What the address asked for when the page opened. */
   selection: CatalogSelection;
   filters: CatalogFilters;
+  /**
+   * Whether this visitor signed in as the team. Decided on the server from the
+   * session cookie, because a component cannot be trusted to decide it — see
+   * lib/admin/auth.ts.
+   */
+  isTeam: boolean;
   /** Short links render the same page under /s/<code>; the address stays put. */
   readOnlyAddress?: boolean;
 };
-
-/**
- * Survives following a link, which a piece of component state would not: the
- * team member who assembled a link and then opened it is still the team member,
- * and needs a way back. Someone meeting the link for the first time is a client
- * and gets nothing.
- */
-const ADMIN_SEEN_FLAG = "itoo.admin";
-
-/** The flag only changes through this component, so there is nothing to watch. */
-function subscribeToNothing() {
-  return () => {};
-}
 
 export function CatalogView({
   products,
   syncedAt,
   selection: initialSelection,
   filters: initialFilters,
+  isTeam,
   readOnlyAddress = false,
 }: CatalogViewProps) {
   const router = useRouter();
@@ -63,22 +61,20 @@ export function CatalogView({
 
   const [selection, setSelection] = useState(initialSelection);
   const [filters, setFilters] = useState(initialFilters);
-  const [isAdmin, setIsAdmin] = useState(!arrivedViaClientLink);
+  // Opening one's own client link lands in the client's view, which is the point
+  // of the link; the way back is a button, since this visitor is still the team.
+  const [previewingAsClient, setPreviewingAsClient] = useState(arrivedViaClientLink);
+  /**
+   * A shared link is a shortcut through seven hundred items, not a wall around
+   * them: the client can step out of the selection and browse everything, and
+   * step back into what was picked for them.
+   */
+  const [browsingAll, setBrowsingAll] = useState(false);
   const [opened, setOpened] = useState<{ product: PublicProduct; photoIndex: number } | null>(
     null,
   );
 
-  // Read rather than mirrored into state: the server has no session storage, so
-  // the first render must agree with it and the value can only arrive after.
-  const cameFromAdmin = useSyncExternalStore(
-    subscribeToNothing,
-    () => sessionStorage.getItem(ADMIN_SEEN_FLAG) === "1",
-    () => false,
-  );
-
-  useEffect(() => {
-    if (isAdmin) sessionStorage.setItem(ADMIN_SEEN_FLAG, "1");
-  }, [isAdmin]);
+  const showTools = isTeam && !previewingAsClient;
 
   /** The address bar is the shareable link, so it tracks what is on screen. */
   const syncAddress = useCallback(
@@ -116,19 +112,12 @@ export function CatalogView({
     changeSelection({ ...selection, skus });
   }
 
-  function previewAsClient() {
-    setIsAdmin(false);
-  }
-
-  function backToAdmin() {
-    setIsAdmin(true);
-  }
-
   // What this visitor can reach: the whole catalog for the team, only what was
   // shared for a client.
   const scope = useMemo(
-    () => (isAdmin ? products : selectedProducts(products, selection)),
-    [isAdmin, products, selection],
+    () =>
+      showTools || browsingAll ? products : selectedProducts(products, selection),
+    [showTools, browsingAll, products, selection],
   );
 
   // Offering a category the page cannot fill would let a client filter their own
@@ -139,10 +128,15 @@ export function CatalogView({
       ? filters.category
       : ALL_CATEGORIES;
 
-  const visible = useMemo(
+  const matching = useMemo(
     () => filterProducts(scope, { category: activeCategory, newOnly: filters.newOnly }),
     [scope, activeCategory, filters.newOnly],
   );
+
+  const page = paginate(matching, filters.page);
+  const visible = page.items;
+  /** An empty page is a dead end when it was asked for, and a bug when it was not. */
+  const filtered = activeCategory !== ALL_CATEGORIES || filters.newOnly;
 
   const picked = useMemo(
     () => selectedProducts(products, selection),
@@ -151,54 +145,126 @@ export function CatalogView({
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-[1680px] items-center gap-6 px-6 py-5 lg:px-10">
-          <span className="text-2xl font-bold tracking-[0.3em]">itoo</span>
-          {!isAdmin && cameFromAdmin && (
-            <Button variant="outline" size="sm" className="ml-auto" onClick={backToAdmin}>
-              <ArrowLeft /> Back to admin
+      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-[1680px] items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6 lg:px-10">
+          <Link href="/" className="shrink-0 text-xl font-bold tracking-[0.3em]">
+            itoo
+          </Link>
+
+          {/* The filters live in the header rather than under it: the row was
+              empty, and every pixel above the first photograph is one the
+              catalogue does not get. */}
+          <div className="min-w-0 flex-1">
+            <CategoryFilters
+              categories={categories}
+              active={activeCategory}
+              onSelect={(category) =>
+                changeFilters({
+                  category: category === ALL_CATEGORIES ? null : category,
+                  page: 1,
+                })
+              }
+              newOnly={filters.newOnly}
+              onToggleNew={() => changeFilters({ newOnly: !filters.newOnly, page: 1 })}
+              selectable={showTools}
+              selectedCategories={selection.categories}
+              onToggleCategory={toggleCategory}
+            />
+          </div>
+
+          {isTeam && previewingAsClient && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => setPreviewingAsClient(false)}
+            >
+              <ArrowLeft /> Back
             </Button>
           )}
         </div>
       </header>
 
-      {!isAdmin && arrivedViaClientLink && (
-        <p className="bg-foreground px-4 py-3 text-center text-sm text-background">
-          {visible.length} {visible.length === 1 ? "style" : "styles"} picked for you
-        </p>
+      {!showTools && arrivedViaClientLink && (
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-foreground px-4 py-2.5 text-center text-sm text-background">
+          {browsingAll ? (
+            <>
+              <span>Browsing the full catalog</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setBrowsingAll(false);
+                  changeFilters({ page: 1 });
+                }}
+                className="underline underline-offset-4"
+              >
+                Back to your selection
+              </button>
+            </>
+          ) : (
+            <>
+              <span>
+                {page.total} {page.total === 1 ? "item" : "items"} picked for you
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setBrowsingAll(true);
+                  changeFilters({ page: 1 });
+                }}
+                className="underline underline-offset-4"
+              >
+                See everything
+              </button>
+            </>
+          )}
+        </div>
       )}
 
-      <main className="mx-auto w-full max-w-[1680px] flex-1 px-6 pb-40 lg:px-10">
-        <div className="flex flex-wrap items-center gap-4 py-8">
-          <CategoryFilters
-            categories={categories}
-            active={activeCategory}
-            onSelect={(category) =>
-              changeFilters({ category: category === ALL_CATEGORIES ? null : category })
-            }
-            newOnly={filters.newOnly}
-            onToggleNew={() => changeFilters({ newOnly: !filters.newOnly })}
-            selectable={isAdmin}
-            selectedCategories={selection.categories}
-            onToggleCategory={toggleCategory}
-          />
-          <span className="ml-auto text-base text-muted-foreground">
-            {visible.length} {visible.length === 1 ? "style" : "styles"}
-          </span>
-        </div>
+      {/* The team's controls float over the last row, so the page has to end
+          above them; nobody else is given that much empty page to scroll past. */}
+      <main
+        className={cn(
+          "mx-auto w-full max-w-[1680px] flex-1 px-4 sm:px-6 lg:px-10",
+          showTools ? "pb-44" : "pb-16",
+        )}
+      >
+        <p className="tracked py-4 text-right text-[11px] text-muted-foreground">
+          {page.total} {page.total === 1 ? "item" : "items"}
+          {page.pages > 1 && (
+            <span className="ml-2">
+              · page {page.page} of {page.pages}
+            </span>
+          )}
+        </p>
 
         {visible.length === 0 ? (
-          <p className="py-32 text-center text-lg text-muted-foreground">
-            Nothing to show here yet.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-28 text-center">
+            <p className="tracked text-[11px] text-muted-foreground">Nothing here</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {filtered
+                ? "No style matches these filters."
+                : "This catalog has no styles in it yet."}
+            </p>
+            {filtered && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-1"
+                onClick={() => changeFilters({ category: null, newOnly: false, page: 1 })}
+              >
+                Show every style
+              </Button>
+            )}
+          </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="catalog-grid">
             {visible.map((product, index) => (
               <ProductCard
                 key={product.sku}
                 product={product}
-                eager={index < 4}
-                selectable={isAdmin}
+                eager={index < 6}
+                selectable={showTools}
                 selected={isSelected(product, selection)}
                 lockedByCategory={selection.categories.includes(product.category)}
                 onToggleSelect={toggleStyle}
@@ -207,25 +273,38 @@ export function CatalogView({
             ))}
           </div>
         )}
+
+        <PaginationBar
+          page={page.page}
+          pages={page.pages}
+          onGo={(next) => {
+            changeFilters({ page: next });
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
       </main>
 
-      {isAdmin && (
-        <StatusBar
-          productCount={products.length}
-          syncedAt={syncedAt}
-          onPreview={previewAsClient}
-        />
-      )}
+      {/* Stacked in one column so the link panel never covers the status bar,
+          which is what happened when both were pinned to a corner. */}
+      {showTools && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-stretch gap-2 p-3 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:items-end sm:p-0">
+          <StatusBar
+            productCount={products.length}
+            syncedAt={syncedAt}
+            onPreview={() => setPreviewingAsClient(true)}
+          />
 
-      {isAdmin && !isEmptySelection(selection) && (
-        <LinkPanel
-          // A different selection is a different link: remounting drops the one
-          // that was made for the previous one instead of resetting it by hand.
-          key={`${selection.categories.join()}|${selection.skus.join()}`}
-          selection={selection}
-          productCount={picked.length}
-          onClear={() => changeSelection({ categories: [], skus: [] })}
-        />
+          {!isEmptySelection(selection) && (
+                <LinkPanel
+              // A different selection is a different link: remounting drops the
+              // one made for the previous selection rather than resetting it.
+              key={`${selection.categories.join()}|${selection.skus.join()}`}
+              selection={selection}
+              productCount={picked.length}
+              onClear={() => changeSelection({ categories: [], skus: [] })}
+            />
+          )}
+        </div>
       )}
 
       {opened && (

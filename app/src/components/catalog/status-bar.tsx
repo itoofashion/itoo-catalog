@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, Loader2, RefreshCw } from "lucide-react";
+import { Eye, Loader2, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -84,12 +84,12 @@ export function StatusBar({
   return (
     <aside
       data-status-bar=""
-      className="fixed bottom-6 right-6 z-30 hidden max-w-[min(28rem,calc(100vw-3rem))] flex-col items-end gap-2 sm:flex"
+      className="pointer-events-auto hidden max-w-[min(32rem,calc(100vw-1.5rem))] flex-col items-end gap-2 sm:flex"
     >
       {(message || !hasExtension) && (
         <p
           className={cn(
-            "rounded-full border bg-card/95 px-4 py-1.5 text-sm shadow-lg backdrop-blur",
+            "border bg-background px-3 py-1.5 text-xs shadow-lg",
             status === "error" ? "text-destructive" : "text-muted-foreground",
           )}
         >
@@ -97,7 +97,7 @@ export function StatusBar({
         </p>
       )}
 
-      <div className="flex items-center gap-2 rounded-full border bg-card/95 p-2 pl-5 shadow-lg backdrop-blur">
+      <div className="flex items-center gap-2 whitespace-nowrap border bg-background p-2 pl-4 shadow-lg">
         <span className="text-sm text-muted-foreground">
           <b className="font-semibold text-foreground">{productCount}</b> products ·{" "}
           {/* Rendered in the reader's own locale and timezone, which the server
@@ -125,6 +125,15 @@ export function StatusBar({
           {status === "running" ? <Loader2 className="animate-spin" /> : <RefreshCw />}
           {status === "running" ? "Syncing…" : "Sync"}
         </Button>
+
+        {/* A plain form, not a fetch: signing out has to work even when the page
+            is mid-sync or its JavaScript never loaded. */}
+        <form action="/admin/sign-out" method="post">
+          <Button type="submit" variant="ghost" size="icon-sm" title="Sign out">
+            <LogOut />
+            <span className="sr-only">Sign out</span>
+          </Button>
+        </form>
       </div>
     </aside>
   );

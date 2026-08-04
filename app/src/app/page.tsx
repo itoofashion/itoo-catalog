@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CatalogView } from "@/components/catalog/catalog-view";
+import { isTeamViewer } from "@/lib/admin/request";
 import { catalogMetadata, publishedCatalog } from "@/lib/catalog/page-data";
 import { parseCatalogQuery } from "@/lib/catalog/share";
 
@@ -25,6 +26,10 @@ export default async function CatalogPage({ searchParams }: PageProps) {
       syncedAt={syncedAt}
       selection={selection}
       filters={filters}
+      // The same address for everyone: the team gets their tools on top of it,
+      // a client gets the catalog. Decided here because a browser cannot be
+      // asked to answer this honestly.
+      isTeam={await isTeamViewer()}
     />
   );
 }

@@ -1,19 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Link2, X } from "lucide-react";
+import { Check, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CatalogSelection } from "@/lib/catalog/share";
 import { encodeSelection } from "@/lib/links/code";
 
 /**
- * The whole point of the admin view: pick what a client asked for, get one link
- * to send them. It sits centred along the bottom edge because it is the outcome
- * of the work above it, and it is the only thing on the page allowed to shout.
- *
- * The link is shortened before it is handed over — a wholesale client judges the
- * sender by what lands in the chat, and a hundred characters of query string
- * reads as a machine talking.
+ * The outcome of the admin view: pick what a client asked for, get one link to
+ * send them. It is the only thing on the page allowed to be loud, and it says
+ * plainly what is in the link and how many items that comes to — a link sent to
+ * a wholesale client is a promise about what they will see.
  */
 export function LinkPanel({
   selection,
@@ -44,19 +41,20 @@ export function LinkPanel({
     }
   }
 
-  const summary = describe(selection, productCount);
-
   return (
     <div
       data-link-panel=""
-      className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-6 sm:bottom-6 sm:pb-0"
+      className="pointer-events-auto w-full border border-border bg-background shadow-[0_-2px_20px_rgba(0,0,0,.06)] sm:w-auto sm:min-w-[26rem] sm:shadow-lg"
     >
-      <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border bg-card/95 p-5 shadow-2xl backdrop-blur sm:flex-row sm:items-center sm:gap-5 sm:p-6">
+      <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-5">
         <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold">{summary}</p>
-          <p className="mt-1 truncate text-sm text-muted-foreground">
-            {link || "One link, ready to send in chat."}
-          </p>
+          <p className="tracked text-[11px] text-muted-foreground">Selected for a client</p>
+          <p className="mt-1 truncate text-sm font-semibold">{describe(selection, productCount)}</p>
+          {link && (
+            <p className="mt-1 truncate text-xs text-muted-foreground" title={link}>
+              {link}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -64,14 +62,8 @@ export function LinkPanel({
             {copied ? <Check /> : <Link2 />}
             {copied ? "Copied" : link ? "Copy again" : "Get link"}
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClear}
-            aria-label="Clear selection"
-            title="Clear selection"
-          >
-            <X />
+          <Button variant="outline" onClick={onClear}>
+            Clear
           </Button>
         </div>
       </div>
@@ -81,16 +73,12 @@ export function LinkPanel({
 
 function describe(selection: CatalogSelection, productCount: number): string {
   const parts: string[] = [];
-  if (selection.categories.length > 0) {
-    parts.push(
-      selection.categories.length === 1
-        ? `All of ${selection.categories[0]}`
-        : `${selection.categories.length} categories`,
-    );
-  }
+  if (selection.categories.length === 1) parts.push(`all of ${selection.categories[0]}`);
+  else if (selection.categories.length > 1) parts.push(`${selection.categories.length} categories`);
   if (selection.skus.length > 0) {
-    parts.push(`${selection.skus.length} ${selection.skus.length === 1 ? "style" : "styles"}`);
+    parts.push(`${selection.skus.length} picked ${selection.skus.length === 1 ? "item" : "items"}`);
   }
-  const picked = parts.join(" + ");
-  return `${picked} — ${productCount} ${productCount === 1 ? "item" : "items"} for the client`;
+
+  const items = `${productCount} ${productCount === 1 ? "item" : "items"}`;
+  return `${parts.join(" + ")} — ${items}`;
 }

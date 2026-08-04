@@ -40,9 +40,11 @@ const products = [
   product({ sku: "PANT-2", category: "Pants" }),
 ];
 
+/** Signed in as the team unless a test says otherwise — see lib/admin/auth.ts. */
 function renderCatalog(
   selection: CatalogSelection = EMPTY_SELECTION,
   filters: CatalogFilters = NO_FILTERS,
+  { isTeam = true } = {},
 ) {
   return render(
     <CatalogView
@@ -50,6 +52,7 @@ function renderCatalog(
       syncedAt={NOW}
       selection={selection}
       filters={filters}
+      isTeam={isTeam}
     />,
   );
 }
@@ -59,7 +62,6 @@ const cards = () => within(grid()).queryAllByRole("article");
 
 beforeEach(() => {
   replace.mockClear();
-  sessionStorage.clear();
 });
 
 describe("browsing", () => {
@@ -80,7 +82,7 @@ describe("browsing", () => {
   it("narrows the grid to new arrivals", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: /New arrivals/ }));
+    await user.click(screen.getByRole("button", { name: /^New$/ }));
 
     expect(cards()).toHaveLength(1);
     expect(within(grid()).getByText("Style TOP-1")).toBeInTheDocument();
@@ -88,7 +90,8 @@ describe("browsing", () => {
 
   it("marks recent styles as new", () => {
     renderCatalog();
-    expect(screen.getAllByText("New")).toHaveLength(1);
+    // By the badge, not by the word: the filter chip says "New" as well.
+    expect(grid().querySelectorAll('[data-badge="new"]')).toHaveLength(1);
   });
 
   it("opens a style when its photo is clicked", async () => {
@@ -102,8 +105,88 @@ describe("browsing", () => {
   });
 
   it("starts from the filters the address arrived with", () => {
-    renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: false });
+    renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: false, page: 1 });
     expect(cards()).toHaveLength(2);
+  });
+
+  it("offers a way back out of a filter that matches nothing", async () => {
+    const user = userEvent.setup();
+    // Nothing in Pants is new, so this pair of filters can only come up empty.
+    renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: true, page: 1 });
+    expect(cards()).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: /Show every style/ }));
+    expect(cards()).toHaveLength(3);
+  });
+});
+
+describe("the photo gallery", () => {
+  const threePhotos = product({
+    sku: "TOP-9",
+    images: [
+      { url: "/i/one", color: "Beige" },
+      { url: "/i/two", color: "Beige" },
+      { url: "/i/three", color: "Beige" },
+    ],
+  });
+
+  /** One style on the page, so the dots under it are unambiguous. */
+  function renderGallery() {
+    render(
+      <CatalogView
+        products={[threePhotos]}
+        syncedAt={NOW}
+        selection={EMPTY_SELECTION}
+        filters={NO_FILTERS}
+        isTeam={false}
+      />,
+    );
+    return within(screen.getByRole("article"));
+  }
+
+  const dotsOf = (card: ReturnType<typeof renderGallery>) =>
+    card.getAllByRole("button", { name: /^Photo \d+$/ });
+
+  it("gives every photo a dot of its own", () => {
+    expect(dotsOf(renderGallery())).toHaveLength(3);
+  });
+
+  it("opens on the first photo, which has nothing before it", () => {
+    const card = renderGallery();
+
+    expect(dotsOf(card)[0]).toHaveAttribute("aria-current", "true");
+    expect(card.queryByRole("button", { name: "Previous photo" })).not.toBeInTheDocument();
+    expect(card.getByRole("button", { name: "Next photo" })).toBeInTheDocument();
+  });
+
+  it("moves to the photo whose dot was pressed", async () => {
+    const user = userEvent.setup();
+    const card = renderGallery();
+    const dots = dotsOf(card);
+
+    await user.click(dots[2]);
+
+    expect(dots[2]).toHaveAttribute("aria-current", "true");
+    expect(dots[0]).not.toHaveAttribute("aria-current");
+    // Nothing follows the last photo, so nothing offers to go there.
+    expect(card.queryByRole("button", { name: "Next photo" })).not.toBeInTheDocument();
+    expect(card.getByRole("button", { name: "Previous photo" })).toBeInTheDocument();
+  });
+
+  it("moves one photo at a time with the arrows", async () => {
+    const user = userEvent.setup();
+    const card = renderGallery();
+
+    await user.click(card.getByRole("button", { name: "Next photo" }));
+
+    expect(dotsOf(card)[1]).toHaveAttribute("aria-current", "true");
+  });
+
+  it("leaves a single-photo style without a gallery to steer", () => {
+    renderCatalog();
+    expect(
+      within(cards()[0]).queryByRole("button", { name: /^Photo \d+$/ }),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -119,7 +202,7 @@ describe("the address bar", () => {
   it("follows the new-arrivals filter", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: /New arrivals/ }));
+    await user.click(screen.getByRole("button", { name: /^New$/ }));
 
     expect(replace).toHaveBeenCalledWith("/?new=1", expect.anything());
   });
@@ -140,7 +223,7 @@ describe("picking whole categories", () => {
     await user.click(screen.getByRole("button", { name: /Add all of Pants to the link/ }));
 
     expect(replace).toHaveBeenCalledWith("/?cats=Pants", expect.anything());
-    expect(screen.getByText(/All of Pants/)).toBeInTheDocument();
+    expect(screen.getByText(/all of Pants/)).toBeInTheDocument();
   });
 
   it("locks those styles so the link keeps meaning the whole category", async () => {
@@ -167,7 +250,7 @@ describe("picking whole categories", () => {
     renderCatalog();
     await user.click(screen.getByRole("button", { name: /Add all of Pants to the link/ }));
 
-    expect(screen.getByText(/2 items for the client/)).toBeInTheDocument();
+    expect(screen.getByText(/all of Pants — 2 items/)).toBeInTheDocument();
   });
 });
 
@@ -175,7 +258,7 @@ describe("the client's view", () => {
   it("opens straight into it for a shared link", () => {
     renderCatalog({ categories: [], skus: ["TOP-1", "PANT-1"] });
 
-    expect(screen.getByText(/2 styles picked for you/)).toBeInTheDocument();
+    expect(screen.getByText(/2 items picked for you/)).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /^Sync$/ }),
     ).not.toBeInTheDocument();
@@ -206,15 +289,13 @@ describe("the client's view", () => {
   });
 
   it("gives no way back to a client who was simply sent the link", () => {
-    // Nothing in this session ever saw the admin view.
-    renderCatalog({ categories: [], skus: ["PANT-1"] });
-    expect(screen.queryByRole("button", { name: /Back to admin/ })).not.toBeInTheDocument();
+    renderCatalog({ categories: [], skus: ["PANT-1"] }, NO_FILTERS, { isTeam: false });
+    expect(screen.queryByRole("button", { name: /^Back/ })).not.toBeInTheDocument();
   });
 
   it("gives a way back to whoever built the link and then opened it", () => {
-    sessionStorage.setItem("itoo.admin", "1");
     renderCatalog({ categories: [], skus: ["PANT-1"] });
-    expect(screen.getByRole("button", { name: /Back to admin/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Back/ })).toBeInTheDocument();
   });
 
   it("gives the team a way back out of their own preview", async () => {
@@ -223,11 +304,51 @@ describe("the client's view", () => {
     await user.click(screen.getByRole("button", { name: /Add TOP-1 to selection/ }));
     await user.click(screen.getByRole("button", { name: /Preview/ }));
 
-    const back = screen.getByRole("button", { name: /Back to admin/ });
+    const back = screen.getByRole("button", { name: /^Back/ });
     expect(back).toBeInTheDocument();
 
     await user.click(back);
     expect(screen.getByRole("button", { name: /^Sync$/ })).toBeInTheDocument();
+  });
+});
+
+describe("signing in", () => {
+  it("still shows the whole catalog to a visitor who is not signed in", () => {
+    renderCatalog(EMPTY_SELECTION, NO_FILTERS, { isTeam: false });
+    expect(cards()).toHaveLength(3);
+  });
+
+  it("keeps the team's tools out of an unsigned visitor's hands", () => {
+    renderCatalog(EMPTY_SELECTION, NO_FILTERS, { isTeam: false });
+
+    expect(screen.queryByRole("button", { name: /to selection/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /to the link/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Sync$/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Preview/ })).not.toBeInTheDocument();
+  });
+
+  it("shows no link panel to an unsigned visitor, whatever the address carries", () => {
+    renderCatalog({ categories: [], skus: ["TOP-1"] }, NO_FILTERS, { isTeam: false });
+    expect(screen.queryByRole("button", { name: /Get link/ })).not.toBeInTheDocument();
+  });
+
+  it("hands the tools to whoever signed in", () => {
+    renderCatalog();
+
+    expect(screen.getByRole("button", { name: /^Sync$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Add TOP-1 to selection/ })).toBeInTheDocument();
+  });
+
+  it("offers the team a way out", () => {
+    renderCatalog();
+    expect(screen.getByRole("button", { name: /Sign out/ })).toBeInTheDocument();
+  });
+
+  it("offers no way out to someone who never signed in", () => {
+    renderCatalog(EMPTY_SELECTION, NO_FILTERS, { isTeam: false });
+    expect(screen.queryByRole("button", { name: /Sign out/ })).not.toBeInTheDocument();
   });
 });
 

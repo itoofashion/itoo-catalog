@@ -128,59 +128,118 @@
     @apply font-sans;
   }
 }
-/* ---------------------------------------------------------------------------
-   itoo brand palette.
 
-   A warm, paper-like neutral with a muted gold accent — the look of a printed
-   line sheet rather than a generic web app. Change these values to restyle the
-   whole catalog; nothing else hard-codes a brand color.
+/* ---------------------------------------------------------------------------
+   itoo.
+
+   Taken from the brand's own storefront so a buyer meets the same shop twice:
+   Raleway throughout, a near-monochrome palette, and structural text set in
+   caps with wide tracking. What is deliberately not borrowed is the retail
+   restraint — a wholesale buyer needs the style number, the pack and the price
+   on the card, so it carries more than a shop card would.
    --------------------------------------------------------------------------- */
 :root {
-  --background: oklch(0.978 0.004 85);
-  --foreground: oklch(0.22 0.008 70);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.16 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.008 70);
+  --card-foreground: oklch(0.16 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.008 70);
-  --primary: oklch(0.32 0.01 70);
-  --primary-foreground: oklch(0.985 0.003 85);
-  --secondary: oklch(0.955 0.006 85);
-  --secondary-foreground: oklch(0.32 0.01 70);
-  --muted: oklch(0.955 0.006 85);
-  --muted-foreground: oklch(0.58 0.012 75);
-  --accent: oklch(0.94 0.012 80);
-  --accent-foreground: oklch(0.32 0.01 70);
-  --border: oklch(0.9 0.008 82);
-  --input: oklch(0.9 0.008 82);
-  --ring: oklch(0.66 0.062 70);
-  --radius: 0.875rem;
+  --popover-foreground: oklch(0.16 0 0);
+  /* #111 — the storefront's button fill. */
+  --primary: oklch(0.19 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.968 0 0);
+  --secondary-foreground: oklch(0.19 0 0);
+  --muted: oklch(0.968 0 0);
+  --muted-foreground: oklch(0.52 0 0);
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0.19 0 0);
+  /* #E8E8E1 — warm hairline, the one place the palette is not neutral grey. */
+  --border: oklch(0.918 0.006 95);
+  --input: oklch(0.918 0.006 95);
+  --ring: oklch(0.55 0 0);
+  /* Cards and photographs sit square on the page, as on the storefront. */
+  --radius: 0.25rem;
 }
 
-/* The accent used for selection and "new arrival" marks. */
 @theme inline {
-  --color-brand: oklch(0.66 0.062 70);
-  --color-brand-foreground: oklch(0.985 0.003 85);
+  /* #FBE8EC — the blush from their site, used only to mark new arrivals. */
+  --color-brand: oklch(0.93 0.028 5);
+  --color-brand-foreground: oklch(0.35 0.06 15);
 }
 
-/* ---------------------------------------------------------------------------
-   Scale.
-
-   The catalog is read by buyers on a phone, in a hurry, mid-conversation — not
-   by anyone sitting at a dashboard. Everything is a step larger than a typical
-   web app: the base size lifts every rem-based measurement with it, so type,
-   controls and spacing grow together instead of drifting apart.
-   --------------------------------------------------------------------------- */
+/*
+ * Back to an ordinary base after an earlier pass overshot: the catalog is a
+ * wall of photographs, and oversized type pushed the photographs off screen.
+ */
 html {
-  font-size: 17px;
+  font-size: 16px;
 }
 
-@media (max-width: 480px) {
-  html {
-    font-size: 16px;
+/* Structural labels: filters, buttons, section heads. */
+.tracked {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/*
+ * A keyboard ring the palette agrees with. Written at zero specificity so any
+ * component that wants its own ring still wins, and only for :focus-visible so
+ * a mouse never sees it.
+ */
+:where(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/*
+ * Galleries are native scrollers rather than a carousel library: the page shows
+ * up to forty-eight of them at once, and scroll-snap costs nothing while giving
+ * swipe on a phone and a trackpad for free.
+ */
+.photo-strip {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.photo-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-strip > * {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+}
+
+/*
+ * The wholesale facts in the product dialog, set as a spec sheet. Beside a tall
+ * photograph the rows stretch to take the column with them, which is what turns
+ * the leftover height into a printed line sheet instead of a hole above the
+ * button. On a phone there is no column to fill and the rows stay compact.
+ */
+@media (min-width: 640px) {
+  .spec-sheet {
+    display: grid;
+    grid-auto-rows: minmax(3.25rem, 1fr);
   }
 }
 
-/* Photographs carry this interface, so the frames around them stay soft. */
-:root {
-  --radius: 1rem;
+/*
+ * How many columns fit is decided by the width available, not by breakpoints,
+ * so a wider screen simply shows more of the catalogue. The 46% floor is what
+ * keeps a phone at two cards across rather than one enormous one.
+ */
+.catalog-grid {
+  display: grid;
+  gap: 1.5rem 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(15rem, 46%), 1fr));
+}
+
+@media (min-width: 640px) {
+  .catalog-grid {
+    gap: 2.25rem 1.5rem;
+  }
 }

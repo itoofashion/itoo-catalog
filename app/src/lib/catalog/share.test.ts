@@ -31,12 +31,20 @@ describe("buildCatalogQuery", () => {
     const query = buildCatalogQuery(EMPTY_SELECTION, {
       category: "Dresses",
       newOnly: true,
+      page: 1,
     });
     expect(query).toBe("?show=Dresses&new=1");
   });
 
   it("leaves All out — it is the absence of a filter", () => {
-    expect(buildCatalogQuery(EMPTY_SELECTION, { category: "All", newOnly: false })).toBe("");
+    expect(
+      buildCatalogQuery(EMPTY_SELECTION, { category: "All", newOnly: false, page: 1 }),
+    ).toBe("");
+  });
+
+  it("carries the page, and leaves the first one out", () => {
+    expect(buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, page: 3 })).toBe("?page=3");
+    expect(buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, page: 1 })).toBe("");
   });
 
   it("is empty for the plain catalog", () => {
@@ -47,7 +55,7 @@ describe("buildCatalogQuery", () => {
 describe("parseCatalogQuery", () => {
   it("round-trips a selection and its filters", () => {
     const selection = { categories: ["Tops"], skus: ["Y-542", "21034"] };
-    const filters = { category: "Tops", newOnly: true };
+    const filters = { category: "Tops", newOnly: true, page: 2 };
     const parsed = parseCatalogQuery(new URLSearchParams(buildCatalogQuery(selection, filters)));
 
     expect(parsed.selection).toEqual(selection);
@@ -73,6 +81,12 @@ describe("parseCatalogQuery", () => {
 
   it("treats a stray All the same as no filter", () => {
     expect(parseCatalogQuery({ show: "All" }).filters.category).toBeNull();
+  });
+
+  it("reads a page number, and ignores a nonsensical one", () => {
+    expect(parseCatalogQuery({ page: "4" }).filters.page).toBe(4);
+    expect(parseCatalogQuery({ page: "0" }).filters.page).toBe(1);
+    expect(parseCatalogQuery({ page: "junk" }).filters.page).toBe(1);
   });
 });
 

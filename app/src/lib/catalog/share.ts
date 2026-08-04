@@ -20,12 +20,14 @@ export type CatalogFilters = {
   /** Which category the grid is narrowed to, or null for all of them. */
   category: string | null;
   newOnly: boolean;
+  /** 1-based. In the address so a link opens on the page it was sent from. */
+  page: number;
 };
 
 export const ALL_CATEGORIES = "All";
 
 export const EMPTY_SELECTION: CatalogSelection = { categories: [], skus: [] };
-export const NO_FILTERS: CatalogFilters = { category: null, newOnly: false };
+export const NO_FILTERS: CatalogFilters = { category: null, newOnly: false, page: 1 };
 
 const SEPARATOR = ",";
 
@@ -54,6 +56,9 @@ export function buildCatalogQuery(
   if (filters.newOnly) {
     params.set("new", "1");
   }
+  if (filters.page > 1) {
+    params.set("page", String(filters.page));
+  }
   const query = params.toString();
   return query ? `?${query}` : "";
 }
@@ -71,6 +76,7 @@ export function parseCatalogQuery(
     filters: {
       category: clean(params.get("show")),
       newOnly: params.get("new") === "1",
+      page: pageNumber(params.get("page")),
     },
   };
 }
@@ -80,6 +86,11 @@ function list(value: string | null): string[] {
     .split(SEPARATOR)
     .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+function pageNumber(value: string | null): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 1 ? parsed : 1;
 }
 
 function clean(value: string | null): string | null {

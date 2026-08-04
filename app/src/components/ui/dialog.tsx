@@ -71,7 +71,9 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
+              /* A dialog may open over a photograph, where a bare glyph
+                 disappears into whatever happens to be behind it. */
+              className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
               size="icon-sm"
             >
               <XIcon

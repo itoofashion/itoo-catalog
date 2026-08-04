@@ -43,7 +43,8 @@ export function selectedProducts(
 /** Narrows what is on screen. Filters are a view, not part of the selection. */
 export function filterProducts(
   products: PublicProduct[],
-  filters: CatalogFilters,
+  // Paging is not filtering, so the page number is deliberately not asked for.
+  filters: Pick<CatalogFilters, "category" | "newOnly">,
 ): PublicProduct[] {
   let result = products;
 

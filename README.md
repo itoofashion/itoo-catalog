@@ -49,6 +49,14 @@ The admin view lets the team tick the styles a client asked for and copy one
 link. That link carries the selection, opens without any admin controls, and
 unfurls into a preview card with the product photo when pasted into a chat.
 
+### Signing in
+
+The catalog itself is public — the address is the product. What is behind a
+password is the working view: the checkboxes, the link panel and the sync
+button. The team signs in at `/admin` with one shared password and stays signed
+in for 30 days; the page decides who sees the tools on the server, from a signed
+cookie, so a client cannot get them by fiddling with the browser.
+
 ## Deploying
 
 The app deploys to Cloudflare Workers via the OpenNext adapter. In the Cloudflare
@@ -70,7 +78,19 @@ After deploying:
    and enter the same value in the extension popup. The catalog is public, so
    without this the sync endpoint would let anyone replace the catalog — a
    deployed Worker with no secret configured refuses to sync at all.
-3. Make sure the photo bucket exists (below) — it already does for the live
+3. Set an `ADMIN_PASSWORD_HASH` secret with the team's sign-in password. Never
+   the password itself — generate the value with
+
+   ```bash
+   cd app && node scripts/make-admin-password.mjs "the-password"
+   ```
+
+   and paste what it prints. A deployed Worker without this secret refuses to
+   sign anyone in and says so on `/admin`, the same way the sync endpoint
+   refuses to sync. Optionally set `ADMIN_SESSION_SECRET` as well: sessions are
+   signed with it instead of with the password hash, so changing the password
+   then does not sign everyone out.
+4. Make sure the photo bucket exists (below) — it already does for the live
    deployment.
 
 ### Domains
@@ -133,7 +153,8 @@ cd app && pnpm test
 ```
 
 The suite covers the pricing and new-arrival rules, category filtering, share
-links, the FashionGo mapping and the sync endpoint's validation, plus the
-catalog interface itself. Some tests run against the real exported FashionGo
+links, the FashionGo mapping, the sync endpoint's validation and the sign-in
+(password hashing, session signing and expiry, and what an unconfigured server
+does), plus the catalog interface itself. Some tests run against the real exported FashionGo
 data in `app/src/data`, so a change in FashionGo's payloads is caught by a
 failing test rather than by a broken page.

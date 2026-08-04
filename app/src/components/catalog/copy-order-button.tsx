@@ -19,11 +19,14 @@ export function CopyOrderButton({
   color,
   className,
   size = "default",
+  variant = "default",
 }: {
   product: PublicProduct;
   color: string | null;
   className?: string;
   size?: "sm" | "default" | "lg";
+  /** Outline on a card, where thirty filled buttons would out-shout the photos. */
+  variant?: "default" | "outline";
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -57,7 +60,13 @@ export function CopyOrderButton({
   return (
     <Popover open={open} onOpenChange={show}>
       <PopoverTrigger asChild>
-        <Button type="button" size={size} className={className} data-copy-order="">
+        <Button
+          type="button"
+          size={size}
+          variant={variant}
+          className={className}
+          data-copy-order=""
+        >
           <Copy /> Copy to order
         </Button>
       </PopoverTrigger>
