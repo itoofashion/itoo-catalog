@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CatalogView } from "./catalog-view";
 import type { Product } from "@/lib/catalog/types";
+import type { CatalogSelection } from "@/lib/catalog/share";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -31,7 +32,9 @@ const products = [
   product({ sku: "PANT-2", category: "Pants" }),
 ];
 
-function renderCatalog(selection = { skus: [], category: null }) {
+function renderCatalog(
+  selection: CatalogSelection = { skus: [], category: null },
+) {
   return render(
     <CatalogView
       products={products}
@@ -137,6 +140,17 @@ describe("CatalogView", () => {
       renderCatalog({ skus: [], category: "Pants" });
       expect(within(grid()).getAllByRole("article")).toHaveLength(2);
     });
+  });
+
+  it("opens a product when its photo is clicked", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    const card = within(grid()).getAllByRole("article")[0];
+    await user.click(within(card).getByRole("img"));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Style TOP-1")).toBeInTheDocument();
+    expect(within(dialog).getByText("$19.75")).toBeInTheDocument();
   });
 
   it("copies an order line a buyer can paste into chat", async () => {

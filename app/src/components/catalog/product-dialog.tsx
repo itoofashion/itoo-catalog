@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Dialog,
@@ -15,24 +15,21 @@ import { formatPrice } from "@/lib/catalog/pricing";
 import type { Product } from "@/lib/catalog/types";
 import { CopyOrderButton } from "./copy-order-button";
 
+/**
+ * Rendered only while a product is open, and keyed by that product, so opening
+ * another style mounts a fresh dialog rather than syncing state in an effect.
+ */
 export function ProductDialog({
   product,
   initialPhotoIndex,
   onClose,
 }: {
-  product: Product | null;
+  product: Product;
   initialPhotoIndex: number;
   onClose: () => void;
 }) {
   const [photoIndex, setPhotoIndex] = useState(initialPhotoIndex);
-  const [color, setColor] = useState<string | null>(null);
-
-  useEffect(() => {
-    setPhotoIndex(initialPhotoIndex);
-    setColor(product?.colors[0] ?? null);
-  }, [product, initialPhotoIndex]);
-
-  if (!product) return null;
+  const [color, setColor] = useState<string | null>(product.colors[0] ?? null);
 
   const photos = product.images;
   const step = (direction: number) =>

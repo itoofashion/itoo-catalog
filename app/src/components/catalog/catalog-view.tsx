@@ -146,11 +146,14 @@ export function CatalogView({ products, syncedAt, selection, now }: CatalogViewP
         />
       )}
 
-      <ProductDialog
-        product={opened?.product ?? null}
-        initialPhotoIndex={opened?.photoIndex ?? 0}
-        onClose={() => setOpened(null)}
-      />
+      {opened && (
+        <ProductDialog
+          key={opened.product.sku}
+          product={opened.product}
+          initialPhotoIndex={opened.photoIndex}
+          onClose={() => setOpened(null)}
+        />
+      )}
     </>
   );
 }
