@@ -11,12 +11,11 @@
   "observability": {
     "enabled": true
   }
-  // Product photos are cached in R2 and served from /i. Uncomment the line
-  // below — leading comma and all — once the bucket exists (`wrangler r2 bucket
-  // create itoo-images`): a binding to a bucket that has not been created yet
-  // fails the deploy. Until then the worker keeps photos in memory instead,
-  // which costs one download per photo per instance. See lib/images/store.ts.
-  // ,"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "itoo-images" }]
+  // Product photos are downloaded once from FashionGo and kept here, so the
+  // catalog serves them from its own domain. Without this binding the worker
+  // falls back to memory, which costs one download per photo per instance —
+  // see lib/images/store.ts.
+  ,"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "itoo-images" }]
   //
   // D1 binding is added in Milestone 2, once the database is provisioned:
   // "d1_databases": [{ "binding": "DB", "database_name": "itoo", "database_id": "..." }]
