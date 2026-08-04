@@ -1,0 +1,12 @@
+# local scratch — never commit (may contain client data dumps and credentials)
+/tmp/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# build output
+.open-next/
+.wrangler/
+node_modules/
