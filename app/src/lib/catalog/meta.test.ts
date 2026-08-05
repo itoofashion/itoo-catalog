@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { catalogMeta } from "./meta";
+import { catalogMeta, productMeta } from "./meta";
+import type { PublicProduct } from "./public";
 import { EMPTY_SELECTION } from "./share";
 
 describe("catalogMeta", () => {
@@ -34,5 +35,34 @@ describe("catalogMeta", () => {
     const meta = catalogMeta({ categories: [], skus: ["Y-542"] }, 1);
     expect(meta.title).toBe("itoo · 1 style for you");
     expect(meta.description).not.toContain("styles");
+  });
+});
+
+describe("productMeta", () => {
+  const product: PublicProduct = {
+    sku: "Y-542",
+    name: "Romantic Lace Top",
+    price: 19.75,
+    category: "Tops",
+    colors: ["BEIGE W SILVER"],
+    images: [],
+    sizes: ["S", "M", "L"],
+    packBreakdown: [2, 2, 2],
+    minimumUnits: 6,
+    isNew: true,
+    isHidden: false,
+  };
+
+  it("unfurls as the style itself, not as the catalog it sits in", () => {
+    const meta = productMeta(product, "BEIGE W SILVER");
+    expect(meta.title).toBe("itoo · Romantic Lace Top");
+    expect(meta.description).toBe(
+      "Y-542 · $19.75 per unit · Beige W Silver, with photos and pack details.",
+    );
+  });
+
+  it("carries the style number and the price whatever the color", () => {
+    const meta = productMeta(product, null);
+    expect(meta.description).toBe("Y-542 · $19.75 per unit, with photos and pack details.");
   });
 });

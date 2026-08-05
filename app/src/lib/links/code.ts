@@ -1,69 +1,48 @@
-import type { CatalogSelection } from "@/lib/catalog/share";
+/**
+ * What a short link is made of.
+ *
+ * Six characters, drawn at random, meaning nothing on their own: the database
+ * holds the meaning (see store.ts). Six is the length the client asked for, and
+ * it is also the shortest length that is not worth guessing at. With this
+ * alphabet six characters are 30^6, about 729 million codes, so a stranger
+ * hammering the site lands on a real link roughly once in seven hundred million
+ * tries per link that exists. There is nothing behind a link but a filtered
+ * catalog, and this is a wholesale site, not a secret one.
+ */
 
 /**
- * A short link that carries its own meaning.
- *
- * The obvious design, minting a random six-character code and remembering what
- * it points at, needs somewhere to remember it. On Cloudflare a Worker is many
- * isolates: the link is created in one and opened in another, so anything held
- * in memory is a link that works for whoever made it and 404s for the client it
- * was sent to. That is worse than a long link.
- *
- * So the code *is* the selection, encoded: categories and styles packed into
- * one token and base64url'd. It stays short for the common case (one category
- * is a dozen characters), it cannot go stale, and it needs no database. When
- * Milestone 2 brings one, this can become a real six-character key without the
- * links already sent breaking: they decode on their own.
+ * No 0/O, no 1/I/L, no U (which is heard as "you" and read as V in some hands).
+ * The point is a code that survives being read out over the phone to a buyer,
+ * so the pairs that get confused when spoken or typed are simply not in it.
+ * One case only, for the same reason: "capital B, small b" is not a link.
  */
-const GROUP_SEPARATOR = "!";
-const ITEM_SEPARATOR = "~";
+export const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 
-export function encodeSelection(selection: CatalogSelection): string {
-  const payload = [
-    selection.categories.join(ITEM_SEPARATOR),
-    selection.skus.join(ITEM_SEPARATOR),
-  ].join(GROUP_SEPARATOR);
+export const CODE_LENGTH = 6;
 
-  return base64UrlEncode(payload);
+const CODE_PATTERN = new RegExp(`^[${CODE_ALPHABET}]+$`);
+
+export function isShortCode(value: string): boolean {
+  return CODE_PATTERN.test(value);
 }
 
-export function decodeSelection(code: string): CatalogSelection | null {
-  const payload = base64UrlDecode(code.trim());
-  if (payload === null) return null;
+/**
+ * Rejection sampling rather than `byte % 30`: 256 is not a multiple of 30, so
+ * the plain remainder would make the first sixteen letters of the alphabet turn
+ * up more often than the rest. Bytes that would land in the short tail are
+ * thrown away instead, which costs a few extra bytes and buys a flat spread.
+ */
+const CEILING = 256 - (256 % CODE_ALPHABET.length);
 
-  const [categories = "", skus = ""] = payload.split(GROUP_SEPARATOR);
-  const selection = {
-    categories: split(categories),
-    skus: split(skus),
-  };
-
-  // A code that decodes to nothing is a broken link, not the whole catalog.
-  if (selection.categories.length === 0 && selection.skus.length === 0) return null;
-  return selection;
-}
-
-function split(value: string): string[] {
-  return value
-    .split(ITEM_SEPARATOR)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
-function base64UrlEncode(value: string): string {
-  const bytes = new TextEncoder().encode(value);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function base64UrlDecode(code: string): string | null {
-  if (!/^[A-Za-z0-9_-]+$/.test(code)) return null;
-  try {
-    const padded = code.replace(/-/g, "+").replace(/_/g, "/");
-    const binary = atob(padded);
-    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  } catch {
-    return null;
+export function randomCode(length: number = CODE_LENGTH): string {
+  let code = "";
+  while (code.length < length) {
+    const bytes = new Uint8Array(length - code.length);
+    crypto.getRandomValues(bytes);
+    for (const byte of bytes) {
+      if (byte >= CEILING) continue;
+      code += CODE_ALPHABET[byte % CODE_ALPHABET.length];
+    }
   }
+  return code;
 }

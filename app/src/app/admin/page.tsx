@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { adminGate, NOT_CONFIGURED_MESSAGE, readAdminConfig } from "@/lib/admin/auth";
 import { isTeamViewer } from "@/lib/admin/request";
 import { catalogStore } from "@/lib/catalog/store";
@@ -14,7 +15,7 @@ import { SignInForm } from "./sign-in-form";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "itoo admin",
+  title: "Admin panel",
   // Nothing here is for a search engine, and a sign-in page in the results only
   // advertises that there is something to sign in to.
   robots: { index: false, follow: false },
@@ -34,7 +35,7 @@ export default async function AdminPage() {
   if (await isTeamViewer()) {
     const catalog = await catalogStore.read();
     return (
-      <Frame heading="Catalog status">
+      <Frame>
         <CatalogStatus
           productCount={catalog.products.length}
           syncedAt={catalog.syncedAt}
@@ -44,7 +45,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <Frame heading="Sign in to the itoo panel">
+    <Frame heading="Sign in to the admin panel">
       {adminGate(readAdminConfig()) === "unconfigured" ? (
         <p className="text-center text-sm text-muted-foreground">
           {NOT_CONFIGURED_MESSAGE}
@@ -56,13 +57,37 @@ export default async function AdminPage() {
   );
 }
 
-/** The same lettering the catalog opens with, so this reads as the same shop. */
-function Frame({ heading, children }: { heading: string; children: ReactNode }) {
+/**
+ * The same mark the catalog opens with, so this reads as the same shop. The
+ * heading differs by state on purpose: at the door it says what the door is
+ * for, and inside it is the name of the room.
+ */
+function Frame({
+  children,
+  heading = "Admin panel",
+}: {
+  children: ReactNode;
+  heading?: string;
+}) {
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-6 py-24">
       <div className="flex flex-col gap-3 text-center">
-        <span className="text-2xl font-bold tracking-[0.3em]">itoo</span>
-        <h1 className="text-lg font-medium">{heading}</h1>
+        {/* Asked for at its full 1050px and drawn at the 32px line: the image
+            optimizer is off on Workers (see next.config.ts), so the browser
+            gets the file as shipped and scales it down itself, which keeps it
+            sharp on a retina screen. */}
+        <Image
+          src="/logo.png"
+          alt="itoo"
+          width={1050}
+          height={483}
+          priority
+          className="mx-auto h-8 w-auto"
+        />
+        {/* Semibold, like every other heading here: 500 is not one of the three
+            weights Raleway is loaded in (see layout.tsx), so a medium heading
+            was the browser faking a weight the page never had. */}
+        <h1 className="text-lg font-semibold">{heading}</h1>
       </div>
       {children}
     </main>

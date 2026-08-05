@@ -13,6 +13,7 @@ const product: PublicProduct = {
   packBreakdown: [2, 2, 2],
   minimumUnits: 6,
   isNew: true,
+  isHidden: false,
 };
 
 describe("orderText", () => {
@@ -46,9 +47,14 @@ describe("orderText", () => {
     expect(text).not.toContain("Minimum order:");
   });
 
-  it("appends the catalog link when one is given", () => {
-    expect(orderText(product, null, "https://itoo.example/x")).toContain(
-      "https://itoo.example/x",
-    );
+  it("ends on the link to the style, where the photos are", () => {
+    const text = orderText(product, "BEIGE W SILVER", "https://itoo.example/p/y-542?c=beige-w-silver");
+    expect(text.split("\n").at(-1)).toBe("https://itoo.example/p/y-542?c=beige-w-silver");
+  });
+
+  it("says the same about the details with or without the link", () => {
+    const bare = orderText(product, "BEIGE W SILVER");
+    const linked = orderText(product, "BEIGE W SILVER", "https://itoo.example/p/y-542");
+    expect(linked.startsWith(bare)).toBe(true);
   });
 });

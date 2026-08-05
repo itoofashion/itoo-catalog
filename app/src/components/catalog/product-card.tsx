@@ -1,14 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
 import { packSummary } from "@/lib/catalog/pack";
 import { formatPrice } from "@/lib/catalog/pricing";
 import type { PublicImage, PublicProduct } from "@/lib/catalog/public";
 import { CopyOrderButton } from "./copy-order-button";
+import { PhotoDots } from "./photo-dots";
 import { DRAG_SLOP_PX, usePhotoStrip } from "./photo-strip";
 
 type ProductCardProps = {
@@ -24,11 +25,42 @@ type ProductCardProps = {
    */
   lockedByCategory: boolean;
   onToggleSelect: (sku: string) => void;
+  /**
+   * The team's view also adds the eye that takes a style out of the catalog. A
+   * client never sees it, and never has: the styles it hides are gone from their
+   * page before it is sent (see lib/catalog/public.ts).
+   */
+  hideable: boolean;
+  /**
+   * Whether this style is out of the catalog right now. Held by the catalog
+   * rather than read off the product, the same way `selected` is: a press has to
+   * show on the card before the server has answered it. See catalog-view.
+   */
+  hidden: boolean;
+  /**
+   * Reports the press and resolves when the server has answered, which is what
+   * the button waits on: hiding a style is a round trip, and a button that looks
+   * finished before it is gets pressed twice.
+   */
+  onToggleHidden: (sku: string) => Promise<void>;
+  /**
+   * The chosen color, held by the catalog rather than by the card: the open
+   * style shows the same swatches and the two have to agree. See catalog-view.
+   */
+  color: string | null;
+  onPickColor: (sku: string, color: string) => void;
+  /**
+   * The photograph this style is showing, held by the catalog for the same
+   * reason the color is: opening the card has to open the photograph it had
+   * reached, and closing the open style has to leave the card on the photograph
+   * it was left on. See catalog-view.
+   */
+  photoIndex: number;
+  onShowPhoto: (sku: string, index: number) => void;
+  /** This style's own address, which the copy button sends with the details. */
+  path: string;
   onOpen: (product: PublicProduct, photoIndex: number) => void;
 };
-
-/** More than this and the row of dots stops being countable at a glance. */
-const MAX_DOTS = 6;
 
 /** Colors beyond this are summarised, so the card keeps its height. */
 const MAX_SWATCHES = 5;
@@ -42,21 +74,46 @@ export function ProductCard({
   selected,
   lockedByCategory,
   onToggleSelect,
+  hideable,
+  hidden,
+  onToggleHidden,
+  color,
+  onPickColor,
+  photoIndex,
+  onShowPhoto,
+  path,
   onOpen,
 }: ProductCardProps) {
-  const [color, setColor] = useState<string | null>(product.colors[0] ?? null);
-
   const photos = product.images;
   const pack = packSummary(product);
-  const {
-    ref: stripRef,
-    index: photoIndex,
-    goTo: showPhoto,
-  } = usePhotoStrip(photos.length);
+  // Kept still between renders, or the strip's scroll listener is hung again on
+  // every one of them; forty-eight cards make that worth a line.
+  const showPhoto = useCallback(
+    (index: number) => onShowPhoto(product.sku, index),
+    [onShowPhoto, product.sku],
+  );
+  const stripRef = usePhotoStrip(photos.length, photoIndex, showPhoto);
 
   // A swipe across the photos ends in a click event too; only a press that
   // stayed put was meant to open the style.
   const pressedAt = useRef<{ x: number; y: number } | null>(null);
+
+  /**
+   * Kept here rather than in the catalog above, because it is one card's wait:
+   * the grid stays usable while a style is on its way to being hidden, and the
+   * only thing that has to sit still is the button that was pressed.
+   */
+  const [saving, setSaving] = useState(false);
+  async function toggleHidden() {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await onToggleHidden(product.sku);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function open(event: { clientX: number; clientY: number }, index: number) {
     const from = pressedAt.current;
     pressedAt.current = null;
@@ -67,12 +124,23 @@ export function ProductCard({
   }
 
   return (
-    <article data-sku={product.sku} className="group flex flex-col">
+    <article
+      data-sku={product.sku}
+      /* Marked on the element rather than only in the styling, so what the card
+         is saying survives a redesign of how it says it. Only ever present in
+         the team's copy of the catalog: a client's page has no such card. */
+      data-hidden={hidden ? "" : undefined}
+      className="group flex flex-col"
+    >
       <div className="relative aspect-[3/4] overflow-hidden bg-muted">
         {photos.length > 0 ? (
           <div
             ref={stripRef}
-            className="photo-strip absolute inset-0"
+            /* A hidden style is faded, not removed: this is the team's own view
+               and the card is the only place to press to bring it back. The fade
+               is on the photographs alone, so the eye that undoes it stays at
+               full strength and plainly pressable. */
+            className={cn("photo-strip absolute inset-0", hidden && "opacity-30")}
             onPointerDown={(event) =>
               (pressedAt.current = { x: event.clientX, y: event.clientY })
             }
@@ -96,56 +164,129 @@ export function ProductCard({
             ))}
           </div>
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+          <div
+            className={cn(
+              "flex h-full items-center justify-center text-sm text-muted-foreground",
+              hidden && "opacity-30",
+            )}
+          >
             No photo
           </div>
+        )}
+
+        {/* Faded photographs on their own would read as a slow-loading card, so
+            the card also says what has happened to it, in words, and says who it
+            has happened for. The team is the only audience this can have. */}
+        {hidden && (
+          <span
+            data-badge="hidden"
+            className="tracked pointer-events-none absolute left-0 top-3 bg-foreground px-2.5 py-1 text-[10px] font-semibold text-background"
+          >
+            Hidden from clients
+          </span>
         )}
 
         {product.isNew && (
           <span
             data-badge="new"
-            className="tracked pointer-events-none absolute left-0 top-3 bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-foreground"
+            /* Under the other badge when there are two, rather than beside it:
+               they are both left-aligned labels and stacking keeps each one
+               readable at a glance. */
+            className={cn(
+              "tracked pointer-events-none absolute left-0 bg-brand px-2.5 py-1 text-[10px] font-semibold text-brand-foreground",
+              hidden ? "top-11" : "top-3",
+            )}
           >
             New
           </span>
         )}
 
-        {selectable && (
-          <button
-            type="button"
-            disabled={lockedByCategory}
-            aria-label={
-              lockedByCategory
-                ? `${product.sku} is included through its category`
-                : selected
-                  ? `Remove ${product.sku} from selection`
-                  : `Add ${product.sku} to selection`
-            }
-            aria-pressed={selected || lockedByCategory}
-            title={
-              lockedByCategory
-                ? `Included because all of ${product.category} is selected`
-                : undefined
-            }
-            onClick={() => onToggleSelect(product.sku)}
-            /* The same box as the one on a category, down to the corner: one
-               control, picked in two places. It reads at 20px and is hit with a
-               thumb, so the target around it is grown by a pseudo-element.
-
-               A style held by its category shows the same tick, faded and
-               unpressable. A padlock was tried here and read as a puzzle: a
-               dimmed tick says "already in, not yours to take out" without
-               anyone having to work out what the picture means. */
-            className={cn(
-              "absolute right-2.5 top-2.5 flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
-              selected || lockedByCategory
-                ? "border-foreground bg-foreground"
-                : "border-white/80 bg-black/25 hover:bg-black/45",
-              lockedByCategory ? "cursor-not-allowed opacity-45" : "cursor-pointer",
+        {/* Both of the team's controls, in one corner and one row: the eye takes
+            a style out of the catalog, the tick puts it in a client's link. Same
+            box, same size, so the corner reads as a pair rather than as a
+            control and an afterthought. */}
+        {(hideable || selectable) && (
+          <div className="absolute right-2.5 top-2.5 flex items-center gap-2">
+            {hideable && (
+              <button
+                type="button"
+                disabled={saving}
+                aria-label={
+                  hidden
+                    ? `Show ${product.sku} to clients again`
+                    : `Hide ${product.sku} from clients`
+                }
+                aria-pressed={hidden}
+                title={
+                  hidden
+                    ? "Hidden from clients. Press to put it back in the catalog."
+                    : "Hide from clients"
+                }
+                onClick={toggleHidden}
+                /* The tick's box, to the pixel, for the reason it is that box:
+                   20px reads, a thumb needs more, and the pseudo-element gives
+                   it more without moving anything on the card. Filled when the
+                   style is hidden, the same way the tick fills when it is
+                   picked, so the corner has one grammar and not two. */
+                className={cn(
+                  "relative flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
+                  hidden
+                    ? "border-foreground bg-foreground"
+                    : "border-white/80 bg-black/25 hover:bg-black/45",
+                  saving ? "cursor-wait opacity-70" : "cursor-pointer",
+                )}
+              >
+                {saving ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : hidden ? (
+                  <EyeOff className="size-3.5" strokeWidth={2.5} />
+                ) : (
+                  <Eye className="size-3.5" strokeWidth={2.5} />
+                )}
+              </button>
             )}
-          >
-            {(selected || lockedByCategory) && <Check className="size-3.5" strokeWidth={3} />}
-          </button>
+
+            {selectable && (
+              <button
+                type="button"
+                disabled={lockedByCategory}
+                aria-label={
+                  lockedByCategory
+                    ? `${product.sku} is included through its category`
+                    : selected
+                      ? `Remove ${product.sku} from selection`
+                      : `Add ${product.sku} to selection`
+                }
+                aria-pressed={selected || lockedByCategory}
+                title={
+                  lockedByCategory
+                    ? `Included because all of ${product.category} is selected`
+                    : undefined
+                }
+                onClick={() => onToggleSelect(product.sku)}
+                /* The same box as the one on a category, down to the corner: one
+                   control, picked in two places. It reads at 20px and is hit
+                   with a thumb, so the target around it is grown by a
+                   pseudo-element.
+
+                   A style held by its category shows the same tick, faded and
+                   unpressable. A padlock was tried here and read as a puzzle: a
+                   dimmed tick says "already in, not yours to take out" without
+                   anyone having to work out what the picture means. */
+                className={cn(
+                  "relative flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
+                  selected || lockedByCategory
+                    ? "border-foreground bg-foreground"
+                    : "border-white/80 bg-black/25 hover:bg-black/45",
+                  lockedByCategory ? "cursor-not-allowed opacity-45" : "cursor-pointer",
+                )}
+              >
+                {(selected || lockedByCategory) && (
+                  <Check className="size-3.5" strokeWidth={3} />
+                )}
+              </button>
+            )}
+          </div>
         )}
 
         {photos.length > 1 && (
@@ -171,44 +312,28 @@ export function ProductCard({
               onGo={() => showPhoto(photoIndex + 1)}
             />
 
-            {photos.length <= MAX_DOTS ? (
-              <div
-                data-photo-dots=""
-                className="absolute bottom-1 left-1/2 flex -translate-x-1/2"
-              >
-                {photos.map((image, index) => (
-                  <button
-                    key={image.url}
-                    type="button"
-                    aria-label={`Photo ${index + 1}`}
-                    aria-current={index === photoIndex ? "true" : undefined}
-                    onClick={() => showPhoto(index)}
-                    /* The dot is 6px; the target around it is a finger wide. */
-                    className="flex h-6 w-4 cursor-pointer items-center justify-center"
-                  >
-                    {/* Half these photographs are shot against white, so the dot
-                        carries its own edge rather than trusting the backdrop. */}
-                    <span
-                      className={cn(
-                        "size-1.5 rounded-full bg-white/70 drop-shadow-[0_0_2px_rgba(0,0,0,0.65)] transition",
-                        index === photoIndex && "bg-white",
-                      )}
-                    />
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <span className="pointer-events-none absolute bottom-2.5 left-1/2 -translate-x-1/2 rounded-sm bg-black/55 px-2 py-0.5 text-[11px] text-white">
-                {photoIndex + 1} / {photos.length}
-              </span>
-            )}
+            {/* However many photographs there are: a style with twenty-nine of
+                them gets the same row of dots as one with three, travelling
+                rather than growing. See photo-dots.tsx. */}
+            <PhotoDots
+              count={photos.length}
+              current={photoIndex}
+              onShow={showPhoto}
+            />
           </>
         )}
       </div>
 
       {/* Everything printed here is everything the copy button sends, which is
           what lets the button go without a preview of its own. */}
-      <div className="copy-source flex flex-1 flex-col pt-3">
+      <div
+        className={cn(
+          "copy-source flex flex-1 flex-col pt-3",
+          // Set aside with its photographs, but not as far: the style number is
+          // what someone reads to work out which card they are looking at.
+          hidden && "opacity-55",
+        )}
+      >
         <div className="copy-facts">
           <h3 className="line-clamp-1 text-sm font-semibold" title={product.name}>
             {product.name}
@@ -235,7 +360,7 @@ export function ProductCard({
                 <button
                   key={option}
                   type="button"
-                  onClick={() => setColor(option)}
+                  onClick={() => onPickColor(product.sku, option)}
                   aria-pressed={option === color}
                   aria-label={formatColorName(option)}
                   title={formatColorName(option)}
@@ -261,7 +386,13 @@ export function ProductCard({
         </div>
 
         <div className="mt-auto pt-3">
-          <CopyOrderButton product={product} color={color} tone="card" className="w-full" />
+          <CopyOrderButton
+            product={product}
+            color={color}
+            path={path}
+            tone="card"
+            className="w-full"
+          />
         </div>
       </div>
     </article>

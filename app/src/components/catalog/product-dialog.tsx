@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Dialog,
@@ -22,11 +22,16 @@ import { usePhotoStrip } from "./photo-strip";
  * another style mounts a fresh dialog rather than syncing state in an effect.
  *
  * The gallery is the same scroll-snap strip the cards use, so a photo is swiped
- * here exactly as it is out on the grid, with a rail of thumbnails beside it in
- * the shape buyers already know from marketplaces. The frame is bounded and the
- * photo is fitted whole inside it: the photographs arrive in two different
- * proportions, and letting each one set the height of the dialog was what left
- * half a screen of nothing beside the shorter ones.
+ * here exactly as it is out on the grid, with a rail of thumbnails in the shape
+ * buyers already know from marketplaces: beside the photograph where there is
+ * width for it, under the photograph on a phone where there is not. The rail is
+ * this dialog's indicator, and the reason there are no dots here as well: it
+ * says the same thing about where the gallery has got to, and says it with the
+ * photographs themselves, which is also what makes it obvious that there is
+ * anything to swipe through. The frame is bounded and the photo is fitted whole
+ * inside it: the photographs arrive in two different proportions, and letting
+ * each one set the height of the dialog was what left half a screen of nothing
+ * beside the shorter ones.
  *
  * The column beside the photo is a line sheet. Price, size run, minimum and
  * colors are the four things a wholesale buyer checks before they order, and
@@ -35,28 +40,50 @@ import { usePhotoStrip } from "./photo-strip";
  */
 export function ProductDialog({
   product,
-  initialPhotoIndex,
+  photoIndex,
+  onShowPhoto,
+  color,
+  onPickColor,
+  path,
   onClose,
 }: {
   product: PublicProduct;
-  initialPhotoIndex: number;
+  /**
+   * The photograph on screen, shared with the card behind the dialog: the style
+   * opens on the photo the card had reached, and the card is left on the photo
+   * this was closed on. See catalog-view.
+   */
+  photoIndex: number;
+  onShowPhoto: (sku: string, index: number) => void;
+  /**
+   * The chosen color, shared with the card behind the dialog: whatever is picked
+   * here is what the grid shows on the way out. See catalog-view.
+   */
+  color: string | null;
+  onPickColor: (sku: string, color: string) => void;
+  /** This style's own address, which the copy button sends with the details. */
+  path: string;
   onClose: () => void;
 }) {
-  const [color, setColor] = useState<string | null>(product.colors[0] ?? null);
-
   const photos = product.images;
-  const {
-    ref: stripRef,
-    index: photoIndex,
-    goTo: showPhoto,
-  } = usePhotoStrip(photos.length, initialPhotoIndex);
+  // Kept still between renders: the strip hangs its scroll listener on it.
+  const showPhoto = useCallback(
+    (index: number) => onShowPhoto(product.sku, index),
+    [onShowPhoto, product.sku],
+  );
+  const stripRef = usePhotoStrip(photos.length, photoIndex, showPhoto);
   const rail = useRef<HTMLDivElement>(null);
+  // The photograph the style opened on, which is the one worth fetching first.
+  // Held from the first render, because the reader is free to move after that
+  // and a priority that follows them is a priority for everything.
+  const [openedOn] = useState(photoIndex);
 
-  // A rail taller than the frame hides the thumbnail of the photo on screen,
-  // which is the one it exists to point at.
+  // A rail longer than the frame hides the thumbnail of the photo on screen,
+  // which is the one it exists to point at. Down the rail on a laptop, along it
+  // on a phone, and "nearest" is what makes one line of this do both.
   useEffect(() => {
     const current = rail.current?.children[photoIndex];
-    current?.scrollIntoView?.({ block: "nearest" });
+    current?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
   }, [photoIndex]);
 
   const pack = packSummary(product);
@@ -70,18 +97,27 @@ export function ProductDialog({
       <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto p-0 sm:max-w-5xl">
         <div className="grid gap-0 sm:grid-cols-[1.25fr_1fr]">
           {/* The photographs arrive at 4:5 and at 2:3; a frame close to the taller
-              of the two fits either without cropping and without a visible edge. */}
-          <div className="flex aspect-[3/4] gap-2 p-2 sm:aspect-auto sm:h-[min(76vh,38rem)] sm:p-3">
-            {/* The rail keeps the width it was given and gaps its thumbnails
+              of the two fits either without cropping and without a visible edge.
+
+              The rail comes first here and is put last on a phone by reversing
+              the column: it belongs under the photograph on a narrow screen,
+              where a strip along the bottom is the shape a thumb expects, and
+              beside it on a laptop. Reversing rather than reordering keeps the
+              rail first for the keyboard, which is the order it reads in. */}
+          {/* min-w-0 because a grid column is sized by its contents unless it is
+              told otherwise, and a style with eighteen photographs has a rail
+              wider than the phone it is being read on. */}
+          <div className="flex min-w-0 flex-col-reverse gap-2 p-2 sm:h-[min(76vh,38rem)] sm:flex-row sm:p-3">
+            {/* The rail keeps the size it was given and gaps its thumbnails
                 from the inside: 4px between them, and a hairline round each,
                 because half of these are shot against white and without an edge
                 of their own they run into one another and into the page. The
-                thumbnails take their height from their width, so the gap is
-                spent on the scroll inside the rail, not on the frame. */}
+                thumbnails take their other dimension from that one, so the gap
+                is spent on the scroll inside the rail, not on the frame. */}
             {photos.length > 1 && (
               <div
                 ref={rail}
-                className="hidden w-16 shrink-0 flex-col gap-1 overflow-y-auto [scrollbar-width:thin] sm:flex"
+                className="flex h-16 w-full shrink-0 gap-1 overflow-x-auto [scrollbar-width:thin] sm:h-auto sm:w-16 sm:flex-col sm:overflow-x-hidden sm:overflow-y-auto"
               >
                 {photos.map((image, index) => (
                   <button
@@ -91,7 +127,7 @@ export function ProductDialog({
                     aria-label={`Photo ${index + 1} of ${photos.length}`}
                     aria-current={index === photoIndex ? "true" : undefined}
                     className={cn(
-                      "relative aspect-[3/4] shrink-0 cursor-pointer overflow-hidden border transition",
+                      "relative aspect-[3/4] h-full shrink-0 cursor-pointer overflow-hidden border transition sm:h-auto sm:w-full",
                       index === photoIndex
                         ? "border-foreground"
                         : "border-border opacity-60 hover:opacity-100",
@@ -103,7 +139,7 @@ export function ProductDialog({
               </div>
             )}
 
-            <div className="relative min-w-0 flex-1">
+            <div className="relative aspect-[3/4] min-w-0 sm:aspect-auto sm:flex-1">
               <div ref={stripRef} className="photo-strip absolute inset-0">
                 {photos.map((image, index) => (
                   <div key={image.url} className="relative h-full">
@@ -112,7 +148,7 @@ export function ProductDialog({
                       alt={index === 0 ? product.name : ""}
                       fill
                       sizes="(max-width: 640px) 100vw, 560px"
-                      priority={index === initialPhotoIndex}
+                      priority={index === openedOn}
                       className="object-contain"
                     />
                   </div>
@@ -141,9 +177,6 @@ export function ProductDialog({
                       <ChevronRight className="size-4" />
                     </button>
                   )}
-                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-sm bg-black/55 px-2.5 py-0.5 text-xs text-white sm:hidden">
-                    {photoIndex + 1} / {photos.length}
-                  </span>
                 </>
               )}
             </div>
@@ -229,7 +262,7 @@ export function ProductDialog({
                         <button
                           key={option}
                           type="button"
-                          onClick={() => setColor(option)}
+                          onClick={() => onPickColor(product.sku, option)}
                           aria-pressed={option === color}
                           data-swatch=""
                           className={cn(
@@ -253,10 +286,16 @@ export function ProductDialog({
             </div>
 
             <div className="border-t pt-5">
-              <CopyOrderButton product={product} color={color} className="w-full" />
+              <CopyOrderButton
+                product={product}
+                color={color}
+                path={path}
+                className="w-full"
+              />
               <p className="mt-2.5 text-xs text-muted-foreground">
                 Copies everything above as plain text (name, style number, color,
-                size run, minimum and price), ready to paste into a chat.
+                size run, minimum and price) with a link to this style, ready to
+                paste into a chat.
               </p>
             </div>
           </div>

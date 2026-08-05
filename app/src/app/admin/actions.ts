@@ -14,8 +14,10 @@ export type SignInState = { error: string | null };
 
 /**
  * A wrong password comes back as a message on the form; a right one leaves as a
- * cookie and a redirect to the catalog, which then renders with the team's
- * tools. Nothing about the password survives the request.
+ * cookie and a reload of this page, which then shows the panel instead of the
+ * form. Signing in used to land on the catalog, which skipped past the one page
+ * that says whether the data is current. Nothing about the password survives
+ * the request.
  *
  * There is no attempt throttling: a Worker has no shared state to count in, and
  * the whole of what is behind the password is the ability to tick styles. The
@@ -39,5 +41,5 @@ export async function signIn(
   );
 
   // Outside any try/catch on purpose: redirect works by throwing.
-  redirect("/");
+  redirect("/admin");
 }

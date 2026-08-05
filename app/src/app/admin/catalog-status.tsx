@@ -24,7 +24,10 @@ export function CatalogStatus({
     <div className="flex flex-col gap-8">
       <dl className="flex flex-col">
         <div className="flex items-center justify-between gap-4 border-t py-3">
-          <dt className="tracked text-[10px] text-muted-foreground">Products</dt>
+          {/* "Styles" here because that is the word the catalog counts in: the
+              grid says "737 styles" and this board has to say the same thing
+              about the same number. */}
+          <dt className="tracked text-[10px] text-muted-foreground">Styles</dt>
           <dd className="text-sm font-semibold">{productCount}</dd>
         </div>
 

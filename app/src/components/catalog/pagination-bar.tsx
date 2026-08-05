@@ -26,7 +26,7 @@ export function PaginationBar({
         onClick={() => onGo(page - 1)}
         disabled={page === 1}
         aria-label="Previous page"
-        className="flex size-9 cursor-pointer items-center justify-center rounded-sm border border-border text-muted-foreground transition hover:text-foreground disabled:cursor-default disabled:opacity-40"
+        className="flex size-9 cursor-pointer items-center justify-center rounded-sm border border-border text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ChevronLeft className="size-4" />
       </button>
@@ -53,7 +53,7 @@ export function PaginationBar({
         onClick={() => onGo(page + 1)}
         disabled={page === pages}
         aria-label="Next page"
-        className="flex size-9 cursor-pointer items-center justify-center rounded-sm border border-border text-muted-foreground transition hover:text-foreground disabled:cursor-default disabled:opacity-40"
+        className="flex size-9 cursor-pointer items-center justify-center rounded-sm border border-border text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ChevronRight className="size-4" />
       </button>

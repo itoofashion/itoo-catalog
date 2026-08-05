@@ -14,6 +14,7 @@ function product(overrides: Partial<PublicProduct> & { sku: string }): PublicPro
     packBreakdown: [2, 2, 2],
     minimumUnits: 6,
     isNew: false,
+    isHidden: false,
     ...overrides,
   };
 }

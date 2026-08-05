@@ -36,13 +36,36 @@ export type PublicProduct = {
   packBreakdown: number[] | null;
   minimumUnits: number | null;
   isNew: boolean;
+  /**
+   * Taken out of the catalog by the team. Only ever true in the team's own copy:
+   * a hidden style is dropped from a client's catalog entirely rather than sent
+   * with a flag on it, so a client's page never contains one to un-flag. What
+   * this field is for is the team's view, where the card has to stay on screen,
+   * dimmed and labelled, or there would be nowhere to press to bring it back.
+   */
+  isHidden: boolean;
 };
 
 export type PublicCatalog = {
   products: PublicProduct[];
 };
 
-export function toPublicProduct(product: Product, now: Date): PublicProduct {
+/**
+ * Who this catalog is being published to, which is the whole of what decides
+ * whether a hidden style is in it.
+ */
+export type Visibility = {
+  /** Style numbers the team has hidden. See lib/catalog/hidden.ts. */
+  hidden: ReadonlySet<string>;
+  /** Whether the page being built is for a signed-in team member. */
+  isTeam: boolean;
+};
+
+export function toPublicProduct(
+  product: Product,
+  now: Date,
+  isHidden = false,
+): PublicProduct {
   // Written field by field on purpose: spreading the stored product would
   // publish every field a future migration happens to add to it.
   return {
@@ -59,9 +82,33 @@ export function toPublicProduct(product: Product, now: Date): PublicProduct {
     packBreakdown: product.packBreakdown,
     minimumUnits: product.minimumUnits,
     isNew: isNewArrival(product.createdAt, now),
+    isHidden,
   };
 }
 
-export function toPublicCatalog(catalog: Catalog, now: Date): PublicCatalog {
-  return { products: catalog.products.map((product) => toPublicProduct(product, now)) };
+/**
+ * The catalog as a browser gets it.
+ *
+ * This is where hiding actually happens, and it happens here rather than in the
+ * grid on purpose: a card the interface declines to draw has still been sent to
+ * the browser, sitting in the page's payload for anyone who looks, which would
+ * make the eye a decoration rather than a control. Dropped here, a hidden style
+ * is not in the markup, not in the count above the grid, not in the preview a
+ * chat app unfurls, and not findable at its own address.
+ *
+ * The team gets it whole, with the hidden ones marked. They have to: the card is
+ * the only place to press to bring a style back.
+ */
+export function toPublicCatalog(
+  catalog: Catalog,
+  now: Date,
+  visibility: Visibility,
+): PublicCatalog {
+  const products = catalog.products
+    .filter((product) => visibility.isTeam || !visibility.hidden.has(product.sku))
+    .map((product) => toPublicProduct(product, now, visibility.hidden.has(product.sku)));
+  return { products };
 }
+
+/** What a client sees when nothing has been hidden. Handy in tests. */
+export const NOTHING_HIDDEN: Visibility = { hidden: new Set(), isTeam: false };

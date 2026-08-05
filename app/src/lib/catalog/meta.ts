@@ -1,3 +1,6 @@
+import { formatColorName } from "./color";
+import { formatPrice } from "./pricing";
+import type { PublicProduct } from "./public";
 import { isEmptySelection, type CatalogSelection } from "./share";
 
 /**
@@ -44,6 +47,23 @@ export function catalogMeta(
   }
 
   return { title: BRAND, description: `${styles}.` };
+}
+
+/**
+ * What a chat app shows when a link to one style is pasted.
+ *
+ * A style is sent to a buyer on its own far more often than the whole catalog
+ * is, and the preview card is the sales pitch: the name, the style number the
+ * order will be placed under, the price per unit and the color that was chosen.
+ * The photograph comes from the page, which is the only place that knows how to
+ * make an address absolute.
+ */
+export function productMeta(product: PublicProduct, color: string | null): CatalogMeta {
+  const chosen = color ? ` · ${formatColorName(color)}` : "";
+  return {
+    title: `${BRAND} · ${product.name}`,
+    description: `${product.sku} · ${formatPrice(product.price)} per unit${chosen}, with photos and pack details.`,
+  };
 }
 
 /** "Dresses", "Dresses and Tops", "Dresses, Tops and Pants". */

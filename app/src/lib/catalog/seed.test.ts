@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { categoriesOf } from "./filter";
-import { toPublicCatalog } from "./public";
+import { NOTHING_HIDDEN, toPublicCatalog } from "./public";
 import { seedCatalog, seedProducts } from "./seed";
 import { UNCATEGORIZED } from "@/lib/fashiongo/map";
 
@@ -40,7 +40,7 @@ describe("seed catalog", () => {
   });
 
   it("covers more than one category, so filtering is demonstrable", () => {
-    const published = toPublicCatalog(seedCatalog(), new Date()).products;
+    const published = toPublicCatalog(seedCatalog(), new Date(), NOTHING_HIDDEN).products;
     expect(categoriesOf(published).length).toBeGreaterThan(2);
   });
 
@@ -121,7 +121,7 @@ describe("seed catalog, when styles were added", () => {
     // The pilot's first export was ten products off the top of the list, which
     // is sorted by activation date, so every one of them looked new. Against the
     // whole catalog the badge has to mean something again.
-    const published = toPublicCatalog(seedCatalog(), new Date()).products;
+    const published = toPublicCatalog(seedCatalog(), new Date(), NOTHING_HIDDEN).products;
     const isNew = published.filter((p) => p.isNew);
     expect(isNew.length).toBeGreaterThan(0);
     expect(isNew.length).toBeLessThan(published.length / 4);

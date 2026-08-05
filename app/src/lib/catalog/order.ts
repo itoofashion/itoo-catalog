@@ -6,15 +6,19 @@ import type { PublicProduct } from "./public";
 /**
  * What "Copy details" puts on the clipboard. Buyers paste this straight into a
  * chat, so it has to be readable as plain text and carry everything the sales
- * team needs to identify the item: style number, color and price.
+ * team needs to identify the style: style number, color and price.
  *
  * The order of the lines is the order the card and the dialog print them in.
  * Those two are the only preview the button has, so the two have to agree.
+ *
+ * The last line is the style's own address, in the color the details are for, so
+ * whoever receives the message can open the photographs rather than write back
+ * asking for them. It has to arrive absolute: a path is not a link in a chat.
  */
 export function orderText(
   product: PublicProduct,
   color: string | null,
-  catalogUrl?: string,
+  productUrl?: string,
 ): string {
   const lines = [product.name, `SKU: ${product.sku}`];
   if (color) lines.push(`Color: ${formatColorName(color)}`);
@@ -34,6 +38,6 @@ export function orderText(
   }
 
   lines.push(`Price: ${formatPrice(product.price)} / unit`);
-  if (catalogUrl) lines.push(catalogUrl);
+  if (productUrl) lines.push(productUrl);
   return lines.join("\n");
 }

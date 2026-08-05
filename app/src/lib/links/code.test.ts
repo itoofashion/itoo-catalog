@@ -1,55 +1,53 @@
 import { describe, expect, it } from "vitest";
-import { decodeSelection, encodeSelection } from "./code";
+import { CODE_ALPHABET, CODE_LENGTH, isShortCode, randomCode } from "./code";
 
 describe("short link codes", () => {
-  it("round-trips a category", () => {
-    const selection = { categories: ["Dresses"], skus: [] };
-    expect(decodeSelection(encodeSelection(selection))).toEqual(selection);
+  it("is six characters, which is what the client asked for", () => {
+    expect(CODE_LENGTH).toBe(6);
+    expect(randomCode()).toHaveLength(6);
   });
 
-  it("round-trips hand-picked styles", () => {
-    const selection = { categories: [], skus: ["Y-542", "21349-9"] };
-    expect(decodeSelection(encodeSelection(selection))).toEqual(selection);
+  it("uses only the alphabet, over many draws", () => {
+    for (let draw = 0; draw < 500; draw += 1) {
+      expect(randomCode()).toMatch(/^[23456789ABCDEFGHJKMNPQRSTVWXYZ]{6}$/);
+    }
   });
 
-  it("round-trips both together", () => {
-    const selection = { categories: ["Dresses", "Tops"], skus: ["Y-542"] };
-    expect(decodeSelection(encodeSelection(selection))).toEqual(selection);
+  it("leaves out the characters people mix up when reading a link aloud", () => {
+    // The reason for the alphabet: a code gets dictated over the phone.
+    for (const confusable of ["0", "O", "1", "I", "L", "U"]) {
+      expect(CODE_ALPHABET).not.toContain(confusable);
+    }
+    // And it is one case, so "capital B or small b" never comes up.
+    expect(CODE_ALPHABET).toBe(CODE_ALPHABET.toUpperCase());
   });
 
-  it("stays short enough to send in a chat message", () => {
-    expect(encodeSelection({ categories: ["Dresses"], skus: [] }).length).toBeLessThan(16);
+  it("draws a longer code when asked for one", () => {
+    // How a run of collisions is answered: a character more, not an error.
+    expect(randomCode(7)).toHaveLength(7);
+    expect(randomCode(9)).toHaveLength(9);
   });
 
-  it("survives a category name with a space and an ampersand", () => {
-    const selection = { categories: ["Jeans & Denim", "Sweaters & Cardigans"], skus: [] };
-    expect(decodeSelection(encodeSelection(selection))).toEqual(selection);
+  it("does not repeat itself", () => {
+    const drawn = new Set(Array.from({ length: 200 }, () => randomCode()));
+    expect(drawn.size).toBe(200);
   });
 
-  it("is safe to put in a path: no slashes or padding", () => {
-    const code = encodeSelection({ categories: ["Jumpsuits & Rompers"], skus: ["A/B"] });
-    expect(code).toMatch(/^[A-Za-z0-9_-]+$/);
+  it("spreads over the whole alphabet rather than favouring its start", () => {
+    // Sampling bytes with a plain remainder would make the first sixteen
+    // letters turn up about a third more often than the rest.
+    const seen = new Set<string>();
+    for (let draw = 0; draw < 400; draw += 1) {
+      for (const character of randomCode()) seen.add(character);
+    }
+    expect(seen.size).toBe(CODE_ALPHABET.length);
   });
 
-  it("refuses a code that is not a code", () => {
-    expect(decodeSelection("not a code!")).toBeNull();
-    expect(decodeSelection("../etc/passwd")).toBeNull();
-  });
-
-  it("refuses a code that decodes to an empty selection", () => {
-    // Otherwise a mistyped link would quietly open the entire catalog.
-    expect(decodeSelection(encodeSelection({ categories: [], skus: [] }))).toBeNull();
-  });
-
-  it("forgives stray whitespace around a pasted code", () => {
-    const code = encodeSelection({ categories: ["Dresses"], skus: [] });
-    expect(decodeSelection(`  ${code} `)).toEqual({ categories: ["Dresses"], skus: [] });
-  });
-
-  it("does not depend on anything remembering it", () => {
-    // The point of the design: decoding is pure, so a link made by one worker
-    // isolate opens in any other.
-    const code = encodeSelection({ categories: ["Dresses"], skus: [] });
-    expect(decodeSelection(code)).toEqual(decodeSelection(code));
+  it("recognises its own shape and nothing else", () => {
+    expect(isShortCode("K7M2QP")).toBe(true);
+    expect(isShortCode("k7m2qp")).toBe(false);
+    expect(isShortCode("RHJlc3Nlc35DbHV0Y2hlcw")).toBe(false);
+    expect(isShortCode("../etc")).toBe(false);
+    expect(isShortCode("")).toBe(false);
   });
 });

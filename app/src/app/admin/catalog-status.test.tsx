@@ -11,7 +11,7 @@ function renderStatus({ productCount = 42, syncedAt = SYNCED_AT } = {}) {
 describe("catalog status", () => {
   it("reports how much catalog there is", () => {
     renderStatus({ productCount: 137 });
-    expect(screen.getByText("Products").parentElement).toHaveTextContent("137");
+    expect(screen.getByText("Styles").parentElement).toHaveTextContent("137");
   });
 
   it("prints the sync time for a reader to read, and for a machine to parse", () => {

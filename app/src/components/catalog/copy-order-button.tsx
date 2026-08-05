@@ -30,11 +30,18 @@ type Result = "idle" | "copied" | "failed";
 export function CopyOrderButton({
   product,
   color,
+  path,
   className,
   tone = "detail",
 }: {
   product: PublicProduct;
   color: string | null;
+  /**
+   * This style's own address, as a path. It is made absolute here, against the
+   * address this page was served from, because a bare path pasted into a chat is
+   * not a link anybody can press.
+   */
+  path: string;
   className?: string;
   /**
    * A card carries one of these per style and up to forty-eight per screen, so
@@ -53,8 +60,8 @@ export function CopyOrderButton({
 
   async function copy() {
     // Built at the press so the line always carries the colour chosen a moment
-    // ago and the address the buyer is actually on.
-    const text = orderText(product, color, window.location.href);
+    // ago, and the link opens that style in that colour wherever it is pasted.
+    const text = orderText(product, color, new URL(path, window.location.origin).toString());
     setResult((await writeToClipboard(text)) ? "copied" : "failed");
   }
 

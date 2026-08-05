@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { toPublicCatalog, toPublicProduct, type PublicProduct } from "./public";
+import {
+  NOTHING_HIDDEN,
+  toPublicCatalog,
+  toPublicProduct,
+  type PublicProduct,
+} from "./public";
 import { seedCatalog, seedProducts } from "./seed";
 import type { Product } from "./types";
 
@@ -42,6 +47,7 @@ const PUBLISHED_FIELDS: Array<keyof PublicProduct> = [
   "packBreakdown",
   "minimumUnits",
   "isNew",
+  "isHidden",
 ];
 
 describe("the published product", () => {
@@ -100,8 +106,65 @@ describe("the published product", () => {
   });
 });
 
+/**
+ * The other half of the boundary. Fields that must not be published are one
+ * risk; a style the team has taken out of the catalog still being in the page
+ * is the other, and it is the worse of the two, because the interface declining
+ * to draw a card says nothing about whether the card was sent.
+ */
+describe("a style the team has hidden", () => {
+  const catalog = {
+    products: [stored, { ...stored, sku: "WP-2160", name: "Wide Leg Pant" }],
+    syncedAt: "2026-08-04T09:00:00.000Z",
+  };
+  const hidden = { hidden: new Set(["Y-542"]), isTeam: false };
+
+  it("is not in the catalog a client is sent", () => {
+    const published = toPublicCatalog(catalog, now, hidden);
+    expect(published.products.map((product) => product.sku)).toEqual(["WP-2160"]);
+  });
+
+  it("leaves no trace of itself in what a client is sent", () => {
+    // The one that matters: not "the card is not drawn" but "the style number
+    // is nowhere in the payload", which is what makes hiding worth anything.
+    const serialized = JSON.stringify(toPublicCatalog(catalog, now, hidden));
+    expect(serialized).not.toContain("Y-542");
+    expect(serialized).not.toContain("Romantic Lace Top");
+  });
+
+  it("is not counted among the styles a client can see", () => {
+    expect(toPublicCatalog(catalog, now, hidden).products).toHaveLength(1);
+  });
+
+  it("stays in the team's catalog, marked, because that is where it is undone", () => {
+    const published = toPublicCatalog(catalog, now, { ...hidden, isTeam: true });
+    expect(published.products.map((product) => product.sku)).toEqual(["Y-542", "WP-2160"]);
+    expect(published.products[0].isHidden).toBe(true);
+    expect(published.products[1].isHidden).toBe(false);
+  });
+
+  it("never comes back marked in a client's catalog, since it never comes back", () => {
+    const published = toPublicCatalog(catalog, now, hidden);
+    expect(published.products.every((product) => !product.isHidden)).toBe(true);
+  });
+
+  it("is published like any other when nothing is hidden", () => {
+    const published = toPublicCatalog(catalog, now, NOTHING_HIDDEN);
+    expect(published.products).toHaveLength(2);
+    expect(published.products.every((product) => !product.isHidden)).toBe(true);
+  });
+
+  it("ignores a hidden style number the catalog does not have", () => {
+    const published = toPublicCatalog(catalog, now, {
+      hidden: new Set(["GONE-1"]),
+      isTeam: false,
+    });
+    expect(published.products).toHaveLength(2);
+  });
+});
+
 describe("the published catalog, built from the real export", () => {
-  const published = toPublicCatalog(seedCatalog(), now);
+  const published = toPublicCatalog(seedCatalog(), now, NOTHING_HIDDEN);
   const serialized = JSON.stringify(published);
 
   it("publishes every product", () => {

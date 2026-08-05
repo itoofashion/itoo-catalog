@@ -39,7 +39,10 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        // Plain dark glass, not frosted. A blur smears the photographs behind
+        // the dialog into colour, and the grid is the one thing a buyer uses to
+        // keep their place while they look at a style.
+        "fixed inset-0 isolate z-50 bg-black/50 duration-100 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -72,12 +75,16 @@ function DialogContent({
             <Button
               variant="ghost"
               /* A dialog may open over a photograph, where a bare glyph
-                 disappears into whatever happens to be behind it. */
-              className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
-              size="icon-sm"
+                 disappears into whatever happens to be behind it.
+
+                 Sized up on purpose: on a phone this is the only way back to the
+                 grid, and a 36px square with a 16px cross in it was being
+                 reached for twice. It stays a square with the brand's own 4px
+                 corner rather than becoming a round chip. */
+              className="absolute top-2 right-2 bg-background/80 shadow-sm ring-1 ring-foreground/10 backdrop-blur-sm hover:bg-background"
+              size="icon-lg"
             >
-              <XIcon
-              />
+              <XIcon className="size-6" strokeWidth={2} />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>

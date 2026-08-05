@@ -193,6 +193,17 @@ html {
 }
 
 /*
+ * The same ring, inverted, on the one surface painted in the foreground colour:
+ * the bar a client's link opens with. A ring drawn in that colour on that bar is
+ * a ring nobody can see, so a visitor working the keyboard lost track of where
+ * they were the moment they reached it. The surface says so on itself rather
+ * than being named here, the way the swatches and the copy button do.
+ */
+:where([data-on-foreground] a, [data-on-foreground] button):focus-visible {
+  outline-color: var(--background);
+}
+
+/*
  * Galleries are native scrollers rather than a carousel library: the page shows
  * up to forty-eight of them at once, and scroll-snap costs nothing while giving
  * swipe on a phone and a trackpad for free.

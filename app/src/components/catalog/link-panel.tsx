@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, Link2 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { Check, Link2, Loader2 } from "lucide-react";
+import { createLink } from "@/app/s/actions";
 import { Button } from "@/components/ui/button";
 import type { CatalogSelection } from "@/lib/catalog/share";
-import { encodeSelection } from "@/lib/links/code";
 
 /**
  * The outcome of the admin view: pick what a client asked for, get one link to
  * send them. It is the only thing on the page allowed to be loud, and it says
- * plainly what is in the link and how many items that comes to, because a link
+ * plainly what is in the link and how many styles that comes to, because a link
  * sent to a wholesale client is a promise about what they will see.
  */
 export function LinkPanel({
@@ -22,7 +22,9 @@ export function LinkPanel({
   onClear: () => void;
 }) {
   const [link, setLink] = useState("");
+  const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [minting, startMinting] = useTransition();
 
   useEffect(() => {
     if (!copied) return;
@@ -30,9 +32,31 @@ export function LinkPanel({
     return () => clearTimeout(timer);
   }, [copied]);
 
-  async function makeLink() {
-    const url = `${window.location.origin}/s/${encodeSelection(selection)}`;
-    setLink(url);
+  /**
+   * The code used to be worked out here, in the browser, because it was the
+   * selection spelled out in base64. Now it is six characters the database
+   * hands out, so the press is a round trip and the button says so while it
+   * waits: on a slow connection a silent button gets pressed twice.
+   */
+  function makeLink() {
+    if (link) {
+      void copy(link);
+      return;
+    }
+    startMinting(async () => {
+      setError("");
+      const result = await createLink(selection);
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      const url = `${window.location.origin}/s/${result.code}`;
+      setLink(url);
+      await copy(url);
+    });
+  }
+
+  async function copy(url: string) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -49,18 +73,23 @@ export function LinkPanel({
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-5">
         <div className="min-w-0 flex-1">
           <p className="tracked text-[11px] text-muted-foreground">Selected for a client</p>
-          <p className="mt-1 truncate text-sm font-semibold">{describe(selection, productCount)}</p>
+          <p className="mt-1 truncate text-sm font-semibold">{describeSelection(selection, productCount)}</p>
           {link && (
             <p className="mt-1 truncate text-xs text-muted-foreground" title={link}>
               {link}
             </p>
           )}
+          {error && (
+            <p role="alert" className="mt-1 text-xs text-destructive">
+              {error}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={makeLink} className="flex-1 sm:flex-none">
-            {copied ? <Check /> : <Link2 />}
-            {copied ? "Copied" : link ? "Copy again" : "Get link"}
+          <Button onClick={makeLink} disabled={minting} className="flex-1 sm:flex-none">
+            {minting ? <Loader2 className="animate-spin" /> : copied ? <Check /> : <Link2 />}
+            {minting ? "Making link" : copied ? "Copied" : link ? "Copy again" : "Get link"}
           </Button>
           <Button variant="outline" onClick={onClear}>
             Clear
@@ -71,14 +100,30 @@ export function LinkPanel({
   );
 }
 
-function describe(selection: CatalogSelection, productCount: number): string {
-  const parts: string[] = [];
-  if (selection.categories.length === 1) parts.push(`all of ${selection.categories[0]}`);
-  else if (selection.categories.length > 1) parts.push(`${selection.categories.length} categories`);
+/**
+ * What the link promises, in one line.
+ *
+ * The total is spelled out only when it is news. Naming a category says what
+ * the client asked for but not how much that is, so "all of Dresses" earns its
+ * "67 styles". Styles picked by hand are already counted by the act of picking
+ * them, and printing the total again gave us "5 picked items · 5 items", which
+ * reads like a mistake because it is one.
+ */
+export function describeSelection(
+  selection: CatalogSelection,
+  productCount: number,
+): string {
+  const styles = (count: number) => `${count} ${count === 1 ? "style" : "styles"}`;
+
+  if (selection.categories.length === 0) return styles(selection.skus.length);
+
+  const parts =
+    selection.categories.length === 1
+      ? [`all of ${selection.categories[0]}`]
+      : [`${selection.categories.length} categories`];
   if (selection.skus.length > 0) {
-    parts.push(`${selection.skus.length} picked ${selection.skus.length === 1 ? "item" : "items"}`);
+    parts.push(`${selection.skus.length} picked`);
   }
 
-  const items = `${productCount} ${productCount === 1 ? "item" : "items"}`;
-  return `${parts.join(" + ")} · ${items}`;
+  return `${parts.join(" + ")} · ${styles(productCount)}`;
 }

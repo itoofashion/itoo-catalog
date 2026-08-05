@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ALL_CATEGORIES } from "@/lib/catalog/share";
 
 /**
- * The header's two filters, kept as separate pieces because they do not sit
- * together on every screen: a phone gets the logo and the New toggle on one
- * line and the categories on the line below, a laptop gets all of it in a row.
- * Composing them in the header is what lets one set of controls do both.
+ * The header's two filters, kept as separate pieces because the header decides
+ * how they sit: New is handed to the category row to carry at its head, so that
+ * on a phone it scrolls sideways along with the categories instead of taking a
+ * line of its own. See catalog-view.
  */
 
 /** New arrivals, on or off. */
@@ -61,6 +61,7 @@ export function CategoryRow({
   selectedCategories,
   onToggleCategory,
   className,
+  leading,
 }: {
   categories: string[];
   active: string;
@@ -69,6 +70,8 @@ export function CategoryRow({
   selectedCategories: string[];
   onToggleCategory: (category: string) => void;
   className?: string;
+  /** Put at the head of the row, inside the scroll: the New filter. */
+  leading?: ReactNode;
 }) {
   const row = useRef<HTMLDivElement>(null);
   const activeChip = useRef<HTMLSpanElement>(null);
@@ -98,16 +101,30 @@ export function CategoryRow({
     };
   }, [measure, categories]);
 
-  // Arriving on /?show=Skirts must not leave the page filtered by a category
-  // that sits off the right-hand edge of its own filter row.
+  /**
+   * The chosen category is brought to the middle of the row.
+   *
+   * Not "into view", which is what this used to do: on a phone the row is three
+   * chips wide, and a chip pressed at the right-hand edge stayed at the
+   * right-hand edge, with everything that follows it still off screen. Pulling
+   * it to the middle puts what comes next where it can be seen and pressed, and
+   * shows that the row moved at all.
+   *
+   * The first pass is a jump rather than a glide: arriving on /?show=skirts is
+   * not a movement anybody made, and someone who has asked for less motion is
+   * not shown any.
+   */
+  const centred = useRef(false);
   useEffect(() => {
     const el = row.current;
     const chip = activeChip.current;
     if (!el || !chip) return;
-    const left = chip.offsetLeft;
-    const right = left + chip.offsetWidth;
-    if (left >= el.scrollLeft && right <= el.scrollLeft + el.clientWidth) return;
-    el.scrollTo?.({ left: left - (el.clientWidth - chip.offsetWidth) / 2 });
+    const smooth = centred.current && !prefersReducedMotion();
+    centred.current = true;
+    el.scrollTo?.({
+      left: chip.offsetLeft - (el.clientWidth - chip.offsetWidth) / 2,
+      behavior: smooth ? "smooth" : "auto",
+    });
   }, [active]);
 
   return (
@@ -115,8 +132,13 @@ export function CategoryRow({
       {/* Scrolled, not wrapped (see the note above). */}
       <div
         ref={row}
+        /* Marked so a test can say what the header promises: New and the
+           categories are one strip, and the strip is the thing that scrolls. */
+        data-filter-strip=""
         className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
+        {leading}
+
         {categories.map((name) => {
           const isActive = name === active;
           const isPicked = selectedCategories.includes(name);
@@ -192,4 +214,9 @@ export function CategoryRow({
       />
     </div>
   );
+}
+
+/** Asked of the browser rather than remembered: it can change while the page is open. */
+function prefersReducedMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }

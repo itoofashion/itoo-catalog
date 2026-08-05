@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { seedProducts } from "@/lib/catalog/seed";
-import AdminPage from "./page";
+import AdminPage, { metadata } from "./page";
 
 /**
  * The session itself is tested in lib/admin; what matters here is that the page
@@ -16,6 +16,37 @@ async function renderAdmin({ signedIn }: { signedIn: boolean }) {
 }
 
 beforeEach(() => isTeamViewer.mockReset());
+
+describe.each([
+  ["signed out", false],
+  ["signed in", true],
+])("admin page, %s", (_state, signedIn) => {
+  it("wears the brand's own logo rather than the word", async () => {
+    await renderAdmin({ signedIn });
+    const logo = screen.getByRole("img", { name: "itoo" });
+
+    expect(logo.getAttribute("src")).toContain("logo.png");
+    // Asked for at its full size and drawn small, so it stays sharp on a retina
+    // screen; the image optimizer is off, so this is the file as shipped.
+    expect(logo).toHaveAttribute("width", "1050");
+    expect(logo).toHaveAttribute("height", "483");
+  });
+
+  it("calls itself the admin panel", async () => {
+    await renderAdmin({ signedIn });
+    // At the door the heading says what the door is for; inside it is the name
+    // of the room. Either way the reader is told where they are.
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      signedIn ? "Admin panel" : "Sign in to the admin panel",
+    );
+  });
+});
+
+describe("admin page", () => {
+  it("goes by the same name in the browser tab as on the page", () => {
+    expect(metadata.title).toBe("Admin panel");
+  });
+});
 
 describe("admin page, signed out", () => {
   it("asks for the password", async () => {
@@ -45,7 +76,7 @@ describe("admin page, signed in", () => {
   it("reports the catalog and drops the password form", async () => {
     const { container } = await renderAdmin({ signedIn: true });
 
-    expect(screen.getByText("Products").parentElement).toHaveTextContent(
+    expect(screen.getByText("Styles").parentElement).toHaveTextContent(
       String(seedProducts().length),
     );
     expect(container.querySelector("time")).toBeInTheDocument();

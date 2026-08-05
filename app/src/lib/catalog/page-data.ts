@@ -1,22 +1,35 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { selectedProducts } from "./filter";
-import { catalogMeta } from "./meta";
-import { toPublicCatalog } from "./public";
-import type { CatalogSelection } from "./share";
+import { isTeamViewer } from "@/lib/admin/request";
+import { categoriesOf, selectedProducts } from "./filter";
+import { hiddenStyles } from "./hidden";
+import { catalogMeta, productMeta, type CatalogMeta } from "./meta";
+import { toPublicCatalog, type PublicProduct } from "./public";
+import { NO_FILTERS, type CatalogSelection } from "./share";
+import { resolveCategories } from "./slug";
 import { catalogStore } from "./store";
 
 /**
- * Shared by the catalog page and by short links, which render the same catalog
- * under a different address.
+ * Shared by the catalog page, by short links and by a style's own address, all
+ * of which render the same catalog.
  *
  * Everything here hands the browser the published catalog, never the stored one.
  * See lib/catalog/public.ts for what that leaves behind.
+ *
+ * Styles the team has hidden are dropped here, once, for every route at the same
+ * time. That is the point of there being one function: hiding that had to be
+ * remembered separately by the page, the short link and the product route would
+ * be hiding that a new route silently opts out of.
  */
 export async function publishedCatalog() {
-  const catalog = await catalogStore.read();
+  const [catalog, hidden, isTeam] = await Promise.all([
+    catalogStore.read(),
+    hiddenStyles().then((styles) => styles.list()),
+    isTeamViewer(),
+  ]);
+
   return {
-    ...toPublicCatalog(catalog, new Date()),
+    ...toPublicCatalog(catalog, new Date(), { hidden, isTeam }),
     syncedAt: catalog.syncedAt,
   };
 }
@@ -28,9 +41,37 @@ export async function publishedCatalog() {
  */
 export async function catalogMetadata(selection: CatalogSelection): Promise<Metadata> {
   const { products } = await publishedCatalog();
-  const shown = selectedProducts(products, selection);
-  const { title, description } = catalogMeta(selection, shown.length);
-  const image = await absoluteUrl(shown[0]?.images[0]?.url);
+  // The address carries category slugs, and only the catalog can say which names
+  // they stand for. A short link hands over the names themselves, which come
+  // through this unchanged.
+  const { selection: named } = resolveCategories(
+    { selection, filters: NO_FILTERS },
+    categoriesOf(products),
+  );
+  const shown = selectedProducts(products, named);
+  const meta = catalogMeta(named, shown.length);
+
+  return preview(meta, shown[0]?.images[0]?.url);
+}
+
+/**
+ * A link to one style, unfurled. The photograph is the one of the chosen color
+ * where the style has one, so the card in the chat shows what the link opens.
+ */
+export async function productMetadata(
+  product: PublicProduct,
+  color: string | null,
+): Promise<Metadata> {
+  const photo = (color && product.images.find((image) => image.color === color)) || product.images[0];
+  return preview(productMeta(product, color), photo?.url);
+}
+
+/** One shape for both, because a chat app reads both the same way. */
+async function preview(
+  { title, description }: CatalogMeta,
+  photo: string | undefined,
+): Promise<Metadata> {
+  const image = await absoluteUrl(photo);
 
   return {
     title,
