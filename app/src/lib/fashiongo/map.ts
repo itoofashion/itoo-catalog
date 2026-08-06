@@ -68,6 +68,12 @@ function imagesOf(detail: FashionGoDetail | null, fallback: string | null) {
  */
 const ONE_SIZE_CODE = "O~S";
 
+/** One label of a size run, as a buyer should read it. */
+export function sizeLabel(label: string): string {
+  const trimmed = label.trim();
+  return trimmed.toUpperCase() === ONE_SIZE_CODE ? "One Size" : trimmed;
+}
+
 /**
  * A size run: "S;M;L" is how FashionGo's own admin stores and splits it. The
  * argument is typed loose because these tables arrive over the network, where
@@ -75,11 +81,7 @@ const ONE_SIZE_CODE = "O~S";
  */
 function sizeRunOf(description: unknown): string[] {
   if (typeof description !== "string") return [];
-  return description
-    .split(";")
-    .map((label) => label.trim())
-    .filter(Boolean)
-    .map((label) => (label.toUpperCase() === ONE_SIZE_CODE ? "One Size" : label));
+  return description.split(";").map(sizeLabel).filter(Boolean);
 }
 
 /** A pack split like "2-2-2": one positive count per size in the run. */
@@ -140,18 +142,18 @@ function addedOn(record: FashionGoListRecord): string {
   return normalizeTimestamp(record._activatedOn?.trim() || record._createdOn || "");
 }
 
-function categoryOf(
-  detail: FashionGoDetail | null,
+/**
+ * The name to file a style under, from the category ids it carries.
+ *
+ * The leaf category is too granular to browse by, so the caller offers its
+ * parent first and the fallbacks outwards from there; the first id the vendor's
+ * own category list knows a name for wins. A style whose categories are all
+ * unknown is filed under UNCATEGORIZED rather than under a guess.
+ */
+export function categoryNameOf(
+  candidates: (number | null | undefined)[],
   categories: Map<number, string>,
 ): string {
-  const item = detail?.item;
-  // The leaf category is too granular to browse by, so prefer its parent and
-  // fall back outwards until something matches the vendor's category list.
-  const candidates = [
-    item?.parentCategoryId,
-    item?.categoryId,
-    item?.parentParentCategoryId,
-  ];
   for (const id of candidates) {
     if (id != null) {
       const name = categories.get(id);
@@ -159,6 +161,17 @@ function categoryOf(
     }
   }
   return UNCATEGORIZED;
+}
+
+function categoryOf(
+  detail: FashionGoDetail | null,
+  categories: Map<number, string>,
+): string {
+  const item = detail?.item;
+  return categoryNameOf(
+    [item?.parentCategoryId, item?.categoryId, item?.parentParentCategoryId],
+    categories,
+  );
 }
 
 /**

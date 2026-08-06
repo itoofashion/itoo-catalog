@@ -32,3 +32,17 @@ export function seedProducts(): Product[] {
 export function seedCatalog(): Catalog {
   return { products: seedProducts(), syncedAt: seed.pulledAt };
 }
+
+/**
+ * The vendor's categories, by id.
+ *
+ * FashionGo's published API names a style's categories by number and has no
+ * endpoint that says what the numbers mean, so the table has to come from
+ * somewhere else, and the seed already carries the vendor's own copy of it. It
+ * is a list of fourteen names that changes about never, so shipping it beats
+ * asking a live sync to carry it: a push that forgot the categories would file
+ * the whole catalog under "Other".
+ */
+export function seedCategoryNames(): Map<number, string> {
+  return categoryNameMap(seed.categories as FashionGoCategory[]);
+}

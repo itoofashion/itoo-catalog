@@ -1,0 +1,335 @@
+[
+  {
+    "itemId": 25338975,
+    "styleCode": "8592-1786",
+    "itemName": "Relaxed Lounge Set Full Look",
+    "sellingPrice": 36.75,
+    "minTQStyle": null,
+    "sizeInfo": {
+      "sizeList": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "packInfo": {
+      "packList": [
+        2,
+        2,
+        2
+      ]
+    },
+    "colorList": [
+      {
+        "colorId": 225810,
+        "colorName": "Blue"
+      },
+      {
+        "colorId": 228436,
+        "colorName": "Grey"
+      },
+      {
+        "colorId": 975120,
+        "colorName": "Brown"
+      }
+    ],
+    "images": [
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_9809ea9f-e78c-4b49-8902-105b7c22a26c.jpg",
+        "listOrder": 1,
+        "colorId": 225810
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_5a7b5171-af38-4fd5-9737-36def2e90466.jpg",
+        "listOrder": 2,
+        "colorId": 225810
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_79530d5e-a059-4c95-afd5-f3ecdf605872.jpg",
+        "listOrder": 3,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_2de33237-14ab-416c-9c70-c7e4d4e90391.jpg",
+        "listOrder": 4,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_ee812a3f-25ca-4846-bb8f-66d7b6ced381.jpg",
+        "listOrder": 5,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_446f465f-db6d-4f9c-baed-7384e019f776.jpg",
+        "listOrder": 6,
+        "colorId": 228436
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_9695baee-9b82-462c-a052-0bc87e1727da.jpg",
+        "listOrder": 7,
+        "colorId": 225810
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/25338975_ef5cb01a-e8d4-43c1-a51e-4b79a2d6e306.jpg",
+        "listOrder": 8,
+        "colorId": null
+      }
+    ],
+    "categoryId": 1543,
+    "parentCategoryId": 14,
+    "parentParentCategoryId": 1,
+    "createdDate": "2026-02-11T14:58:03.94",
+    "activatedOn": "2026-02-12T13:12:02.783",
+    "active": true
+  },
+  {
+    "itemId": 26191251,
+    "styleCode": "ITT 8268",
+    "itemName": "White Lace Top",
+    "sellingPrice": 19.75,
+    "minTQStyle": 6,
+    "sizeInfo": {
+      "sizeList": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "packInfo": null,
+    "colorList": [
+      {
+        "colorId": 225809,
+        "colorName": "Beige"
+      }
+    ],
+    "images": [
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26191251_09ad3ba5-1b8b-4b04-ae6c-321d984128d3.jpg",
+        "listOrder": 1,
+        "colorId": 225809
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26191251_21f26192-98e9-406c-bf4e-069ac25788ef.jpg",
+        "listOrder": 2,
+        "colorId": 225809
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26191251_c72b3412-b7b5-4f0d-a602-720eb674832b.jpg",
+        "listOrder": 3,
+        "colorId": 225809
+      }
+    ],
+    "categoryId": 22,
+    "parentCategoryId": 8,
+    "parentParentCategoryId": 1,
+    "createdDate": "2026-08-05T13:16:03.703",
+    "activatedOn": "2026-08-05T13:16:31.963",
+    "active": true
+  },
+  {
+    "itemId": 26147704,
+    "styleCode": "ITT8857",
+    "itemName": "Sky Blue Button-Down Shirt",
+    "sellingPrice": 18.5,
+    "minTQStyle": 6,
+    "sizeInfo": {
+      "sizeList": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "packInfo": {
+      "packList": [
+        2,
+        2,
+        2
+      ]
+    },
+    "colorList": [
+      {
+        "colorId": 969628,
+        "colorName": "SkyBlue"
+      }
+    ],
+    "images": [
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26147704_91c736e6-f2df-4c33-b69f-894b98960a6a.jpg",
+        "listOrder": 1,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26147704_9e5e94f9-1c50-4fd8-b376-af8bd41b90be.jpg",
+        "listOrder": 2,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26147704_57bd49ed-1aed-4c62-8359-fe6ed1475cff.jpg",
+        "listOrder": 3,
+        "colorId": null
+      }
+    ],
+    "categoryId": 22,
+    "parentCategoryId": 8,
+    "parentParentCategoryId": 1,
+    "createdDate": "2026-07-29T07:56:29.233",
+    "activatedOn": "2026-07-29T07:56:29.233",
+    "active": true
+  },
+  {
+    "itemId": 24259756,
+    "styleCode": "ITT8857",
+    "itemName": "Collared Shirt with Pins Detail",
+    "sellingPrice": 18.5,
+    "minTQStyle": 6,
+    "sizeInfo": {
+      "sizeList": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "packInfo": {
+      "packList": [
+        2,
+        2,
+        2
+      ]
+    },
+    "colorList": [
+      {
+        "colorId": 1826480,
+        "colorName": "LT BLUE"
+      },
+      {
+        "colorId": 222780,
+        "colorName": "WHITE"
+      }
+    ],
+    "images": [
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/3EB73DEC954CB109889C2CFEC2B6CEC9/24259756_86d1546f-8b6e-4803-a881-3139267a8735.jpg",
+        "listOrder": 1,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/3EB73DEC954CB109889C2CFEC2B6CEC9/24259756_68a0b925-602b-41cb-8a74-2ce5b0330ba7.jpg",
+        "listOrder": 2,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/3EB73DEC954CB109889C2CFEC2B6CEC9/24259756_847e4d12-8512-4f6d-9de1-7d3a79ff9836.jpg",
+        "listOrder": 3,
+        "colorId": null
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/3EB73DEC954CB109889C2CFEC2B6CEC9/24259756_3ef09212-ad8e-4daa-a67c-945adb2130a4.jpg",
+        "listOrder": 4,
+        "colorId": null
+      }
+    ],
+    "categoryId": 22,
+    "parentCategoryId": 8,
+    "parentParentCategoryId": 1,
+    "createdDate": "2025-07-25T16:47:31.167",
+    "activatedOn": "2025-07-25T16:47:31.167",
+    "active": true
+  },
+  {
+    "itemId": 26121559,
+    "styleCode": "R1195",
+    "itemName": "Linen Pants",
+    "sellingPrice": 59.0,
+    "minTQStyle": null,
+    "sizeInfo": {
+      "sizeList": [
+        "O~S"
+      ]
+    },
+    "packInfo": null,
+    "colorList": [
+      {
+        "colorId": 225803,
+        "colorName": "Camel"
+      }
+    ],
+    "images": [
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26121559_1bc8d100-5c03-4f2c-8ba3-d3f4dbf2533b.jpg",
+        "listOrder": 1,
+        "colorId": 225803
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26121559_6a7cda8c-536d-47b7-a2b7-61ae4e83da71.jpg",
+        "listOrder": 2,
+        "colorId": 225803
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26121559_f0329278-2618-4822-922f-2d793b72e67f.jpg",
+        "listOrder": 3,
+        "colorId": 225803
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26121559_5d419f73-ac2b-40a5-9ce4-e2404a2a768a.jpg",
+        "listOrder": 4,
+        "colorId": 225803
+      }
+    ],
+    "categoryId": 208,
+    "parentCategoryId": 10,
+    "parentParentCategoryId": 1,
+    "createdDate": "2026-07-23T08:37:03.557",
+    "activatedOn": "2026-07-23T09:18:46.637",
+    "active": true
+  },
+  {
+    "itemId": 26105215,
+    "styleCode": "ITV8996",
+    "itemName": "Petal Vest",
+    "sellingPrice": 27.75,
+    "minTQStyle": 6,
+    "sizeInfo": {
+      "sizeList": [
+        "S",
+        "M",
+        "L"
+      ]
+    },
+    "packInfo": {
+      "packList": [
+        2,
+        2,
+        2
+      ]
+    },
+    "colorList": [
+      {
+        "colorId": 225809,
+        "colorName": "Beige"
+      }
+    ],
+    "images": [
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26105215_a0b5b33d-c40f-4711-92ad-c587dbc6b555.jpg",
+        "listOrder": 1,
+        "colorId": 225809
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26105215_00b6e1d8-01ab-4a9e-9abd-72ed32142ff8.jpg",
+        "listOrder": 2,
+        "colorId": 225809
+      },
+      {
+        "imageUrl": "https://fg-image.fashiongo.net/Vendors/6qj6odi0wz/ProductImage/original/9EDEDA47BB3D58FB3DC53FA2B6DC6F09/26105215_e14e8b49-8d16-49e5-a27d-55db348b190a.jpg",
+        "listOrder": 3,
+        "colorId": 225809
+      }
+    ],
+    "categoryId": 29,
+    "parentCategoryId": 9,
+    "parentParentCategoryId": 1,
+    "createdDate": "2026-07-20T15:47:16.91",
+    "activatedOn": "2026-07-20T16:04:12.077",
+    "active": false
+  }
+]

@@ -1,13 +1,18 @@
+import { seedCategoryNames } from "@/lib/catalog/seed";
 import type { Product } from "@/lib/catalog/types";
 import { isImageSource } from "@/lib/images/source";
-import { categoryNameMap, dedupeBySku, mapProduct } from "./map";
-import type { FashionGoCategory, FashionGoDetail, FashionGoListRecord } from "./types";
+import { mapApiCatalog, type FashionGoApiItem } from "./api-map";
 
 /**
- * The importer sends FashionGo's own payloads, untouched, and the mapping to
+ * What a sync pushes, and what it has to look like to be believed.
+ *
+ * The importer sends FashionGo's own items, untouched, and the mapping to
  * catalog products happens here. Keeping the mapping on the server means there
- * is exactly one implementation of it, and it is the tested one; whatever calls
- * the endpoint stays a dumb pipe that only knows how to read FashionGo.
+ * is exactly one implementation of it, and it is the tested one; the importer
+ * stays a dumb pipe that only knows how to page through FashionGo and how to
+ * reach us. It has to be a pipe of its own rather than the Worker calling
+ * FashionGo directly, because FashionGo answers a whitelisted address and a
+ * Worker has no fixed one.
  *
  * The payload arrives over a public endpoint, so it is validated rather than
  * trusted: a malformed push is rejected whole instead of half-replacing the
@@ -17,85 +22,76 @@ export type SyncRequestResult =
   | { ok: true; products: Product[] }
   | { ok: false; error: string };
 
-export function parseSyncRequest(input: unknown): SyncRequestResult {
+export function parseSyncRequest(
+  input: unknown,
+  categories: Map<number, string> = seedCategoryNames(),
+): SyncRequestResult {
   if (!isRecord(input)) return fail("Expected a JSON object");
-  if (!Array.isArray(input.categories)) return fail("Expected a categories array");
-  if (!Array.isArray(input.products)) return fail("Expected a products array");
-  if (input.products.length === 0) {
+  if (!Array.isArray(input.items)) return fail("Expected an items array");
+
+  // FashionGo answers with the vendor's whole history, and the importer is
+  // meant to have dropped the styles that are no longer for sale. Whatever is
+  // left of them is skipped here rather than checked: a style taken down years
+  // ago is not something the shop should be refused over.
+  const active = input.items.filter(
+    (item): item is Record<string, unknown> => isRecord(item) && item.active === true,
+  );
+
+  if (active.length === 0) {
     return fail("Refusing to replace the catalog with nothing");
   }
 
-  const categories = categoryNameMap(
-    input.categories.filter(isCategory) as FashionGoCategory[],
-  );
-
-  const products: Product[] = [];
-
-  for (const [index, entry] of input.products.entries()) {
-    const at = `products[${index}]`;
-    if (!isRecord(entry) || !isRecord(entry.record)) {
-      return fail(`${at} is missing its record`);
-    }
-
-    const record = entry.record;
-    if (typeof record.productName !== "string" || !record.productName.trim()) {
-      return fail(`${at} has no style number`);
-    }
-    const price = record.sellingPrice ?? record._unitPrice;
-    if (typeof price !== "number" || !Number.isFinite(price) || price < 0) {
-      return fail(`${at} (${record.productName}) has an invalid price`);
-    }
-    // Either date will do: the mapping prefers the activation date and falls
-    // back to the upload date, so a record is only unusable when it has neither.
-    if (typeof record._activatedOn !== "string" && typeof record._createdOn !== "string") {
-      return fail(`${at} (${record.productName}) has no date`);
-    }
-    // The list thumbnail is the fallback photo, so it is held to the same rule
-    // as the detail photos. A product with no thumbnail at all is fine.
-    if (record.imageUrl != null && record.imageUrl !== "") {
-      if (typeof record.imageUrl !== "string" || !isImageSource(record.imageUrl)) {
-        return fail(`${at} (${record.productName}) has a photo from outside FashionGo`);
-      }
-    }
-
-    const detail = entry.detail == null ? null : parseDetail(entry.detail);
-    if (detail === false) {
-      return fail(`${at} (${record.productName}) has invalid detail`);
-    }
-
-    products.push(
-      mapProduct(record as unknown as FashionGoListRecord, detail, categories),
-    );
+  for (const [index, item] of active.entries()) {
+    const problem = checkItem(item, `items[${index}]`);
+    if (problem) return fail(problem);
   }
 
-  // A style listed twice is the vendor re-listing it, not a broken push, so it
-  // is collapsed rather than rejected (see dedupeBySku).
-  return { ok: true, products: dedupeBySku(products) };
+  return {
+    ok: true,
+    products: mapApiCatalog(active as unknown as FashionGoApiItem[], categories),
+  };
 }
 
-/** Returns false rather than null when the detail is present but malformed. */
-function parseDetail(input: unknown): FashionGoDetail | null | false {
-  if (!isRecord(input) || !isRecord(input.item)) return false;
+/** The reason this item cannot become a product, or null if it can. */
+function checkItem(item: Record<string, unknown>, at: string): string | null {
+  if (typeof item.styleCode !== "string" || !item.styleCode.trim()) {
+    return `${at} has no style number`;
+  }
+  const style = `${at} (${item.styleCode.trim()})`;
 
-  const images = input.image;
-  if (images != null && !Array.isArray(images)) return false;
+  if (typeof item.itemId !== "number" || !Number.isFinite(item.itemId)) {
+    return `${style} has no item id`;
+  }
 
-  for (const image of images ?? []) {
-    if (!isRecord(image) || typeof image.imageUrl !== "string") return false;
+  const price = item.sellingPrice;
+  if (typeof price !== "number" || !Number.isFinite(price) || price < 0) {
+    return `${style} has an invalid price`;
+  }
+
+  // Either date will do: the mapping prefers the day the style went on sale and
+  // falls back to the day it was uploaded, so an item is only unusable when it
+  // has neither.
+  if (typeof item.activatedOn !== "string" && typeof item.createdDate !== "string") {
+    return `${style} has no date`;
+  }
+
+  if (item.images != null && !Array.isArray(item.images)) {
+    return `${style} has an invalid photo list`;
+  }
+  for (const image of (item.images as unknown[]) ?? []) {
+    if (!isRecord(image) || typeof image.imageUrl !== "string") {
+      return `${style} has an invalid photo`;
+    }
     // Only FashionGo's own CDN. The image route refuses to download from
     // anywhere else anyway, so this is not what stops a tampered payload. It is
     // what makes it loud: a push carrying foreign addresses is rejected whole
     // instead of quietly producing products with photos that never load.
-    if (!isImageSource(image.imageUrl)) return false;
+    if (!isImageSource(image.imageUrl)) {
+      return `${style} has a photo from outside FashionGo`;
+    }
   }
 
-  return input as unknown as FashionGoDetail;
-}
-
-function isCategory(value: unknown): boolean {
-  return (
-    isRecord(value) && typeof value.catID === "number" && typeof value.catName === "string"
-  );
+  return null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

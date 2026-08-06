@@ -25,6 +25,15 @@ pnpm test         # run the test suite
 pnpm preview      # run the production build on the Cloudflare runtime locally
 ```
 
+`pnpm dev` runs against a local copy of the database. It works without one: with
+no catalog table to read, the site shows the catalog as it shipped. To sync into
+it, or to work on short links or hidden styles, create the tables first:
+
+```bash
+npx wrangler d1 migrations apply itoo --local
+CATALOG_ORIGIN=http://localhost:3000 node scripts/sync-from-api.mjs
+```
+
 ## How it works
 
 FashionGo is the single source of truth and the catalog mirrors it. Products,
@@ -33,12 +42,37 @@ are derived from the FashionGo price, and products added in the last 30 days are
 marked as new arrivals automatically.
 
 Syncing is a full replacement rather than a merge: whatever FashionGo has is
-what the catalog shows, so there is never a half-updated state to reconcile.
+what the catalog shows, so there is never a half-updated state to reconcile. The
+catalog is kept in D1, written under a new generation number and switched over
+in one row, so a client reading the site during a sync sees the whole catalog
+before it or the whole catalog after it, never half of each.
 
-The import reads FashionGo's published REST API (`pubapi.fashiongo.net`) and
-posts the payloads to the app's `/api/sync`, which maps and stores them. The
-mapping lives on the server, in `app/src/lib/fashiongo/map.ts`, so there is one
-tested copy of it whatever calls the endpoint.
+### Importing from FashionGo
+
+```bash
+cd app
+set -a; . ~/.fashiongo.env; set +a   # FASHIONGO_API_KEY and SYNC_SECRET
+node scripts/sync-from-api.mjs
+```
+
+The importer reads FashionGo's published REST API (`pubapi.fashiongo.net`,
+`GET /v1.0/items`), keeps the styles that are for sale, and posts them to the
+app's `/api/sync`, which maps and stores them. It then asks `/api/images/warm`
+for the photos until the catalog is covered. One item carries everything the
+catalog needs, so the whole import is around thirty requests.
+
+It runs from a machine rather than on a schedule inside the Worker because
+FashionGo answers an API key only from addresses it has been told about, and a
+Cloudflare Worker has no fixed outbound address to give them.
+
+The mapping lives on the server, in `app/src/lib/fashiongo/api-map.ts`, and the
+importer sends FashionGo's items untouched, so there is one tested copy of it
+whatever calls the endpoint. (`map.ts` beside it is the older mapping, from the
+vendor admin's payloads; it is what built the shipped seed and is still tested
+against it.)
+
+Neither the API key nor the sync secret is in this repository, and neither
+should be: both come from the environment.
 
 ### Sharing a catalogue
 
@@ -88,6 +122,16 @@ After deploying:
    then does not sign everyone out.
 3. Make sure the photo bucket exists (below). It already does for the live
    deployment.
+4. Apply any new database migrations:
+
+   ```bash
+   cd app && npx wrangler d1 migrations apply itoo --remote
+   ```
+
+   The catalog, the short links and the hidden styles all live in the D1
+   database bound as `DB` in `app/wrangler.jsonc`. Migrate before deploying: a
+   Worker that asks for a table its migration has not created yet fails the
+   request rather than falling back to anything.
 
 ### Domains
 
