@@ -3,6 +3,11 @@ import posthog from "posthog-js";
 const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const host = process.env.NEXT_PUBLIC_POSTHOG_HOST;
 
+// Both values are inlined at build time, so a build made without them (a
+// checkout with no .env.production, and every test run) simply carries no
+// analytics: posthog.capture on an instance that was never initialised is a
+// silent no-op, so nothing else has to know. Session replay itself is switched
+// on in the PostHog project settings, not here.
 if (projectToken && host) {
   posthog.init(projectToken, {
     api_host: host,
@@ -10,12 +15,4 @@ if (projectToken && host) {
     capture_exceptions: true,
     debug: process.env.NODE_ENV === "development",
   });
-} else if (process.env.NODE_ENV === "development") {
-  const missingVariable = !projectToken
-    ? "NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN"
-    : "NEXT_PUBLIC_POSTHOG_HOST";
-
-  throw new Error(
-    `${missingVariable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${missingVariable} is configured`,
-  );
 }
