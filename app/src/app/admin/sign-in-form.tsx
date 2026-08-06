@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { signIn, type SignInState } from "./actions";
 
@@ -10,7 +11,11 @@ export function SignInForm() {
   const [state, submit, pending] = useActionState(signIn, EMPTY);
 
   return (
-    <form action={submit} className="flex flex-col gap-3">
+    <form
+      action={submit}
+      onSubmit={() => posthog.capture("admin_sign_in_submitted")}
+      className="flex flex-col gap-3"
+    >
       <label htmlFor="password" className="sr-only">
         Team password
       </label>

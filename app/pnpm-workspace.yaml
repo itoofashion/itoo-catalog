@@ -6,6 +6,7 @@ packages: []
 # what Cloudflare's build image ships, reads `onlyBuiltDependencies`. Both are
 # listed so the install behaves the same locally and on Cloudflare.
 allowBuilds:
+  core-js: true
   esbuild: true
   sharp: false
   unrs-resolver: false

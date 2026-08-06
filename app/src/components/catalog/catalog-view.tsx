@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Eye, SlidersHorizontal, Undo2 } from "lucide-react";
 import { setStyleHidden } from "@/app/actions";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -192,7 +193,11 @@ export function CatalogView({
     const result = await setStyleHidden(sku, next);
     // Put back the way it was when the server refuses, so the grid keeps showing
     // the catalog as it really is rather than as the press meant it to be.
-    if ("error" in result) setHiddenNow((current) => ({ ...current, [sku]: !next }));
+    if ("error" in result) {
+      setHiddenNow((current) => ({ ...current, [sku]: !next }));
+      return;
+    }
+    posthog.capture("style_visibility_changed", { style_number: sku, hidden: next });
   }
 
   /** Where the catalog is, as filtered right now. Categories go in as slugs. */
@@ -241,9 +246,15 @@ export function CatalogView({
   );
 
   function openStyle(product: PublicProduct, photoIndex: number) {
+    const color = colorOf(product);
     showPhoto(product.sku, photoIndex);
     setOpenedSku(product.sku);
-    writeAddress(productHref(product.sku, colorOf(product)), "push");
+    writeAddress(productHref(product.sku, color), "push");
+    posthog.capture("product_viewed", {
+      style_number: product.sku,
+      category: product.category,
+      selected_color: color,
+    });
   }
 
   function closeStyle() {
@@ -258,7 +269,10 @@ export function CatalogView({
     setColors((current) => ({ ...current, [sku]: color }));
     // Only an open style is named in the address, and changing its color is not
     // a step of its own to go back through.
-    if (openedSku === sku) writeAddress(productHref(sku, color), "replace");
+    if (openedSku === sku) {
+      writeAddress(productHref(sku, color), "replace");
+      posthog.capture("product_color_selected", { style_number: sku, selected_color: color });
+    }
   }
 
   // Back and forward move between the catalog and the styles that were opened
@@ -292,6 +306,11 @@ export function CatalogView({
     const merged = { ...filters, ...next };
     setFilters(merged);
     syncAddress(selection, merged);
+    posthog.capture("catalog_filter_changed", {
+      category: merged.category ?? ALL_CATEGORIES,
+      new_arrivals_only: merged.newOnly,
+      page: merged.page,
+    });
   }
 
   function changeSelection(next: CatalogSelection) {
