@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { Check, Link2, Loader2 } from "lucide-react";
+import posthog from "posthog-js";
 import { createLink } from "@/app/s/actions";
 import { Button } from "@/components/ui/button";
 import type { CatalogSelection } from "@/lib/catalog/share";
@@ -52,6 +53,11 @@ export function LinkPanel({
       }
       const url = `${window.location.origin}/s/${result.code}`;
       setLink(url);
+      posthog.capture("shared_catalog_link_created", {
+        selected_category_count: selection.categories.length,
+        selected_style_count: selection.skus.length,
+        selected_product_count: productCount,
+      });
       await copy(url);
     });
   }

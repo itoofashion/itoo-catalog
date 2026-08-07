@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, Copy, TriangleAlert } from "lucide-react";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { orderText } from "@/lib/catalog/order";
@@ -62,7 +63,16 @@ export function CopyOrderButton({
     // Built at the press so the line always carries the colour chosen a moment
     // ago, and the link opens that style in that colour wherever it is pasted.
     const text = orderText(product, color, new URL(path, window.location.origin).toString());
-    setResult((await writeToClipboard(text)) ? "copied" : "failed");
+    const copied = await writeToClipboard(text);
+    setResult(copied ? "copied" : "failed");
+    if (copied) {
+      posthog.capture("order_details_copied", {
+        style_number: product.sku,
+        category: product.category,
+        selected_color: color,
+        source: tone,
+      });
+    }
   }
 
   const label =

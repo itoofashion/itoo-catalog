@@ -102,6 +102,12 @@ dashboard, connect the repository as a Worker and set:
 
 Or deploy from a terminal with `pnpm deploy` inside `app/`.
 
+The two PostHog variables in `app/.env.example` are read by `next build`, not by
+the running Worker, so they are set differently from the secrets below: put them
+in `app/.env.production` when the build runs from a terminal, or in the Worker's
+build variables when Cloudflare builds it. A build without them produces a site
+with analytics switched off rather than a broken one.
+
 After deploying:
 
 1. Set a `SYNC_SECRET` secret on the Worker (Settings → Variables and secrets)
