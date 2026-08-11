@@ -30,15 +30,16 @@ them in a root-only env file the crontab sources.
 
 ### Schedule — to be installed on the sync server
 
-**Not installed anywhere yet.** These two lines go into the crontab of the sync
-server once Milestone 2 is funded and the server's IP is whitelisted:
+**Not installed anywhere yet.** These lines go into the crontab of the sync
+server (the machine whose IP FashionGo has whitelisted for the API key):
 
 ```cron
 # Every minute: run a sync if "Sync now" was pressed in the admin panel.
 * * * * *  . $HOME/itoo-sync.env && node /path/to/app/scripts/sync-agent.mjs --poll >> $HOME/itoo-sync.log 2>&1
 
-# Mon/Wed/Fri 06:00: the standing full sync.
-0 6 * * 1,3,5  . $HOME/itoo-sync.env && node /path/to/app/scripts/sync-agent.mjs --full >> $HOME/itoo-sync.log 2>&1
+# Midnight in Los Angeles, FashionGo's own timezone: the standing nightly sync.
+CRON_TZ=America/Los_Angeles
+0 0 * * *  . $HOME/itoo-sync.env && node /path/to/app/scripts/sync-agent.mjs --full >> $HOME/itoo-sync.log 2>&1
 ```
 
 `itoo-sync.env` holds the three exports above. The poll prints nothing when
