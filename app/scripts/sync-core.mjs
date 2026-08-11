@@ -12,7 +12,9 @@
  * both come from the environment, and the repository goes to the client.
  */
 
-const API = "https://pubapi.fashiongo.net/v1.0/items";
+// Overridable so a rehearsal or a test can stand in for FashionGo with a local
+// server. Production leaves it unset and talks to the real one.
+const API = process.env.FASHIONGO_API_BASE ?? "https://pubapi.fashiongo.net/v1.0/items";
 
 /** FashionGo caps a page at a hundred items however large a page you ask for. */
 const PAGE_SIZE = 100;
