@@ -4,7 +4,7 @@ import { formatPrice } from "./pricing";
 import type { PublicProduct } from "./public";
 
 /**
- * What "Copy details" puts on the clipboard. Buyers paste this straight into a
+ * What "Copy Item Details" puts on the clipboard. Buyers paste this straight into a
  * chat, so it has to be readable as plain text and carry everything the sales
  * team needs to identify the style: style number, color and price.
  *

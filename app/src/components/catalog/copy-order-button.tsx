@@ -76,7 +76,11 @@ export function CopyOrderButton({
   }
 
   const label =
-    result === "copied" ? "Copied" : result === "failed" ? "Copy failed" : "Copy details";
+    result === "copied"
+      ? "Copied"
+      : result === "failed"
+        ? "Copy failed"
+        : "Copy Item Details";
 
   return (
     <>
@@ -85,7 +89,7 @@ export function CopyOrderButton({
         size={tone === "card" ? "sm" : "lg"}
         variant={tone === "card" ? "outline" : "default"}
         onClick={copy}
-        /* Forty-eight buttons that all announce themselves as "Copy details"
+        /* Forty-eight buttons that all announce themselves as "Copy Item Details"
            tell a screen reader nothing about which style is which. The visible
            words open the name, so the two still match. */
         aria-label={`${label}: ${product.name}, ${product.sku}`}

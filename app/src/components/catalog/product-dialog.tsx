@@ -244,7 +244,7 @@ export function ProductDialog({
                 {orderValue && (
                   <div className="flex items-center justify-between gap-4 border-t py-3">
                     <dt className="tracked text-[10px] text-muted-foreground">
-                      That comes to
+                      Total cost:
                     </dt>
                     <dd className="text-sm font-semibold">{orderValue}</dd>
                   </div>

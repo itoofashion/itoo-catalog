@@ -146,6 +146,17 @@ describe("browsing", () => {
     expect(within(dialog).getByText("$19.75")).toBeInTheDocument();
   });
 
+  it("prices the minimum order under the words the client asked for", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(within(cards()[0]).getByRole("img"));
+
+    const dialog = await screen.findByRole("dialog");
+    // 6 pieces at $19.75, labelled "Total cost:" — the client's own words for it.
+    expect(within(dialog).getByText("Total cost:")).toBeInTheDocument();
+    expect(within(dialog).getByText("$118.50")).toBeInTheDocument();
+  });
+
   it("starts from the filters the address arrived with", () => {
     renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: false, page: 1 });
     expect(cards()).toHaveLength(2);
@@ -741,7 +752,7 @@ describe("signing in", () => {
 
 describe("copying a style into a chat", () => {
   const copyButtonOf = (card: ReturnType<typeof within>) =>
-    card.getByRole("button", { name: /^Copy details/ });
+    card.getByRole("button", { name: /^Copy Item Details/ });
 
   it("copies on the first press, with no step in between", async () => {
     const user = userEvent.setup();
