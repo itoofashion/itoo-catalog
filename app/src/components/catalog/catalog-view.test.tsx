@@ -210,6 +210,67 @@ describe("the header", () => {
   });
 });
 
+describe("searching the catalog", () => {
+  const searchBox = () => screen.getByRole("searchbox", { name: /search/i });
+
+  it("sits in the header, for the team and for a client alike", () => {
+    renderCatalog(EMPTY_SELECTION, NO_FILTERS, { isTeam: false });
+    expect(within(screen.getByRole("banner")).getByRole("searchbox")).toBeInTheDocument();
+  });
+
+  it("narrows the grid to matching names as it is typed", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.type(searchBox(), "pant");
+
+    expect(cards()).toHaveLength(2);
+    expect(within(grid()).queryByText("Style TOP-1")).not.toBeInTheDocument();
+  });
+
+  it("finds a style by its number", async () => {
+    const user = userEvent.setup();
+    renderCatalog(EMPTY_SELECTION, NO_FILTERS, { isTeam: false });
+    await user.type(searchBox(), "pant-2");
+
+    expect(cards()).toHaveLength(1);
+    expect(within(grid()).getByText("Style PANT-2")).toBeInTheDocument();
+  });
+
+  it("narrows a category rather than escaping it", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(screen.getByRole("button", { name: "Pants" }));
+    await user.type(searchBox(), "PANT-1");
+
+    expect(cards()).toHaveLength(1);
+  });
+
+  it("keeps the search in the address, so it can just be copied", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.type(searchBox(), "lace");
+
+    expect(address()).toBe("/?q=lace");
+  });
+
+  it("starts from the search the address arrived with", () => {
+    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, query: "TOP" });
+    expect(cards()).toHaveLength(1);
+    expect(searchBox()).toHaveValue("TOP");
+  });
+
+  it("offers the way out of a search that matches nothing", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.type(searchBox(), "no such style");
+    expect(cards()).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: /Show every style/ }));
+    expect(cards()).toHaveLength(3);
+    expect(searchBox()).toHaveValue("");
+  });
+});
+
 describe("the logo", () => {
   it("is the way back to the whole catalog", () => {
     renderCatalog();

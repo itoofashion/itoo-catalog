@@ -49,6 +49,13 @@ describe("buildCatalogQuery", () => {
     expect(buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, page: 1 })).toBe("");
   });
 
+  it("carries the search, and leaves an empty one out", () => {
+    expect(buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, query: "lace" })).toBe(
+      "?q=lace",
+    );
+    expect(buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, query: null })).toBe("");
+  });
+
   it("is empty for the plain catalog", () => {
     expect(buildCatalogQuery(EMPTY_SELECTION, NO_FILTERS)).toBe("");
   });
@@ -57,7 +64,7 @@ describe("buildCatalogQuery", () => {
 describe("parseCatalogQuery", () => {
   it("round-trips a selection and its filters", () => {
     const selection = { categories: ["Tops"], skus: ["Y-542", "21034"] };
-    const filters = { category: "Tops", newOnly: true, page: 2 };
+    const filters = { category: "Tops", newOnly: true, page: 2, query: "lace" };
     const parsed = parseCatalogQuery(new URLSearchParams(buildCatalogQuery(selection, filters)));
 
     expect(parsed.selection).toEqual(selection);
@@ -89,6 +96,11 @@ describe("parseCatalogQuery", () => {
     expect(parseCatalogQuery({ page: "4" }).filters.page).toBe(4);
     expect(parseCatalogQuery({ page: "0" }).filters.page).toBe(1);
     expect(parseCatalogQuery({ page: "junk" }).filters.page).toBe(1);
+  });
+
+  it("reads a search, and treats a blank one as none", () => {
+    expect(parseCatalogQuery({ q: "lace top" }).filters.query).toBe("lace top");
+    expect(parseCatalogQuery({ q: "   " }).filters.query).toBeNull();
   });
 });
 

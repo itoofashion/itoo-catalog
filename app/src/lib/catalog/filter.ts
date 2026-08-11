@@ -44,7 +44,7 @@ export function selectedProducts(
 export function filterProducts(
   products: PublicProduct[],
   // Paging is not filtering, so the page number is deliberately not asked for.
-  filters: Pick<CatalogFilters, "category" | "newOnly">,
+  filters: Pick<CatalogFilters, "category" | "newOnly" | "query">,
 ): PublicProduct[] {
   let result = products;
 
@@ -53,6 +53,15 @@ export function filterProducts(
   }
   if (filters.newOnly) {
     result = result.filter((p) => p.isNew);
+  }
+  const wanted = filters.query?.trim().toLowerCase();
+  if (wanted) {
+    // A substring of the name or of the style number, case blind: buyers type
+    // "lace" from memory and "y-542" off an order sheet, and both have to land.
+    result = result.filter(
+      (p) =>
+        p.name.toLowerCase().includes(wanted) || p.sku.toLowerCase().includes(wanted),
+    );
   }
   return result;
 }

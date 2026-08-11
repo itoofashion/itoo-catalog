@@ -20,6 +20,8 @@ export type CatalogFilters = {
   /** Which category the grid is narrowed to, or null for all of them. */
   category: string | null;
   newOnly: boolean;
+  /** What was typed into the search box, or null for nothing. */
+  query: string | null;
   /** 1-based. In the address so a link opens on the page it was sent from. */
   page: number;
 };
@@ -27,7 +29,12 @@ export type CatalogFilters = {
 export const ALL_CATEGORIES = "All";
 
 export const EMPTY_SELECTION: CatalogSelection = { categories: [], skus: [] };
-export const NO_FILTERS: CatalogFilters = { category: null, newOnly: false, page: 1 };
+export const NO_FILTERS: CatalogFilters = {
+  category: null,
+  newOnly: false,
+  query: null,
+  page: 1,
+};
 
 const SEPARATOR = ",";
 
@@ -101,6 +108,9 @@ export function buildCatalogQuery(
   if (filters.newOnly) {
     params.set("new", "1");
   }
+  if (filters.query?.trim()) {
+    params.set("q", filters.query.trim());
+  }
   if (filters.page > 1) {
     params.set("page", String(filters.page));
   }
@@ -121,6 +131,7 @@ export function parseCatalogQuery(
     filters: {
       category: clean(params.get("show")),
       newOnly: params.get("new") === "1",
+      query: text(params.get("q")),
       page: pageNumber(params.get("page")),
     },
   };
@@ -141,6 +152,12 @@ function pageNumber(value: string | null): number {
 function clean(value: string | null): string | null {
   const trimmed = value?.trim();
   return !trimmed || trimmed === ALL_CATEGORIES ? null : trimmed;
+}
+
+/** Not clean(): a visitor searching for the word "All" means the word. */
+function text(value: string | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed || null;
 }
 
 function toSearchParams(

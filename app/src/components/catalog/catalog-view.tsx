@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Eye, SlidersHorizontal, Undo2 } from "lucide-react";
+import { Eye, Search, SlidersHorizontal, Undo2 } from "lucide-react";
 import { setStyleHidden } from "@/app/actions";
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
@@ -313,6 +313,18 @@ export function CatalogView({
     });
   }
 
+  /**
+   * Typed rather than pressed: the search narrows the grid on every keystroke,
+   * so the address is written with the history API instead of through the
+   * router, which would refetch a catalog that is already in this browser once
+   * per letter. Same for analytics: a keystroke is not an event worth a row.
+   */
+  function changeQuery(value: string) {
+    const merged = { ...filters, query: value || null, page: 1 };
+    setFilters(merged);
+    writeAddress(catalogHref(selection, merged), "replace");
+  }
+
   function changeSelection(next: CatalogSelection) {
     setSelection(next);
     syncAddress(next, filters);
@@ -373,14 +385,20 @@ export function CatalogView({
       : ALL_CATEGORIES;
 
   const matching = useMemo(
-    () => filterProducts(scope, { category: activeCategory, newOnly: filters.newOnly }),
-    [scope, activeCategory, filters.newOnly],
+    () =>
+      filterProducts(scope, {
+        category: activeCategory,
+        newOnly: filters.newOnly,
+        query: filters.query,
+      }),
+    [scope, activeCategory, filters.newOnly, filters.query],
   );
 
   const page = paginate(matching, filters.page);
   const visible = page.items;
   /** An empty page is a dead end when it was asked for, and a bug when it was not. */
-  const filtered = activeCategory !== ALL_CATEGORIES || filters.newOnly;
+  const filtered =
+    activeCategory !== ALL_CATEGORIES || filters.newOnly || Boolean(filters.query);
 
   // What the link will actually open, which is what the panel promises. A
   // hidden style ticked before it was hidden is still in the selection, and
@@ -447,6 +465,25 @@ export function CatalogView({
               </>
             }
           />
+
+          {/* Held out of the scroll with the logo: a search box that can drift
+              off screen is a search box nobody trusts. Narrow on a phone and
+              wider on a laptop, and it stays a filter among filters: it narrows
+              the grid keystroke by keystroke rather than opening a page. */}
+          <div className="relative shrink-0">
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="search"
+              value={filters.query ?? ""}
+              onChange={(event) => changeQuery(event.target.value)}
+              placeholder="Search"
+              aria-label="Search by name or style number"
+              className="w-24 rounded-sm border border-border bg-transparent py-1.5 pl-8 pr-2 text-[13px] outline-none transition placeholder:text-muted-foreground focus:border-foreground sm:w-52"
+            />
+          </div>
         </div>
       </header>
 
@@ -562,7 +599,9 @@ export function CatalogView({
                 variant="outline"
                 size="sm"
                 className="mt-1"
-                onClick={() => changeFilters({ category: null, newOnly: false, page: 1 })}
+                onClick={() =>
+                  changeFilters({ category: null, newOnly: false, query: null, page: 1 })
+                }
               >
                 Show every style
               </Button>

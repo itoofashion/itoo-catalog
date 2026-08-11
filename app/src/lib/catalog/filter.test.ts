@@ -20,9 +20,9 @@ function product(overrides: Partial<PublicProduct> & { sku: string }): PublicPro
 }
 
 const catalog = [
-  product({ sku: "A-1", category: "Tops", isNew: true }),
-  product({ sku: "A-2", category: "Dresses" }),
-  product({ sku: "A-3", category: "Dresses", isNew: true }),
+  product({ sku: "A-1", category: "Tops", isNew: true, name: "Romantic Lace Top" }),
+  product({ sku: "A-2", category: "Dresses", name: "Wrap Dress" }),
+  product({ sku: "A-3", category: "Dresses", isNew: true, name: "Lace Midi Dress" }),
 ];
 
 describe("categoriesOf", () => {
@@ -107,6 +107,35 @@ describe("filterProducts", () => {
 
   it("applies both together", () => {
     const result = filterProducts(catalog, { category: "Dresses", newOnly: true });
+    expect(result.map((p) => p.sku)).toEqual(["A-3"]);
+  });
+
+  it("searches names, wherever in the name the words are", () => {
+    const result = filterProducts(catalog, { ...NO_FILTERS, query: "lace" });
+    expect(result.map((p) => p.sku)).toEqual(["A-1", "A-3"]);
+  });
+
+  it("searches style numbers too", () => {
+    const result = filterProducts(catalog, { ...NO_FILTERS, query: "a-2" });
+    expect(result.map((p) => p.sku)).toEqual(["A-2"]);
+  });
+
+  it("reads a search without caring about case", () => {
+    const result = filterProducts(catalog, { ...NO_FILTERS, query: "LACE" });
+    expect(result.map((p) => p.sku)).toEqual(["A-1", "A-3"]);
+  });
+
+  it("ignores the spaces around a search", () => {
+    const result = filterProducts(catalog, { ...NO_FILTERS, query: "  wrap  " });
+    expect(result.map((p) => p.sku)).toEqual(["A-2"]);
+  });
+
+  it("narrows a category with a search, not instead of one", () => {
+    const result = filterProducts(catalog, {
+      ...NO_FILTERS,
+      category: "Dresses",
+      query: "lace",
+    });
     expect(result.map((p) => p.sku)).toEqual(["A-3"]);
   });
 });
