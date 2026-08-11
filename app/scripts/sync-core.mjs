@@ -13,8 +13,11 @@
  */
 
 // Overridable so a rehearsal or a test can stand in for FashionGo with a local
-// server. Production leaves it unset and talks to the real one.
-const API = process.env.FASHIONGO_API_BASE ?? "https://pubapi.fashiongo.net/v1.0/items";
+// server. Production leaves it unset and talks to the real one. Read per call,
+// not at load: a test sets it after importing this module.
+function api() {
+  return process.env.FASHIONGO_API_BASE ?? "https://pubapi.fashiongo.net/v1.0/items";
+}
 
 /** FashionGo caps a page at a hundred items however large a page you ask for. */
 const PAGE_SIZE = 100;
@@ -61,7 +64,7 @@ export function readEnv() {
  */
 async function fetchPage(apiKey, pageNumber, attempt = 1) {
   try {
-    const response = await fetch(`${API}?pageNumber=${pageNumber}&pageSize=${PAGE_SIZE}`, {
+    const response = await fetch(`${api()}?pageNumber=${pageNumber}&pageSize=${PAGE_SIZE}`, {
       headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
     });
     if (!response.ok) throw new Error(`FashionGo answered ${response.status}`);
