@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Eye, Search, SlidersHorizontal, Undo2 } from "lucide-react";
+import { Eye, EyeOff, Search, SlidersHorizontal, Undo2 } from "lucide-react";
 import { setStyleHidden } from "@/app/actions";
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
@@ -99,6 +99,13 @@ export function CatalogView({
    * filterProducts in lib/catalog/filter.ts.
    */
   const [addedAfter, setAddedAfter] = useState<string | null>(null);
+  /**
+   * Only the styles the team has hidden, so sold-out ones can be reviewed and
+   * brought back from one screen instead of hunted for page by page. The same
+   * kind of lens as addedAfter above, and out of the address for the same
+   * reason.
+   */
+  const [hiddenOnly, setHiddenOnly] = useState(false);
   // Opening one's own client link lands in the client's view, which is the point
   // of the link; the way back is a button, since this visitor is still the team.
   const [previewingAsClient, setPreviewingAsClient] = useState(arrivedViaClientLink);
@@ -391,18 +398,28 @@ export function CatalogView({
       ? filters.category
       : ALL_CATEGORIES;
 
-  const matching = useMemo(
-    () =>
-      filterProducts(scope, {
-        category: activeCategory,
-        newOnly: filters.newOnly,
-        query: filters.query,
-        // Never in the client view, not even applied silently: the preview is a
-        // promise about what the client will see.
-        addedAfter: showTools ? addedAfter : null,
-      }),
-    [scope, activeCategory, filters.newOnly, filters.query, showTools, addedAfter],
-  );
+  const matching = useMemo(() => {
+    const result = filterProducts(scope, {
+      category: activeCategory,
+      newOnly: filters.newOnly,
+      query: filters.query,
+      // Never in the client view, not even applied silently: the preview is a
+      // promise about what the client will see.
+      addedAfter: showTools ? addedAfter : null,
+    });
+    // Against hiddenOf rather than the product's own flag, so a style leaves
+    // the review the moment the eye brings it back, before the server answers.
+    return showTools && hiddenOnly ? result.filter((p) => hiddenOf(p)) : result;
+  }, [
+    scope,
+    activeCategory,
+    filters.newOnly,
+    filters.query,
+    showTools,
+    addedAfter,
+    hiddenOnly,
+    hiddenOf,
+  ]);
 
   const page = paginate(matching, filters.page);
   const visible = page.items;
@@ -411,7 +428,7 @@ export function CatalogView({
     activeCategory !== ALL_CATEGORIES ||
     filters.newOnly ||
     Boolean(filters.query) ||
-    (showTools && Boolean(addedAfter));
+    (showTools && (Boolean(addedAfter) || hiddenOnly));
 
   // What the link will actually open, which is what the panel promises. A
   // hidden style ticked before it was hidden is still in the selection, and
@@ -564,21 +581,43 @@ export function CatalogView({
             {page.total} {page.total === 1 ? "style" : "styles"}
           </p>
 
-          {/* The team's own filter, beside the count it moves. The date arrives
-              from FashionGo with the style: the day it went on sale there. */}
+          {/* The team's own filters, beside the count they move. */}
           {showTools && (
-            <label className="tracked flex items-center gap-2 text-[11px] text-muted-foreground">
-              Added after
-              <input
-                type="date"
-                value={addedAfter ?? ""}
-                onChange={(event) => {
-                  setAddedAfter(event.target.value || null);
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {/* The date arrives from FashionGo with the style: the day it
+                  went on sale there. */}
+              <label className="tracked flex items-center gap-2 text-[11px] text-muted-foreground">
+                Added after
+                <input
+                  type="date"
+                  value={addedAfter ?? ""}
+                  onChange={(event) => {
+                    setAddedAfter(event.target.value || null);
+                    changeFilters({ page: 1 });
+                  }}
+                  className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] normal-case tracking-normal text-foreground outline-none transition focus:border-foreground"
+                />
+              </label>
+
+              {/* The same shape as the New toggle in the header: it is the same
+                  kind of thing, a filter that is on or off. */}
+              <button
+                type="button"
+                onClick={() => {
+                  setHiddenOnly(!hiddenOnly);
                   changeFilters({ page: 1 });
                 }}
-                className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] normal-case tracking-normal text-foreground outline-none transition focus:border-foreground"
-              />
-            </label>
+                aria-pressed={hiddenOnly}
+                className={cn(
+                  "tracked flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
+                  hiddenOnly
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+                )}
+              >
+                <EyeOff className="size-3" /> Hidden only
+              </button>
+            </div>
           )}
 
           {/* One slot, the same slot in both views, so pressing it does not move
@@ -631,6 +670,7 @@ export function CatalogView({
                 className="mt-1"
                 onClick={() => {
                   setAddedAfter(null);
+                  setHiddenOnly(false);
                   changeFilters({ category: null, newOnly: false, query: null, page: 1 });
                 }}
               >

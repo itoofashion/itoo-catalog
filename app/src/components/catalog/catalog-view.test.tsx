@@ -1212,6 +1212,96 @@ describe("a style the team has hidden", () => {
   });
 });
 
+/**
+ * Sold-out styles pile up over weeks and come back one by one. The review
+ * filter puts every hidden style on one screen instead of leaving the team to
+ * page through the whole catalog looking for dimmed cards.
+ */
+describe("the team's review of hidden styles", () => {
+  const someHidden = [
+    product({ sku: "TOP-1", category: "Tops" }),
+    product({ sku: "TOP-2", category: "Tops", isHidden: true }),
+    product({ sku: "PANT-1", category: "Pants", isHidden: true }),
+  ];
+
+  function renderReview({ isTeam = true } = {}) {
+    return render(
+      <CatalogView
+        products={someHidden}
+        selection={EMPTY_SELECTION}
+        filters={NO_FILTERS}
+        isTeam={isTeam}
+      />,
+    );
+  }
+
+  const reviewToggle = () => screen.getByRole("button", { name: /Hidden only/ });
+
+  it("narrows the grid to the hidden styles alone", async () => {
+    const user = userEvent.setup();
+    renderReview();
+    await user.click(reviewToggle());
+
+    expect(cards()).toHaveLength(2);
+    expect(within(grid()).queryByText("Style TOP-1")).not.toBeInTheDocument();
+    expect(styleCount()).toBe("2 styles");
+  });
+
+  it("composes with a category", async () => {
+    const user = userEvent.setup();
+    renderReview();
+    await user.click(reviewToggle());
+    await user.click(screen.getByRole("button", { name: "Pants" }));
+
+    expect(cards()).toHaveLength(1);
+    expect(within(grid()).getByText("Style PANT-1")).toBeInTheDocument();
+  });
+
+  it("lets a style leave the review as it is brought back", async () => {
+    const user = userEvent.setup();
+    renderReview();
+    await user.click(reviewToggle());
+    await user.click(screen.getByRole("button", { name: "Show TOP-2 to clients again" }));
+
+    expect(cards()).toHaveLength(1);
+    expect(within(grid()).queryByText("Style TOP-2")).not.toBeInTheDocument();
+  });
+
+  it("is nowhere in a client's view", () => {
+    renderReview({ isTeam: false });
+    expect(screen.queryByRole("button", { name: /Hidden only/ })).not.toBeInTheDocument();
+  });
+
+  it("neither shows nor applies in the team's preview of the client view", async () => {
+    const user = userEvent.setup();
+    renderReview();
+    await user.click(reviewToggle());
+    await user.click(screen.getByRole("button", { name: /Public view/ }));
+
+    expect(screen.queryByRole("button", { name: /Hidden only/ })).not.toBeInTheDocument();
+    // The client's page holds the visible style, and only that.
+    expect(cards()).toHaveLength(1);
+    expect(within(grid()).getByText("Style TOP-1")).toBeInTheDocument();
+  });
+
+  it("is cleared by the way out of an empty grid", async () => {
+    const user = userEvent.setup();
+    render(
+      <CatalogView
+        products={[product({ sku: "TOP-1" })]}
+        selection={EMPTY_SELECTION}
+        filters={NO_FILTERS}
+        isTeam
+      />,
+    );
+    await user.click(reviewToggle());
+    expect(cards()).toHaveLength(0);
+
+    await user.click(screen.getByRole("button", { name: /Show every style/ }));
+    expect(cards()).toHaveLength(1);
+  });
+});
+
 describe("the team's preview of the client view", () => {
   const withHidden = [
     product({ sku: "TOP-1", category: "Tops" }),
