@@ -4,6 +4,7 @@ import Image from "next/image";
 import { adminGate, NOT_CONFIGURED_MESSAGE, readAdminConfig } from "@/lib/admin/auth";
 import { isTeamViewer } from "@/lib/admin/request";
 import { catalogStore } from "@/lib/catalog/store";
+import { syncState } from "@/lib/sync/state";
 import { CatalogStatus } from "./catalog-status";
 import { SignInForm } from "./sign-in-form";
 
@@ -33,12 +34,17 @@ export default async function AdminPage() {
   // On a server with no password configured, which is only ever a development
   // one, everybody is the team and nobody sees the form: see lib/admin/auth.ts.
   if (await isTeamViewer()) {
-    const catalog = await catalogStore.read();
+    const [catalog, sync] = await Promise.all([
+      catalogStore.read(),
+      syncState().then((state) => state.read()),
+    ]);
     return (
       <Frame>
         <CatalogStatus
           productCount={catalog.products.length}
           syncedAt={catalog.syncedAt}
+          lastRun={sync.lastRun}
+          syncRequestedAt={sync.requestedAt}
         />
       </Frame>
     );

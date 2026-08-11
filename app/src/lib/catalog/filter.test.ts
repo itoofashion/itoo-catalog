@@ -92,21 +92,21 @@ describe("filterProducts", () => {
   });
 
   it("narrows to a category", () => {
-    const result = filterProducts(catalog, { category: "Dresses", newOnly: false });
+    const result = filterProducts(catalog, { ...NO_FILTERS, category: "Dresses" });
     expect(result.map((p) => p.sku)).toEqual(["A-2", "A-3"]);
   });
 
   it("treats All as no filter", () => {
-    expect(filterProducts(catalog, { category: "All", newOnly: false })).toHaveLength(3);
+    expect(filterProducts(catalog, { ...NO_FILTERS, category: "All" })).toHaveLength(3);
   });
 
   it("narrows to new arrivals", () => {
-    const result = filterProducts(catalog, { category: null, newOnly: true });
+    const result = filterProducts(catalog, { ...NO_FILTERS, newOnly: true });
     expect(result.map((p) => p.sku)).toEqual(["A-1", "A-3"]);
   });
 
   it("applies both together", () => {
-    const result = filterProducts(catalog, { category: "Dresses", newOnly: true });
+    const result = filterProducts(catalog, { ...NO_FILTERS, category: "Dresses", newOnly: true });
     expect(result.map((p) => p.sku)).toEqual(["A-3"]);
   });
 

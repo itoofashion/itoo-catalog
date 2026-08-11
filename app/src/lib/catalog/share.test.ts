@@ -31,16 +31,16 @@ describe("buildCatalogQuery", () => {
 
   it("puts the open filters in the address, so it can just be copied", () => {
     const query = buildCatalogQuery(EMPTY_SELECTION, {
+      ...NO_FILTERS,
       category: "Dresses",
       newOnly: true,
-      page: 1,
     });
     expect(query).toBe("?show=Dresses&new=1");
   });
 
   it("leaves All out, because it is the absence of a filter", () => {
     expect(
-      buildCatalogQuery(EMPTY_SELECTION, { category: "All", newOnly: false, page: 1 }),
+      buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, category: "All" }),
     ).toBe("");
   });
 

@@ -9,6 +9,8 @@ import {
   readAdminConfig,
   sessionCookieOptions,
 } from "@/lib/admin/auth";
+import { isTeamViewer } from "@/lib/admin/request";
+import { syncState } from "@/lib/sync/state";
 
 export type SignInState = { error: string | null };
 
@@ -42,4 +44,27 @@ export async function signIn(
 
   // Outside any try/catch on purpose: redirect works by throwing.
   redirect("/admin");
+}
+
+export type SyncRequestState = { ok: true } | { error: string };
+
+/**
+ * The "Sync now" button, from the server's side. It does not sync: FashionGo
+ * answers a whitelisted address and the Worker has no fixed one, so all this
+ * can do is leave a note that the puller polls for every minute (see
+ * lib/sync/state.ts and scripts/sync-agent.mjs).
+ *
+ * Checked against the session even though the button is only drawn for the
+ * team, for the reason setStyleHidden is: a Server Action is a public endpoint,
+ * and what is behind this one is the ability to make our puller hit FashionGo.
+ */
+export async function requestSync(): Promise<SyncRequestState> {
+  if (!(await isTeamViewer())) return { error: "Sign in to start a sync." };
+
+  try {
+    await (await syncState()).request(new Date().toISOString());
+    return { ok: true };
+  } catch {
+    return { error: "Could not ask for a sync just now. Try again." };
+  }
 }

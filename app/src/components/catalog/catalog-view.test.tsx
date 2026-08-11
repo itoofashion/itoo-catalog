@@ -158,14 +158,14 @@ describe("browsing", () => {
   });
 
   it("starts from the filters the address arrived with", () => {
-    renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: false, page: 1 });
+    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, category: "Pants" });
     expect(cards()).toHaveLength(2);
   });
 
   it("offers a way back out of a filter that matches nothing", async () => {
     const user = userEvent.setup();
     // Nothing in Pants is new, so this pair of filters can only come up empty.
-    renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: true, page: 1 });
+    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, category: "Pants", newOnly: true });
     expect(cards()).toHaveLength(0);
 
     await user.click(screen.getByRole("button", { name: /Show every style/ }));
@@ -349,7 +349,7 @@ describe("the logo", () => {
   it("clears the category, the New filter and the page number", async () => {
     const user = userEvent.setup();
     // Nothing in Pants is new, so this pair of filters shows an empty grid.
-    renderCatalog(EMPTY_SELECTION, { category: "Pants", newOnly: true, page: 1 });
+    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, category: "Pants", newOnly: true });
     expect(cards()).toHaveLength(0);
 
     await user.click(screen.getByRole("link", { name: /itoo/ }));
