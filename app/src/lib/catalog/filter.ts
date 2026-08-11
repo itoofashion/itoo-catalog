@@ -44,7 +44,14 @@ export function selectedProducts(
 export function filterProducts(
   products: PublicProduct[],
   // Paging is not filtering, so the page number is deliberately not asked for.
-  filters: Pick<CatalogFilters, "category" | "newOnly" | "query">,
+  filters: Pick<CatalogFilters, "category" | "newOnly" | "query"> & {
+    /**
+     * "YYYY-MM-DD", inclusive of the day itself. The team's own lens, which is
+     * why it is not in CatalogFilters: the address is the link a client gets
+     * sent, and a client's products carry no date to read anyway.
+     */
+    addedAfter?: string | null;
+  },
 ): PublicProduct[] {
   let result = products;
 
@@ -62,6 +69,12 @@ export function filterProducts(
       (p) =>
         p.name.toLowerCase().includes(wanted) || p.sku.toLowerCase().includes(wanted),
     );
+  }
+  if (filters.addedAfter) {
+    // ISO dates compare as strings, day against day. A style with no date at
+    // all cannot claim to qualify, so it is dropped rather than guessed at.
+    const day = filters.addedAfter;
+    result = result.filter((p) => p.addedAt != null && p.addedAt.slice(0, 10) >= day);
   }
   return result;
 }

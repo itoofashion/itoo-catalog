@@ -148,6 +148,16 @@ describe("a style the team has hidden", () => {
     expect(published.products.every((product) => !product.isHidden)).toBe(true);
   });
 
+  it("hands the team the day a style was added, for the admin filter", () => {
+    const published = toPublicCatalog(catalog, now, { hidden: new Set(), isTeam: true });
+    expect(published.products[0].addedAt).toBe(stored.createdAt);
+  });
+
+  it("keeps that day out of what a client is sent", () => {
+    const serialized = JSON.stringify(toPublicCatalog(catalog, now, NOTHING_HIDDEN));
+    expect(serialized).not.toContain("addedAt");
+  });
+
   it("is published like any other when nothing is hidden", () => {
     const published = toPublicCatalog(catalog, now, NOTHING_HIDDEN);
     expect(published.products).toHaveLength(2);

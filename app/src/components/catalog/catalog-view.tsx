@@ -92,6 +92,13 @@ export function CatalogView({
 
   const [selection, setSelection] = useState(initialSelection);
   const [filters, setFilters] = useState(initialFilters);
+  /**
+   * The team's own lens: only styles added on this day or after. Local state
+   * rather than a CatalogFilters field on purpose — the address is the link a
+   * client gets sent, and this is not something to send a client. See
+   * filterProducts in lib/catalog/filter.ts.
+   */
+  const [addedAfter, setAddedAfter] = useState<string | null>(null);
   // Opening one's own client link lands in the client's view, which is the point
   // of the link; the way back is a button, since this visitor is still the team.
   const [previewingAsClient, setPreviewingAsClient] = useState(arrivedViaClientLink);
@@ -390,15 +397,21 @@ export function CatalogView({
         category: activeCategory,
         newOnly: filters.newOnly,
         query: filters.query,
+        // Never in the client view, not even applied silently: the preview is a
+        // promise about what the client will see.
+        addedAfter: showTools ? addedAfter : null,
       }),
-    [scope, activeCategory, filters.newOnly, filters.query],
+    [scope, activeCategory, filters.newOnly, filters.query, showTools, addedAfter],
   );
 
   const page = paginate(matching, filters.page);
   const visible = page.items;
   /** An empty page is a dead end when it was asked for, and a bug when it was not. */
   const filtered =
-    activeCategory !== ALL_CATEGORIES || filters.newOnly || Boolean(filters.query);
+    activeCategory !== ALL_CATEGORIES ||
+    filters.newOnly ||
+    Boolean(filters.query) ||
+    (showTools && Boolean(addedAfter));
 
   // What the link will actually open, which is what the panel promises. A
   // hidden style ticked before it was hidden is still in the selection, and
@@ -551,6 +564,23 @@ export function CatalogView({
             {page.total} {page.total === 1 ? "style" : "styles"}
           </p>
 
+          {/* The team's own filter, beside the count it moves. The date arrives
+              from FashionGo with the style: the day it went on sale there. */}
+          {showTools && (
+            <label className="tracked flex items-center gap-2 text-[11px] text-muted-foreground">
+              Added after
+              <input
+                type="date"
+                value={addedAfter ?? ""}
+                onChange={(event) => {
+                  setAddedAfter(event.target.value || null);
+                  changeFilters({ page: 1 });
+                }}
+                className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] normal-case tracking-normal text-foreground outline-none transition focus:border-foreground"
+              />
+            </label>
+          )}
+
           {/* One slot, the same slot in both views, so pressing it does not move
               the thing that was just pressed. */}
           {isTeam && (
@@ -599,9 +629,10 @@ export function CatalogView({
                 variant="outline"
                 size="sm"
                 className="mt-1"
-                onClick={() =>
-                  changeFilters({ category: null, newOnly: false, query: null, page: 1 })
-                }
+                onClick={() => {
+                  setAddedAfter(null);
+                  changeFilters({ category: null, newOnly: false, query: null, page: 1 });
+                }}
               >
                 Show every style
               </Button>
