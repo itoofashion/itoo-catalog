@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 import { adminGate, NOT_CONFIGURED_MESSAGE, readAdminConfig } from "@/lib/admin/auth";
 import { isTeamViewer } from "@/lib/admin/request";
+import { hiddenStyles } from "@/lib/catalog/hidden";
 import { catalogStore } from "@/lib/catalog/store";
 import { syncState } from "@/lib/sync/state";
+import { HiddenStylesReview, RecentArrivals, type ReviewStyle } from "./catalog-review";
 import { CatalogStatus } from "./catalog-status";
 import { SignInForm } from "./sign-in-form";
 
@@ -34,18 +37,34 @@ export default async function AdminPage() {
   // On a server with no password configured, which is only ever a development
   // one, everybody is the team and nobody sees the form: see lib/admin/auth.ts.
   if (await isTeamViewer()) {
-    const [catalog, sync] = await Promise.all([
+    const [catalog, sync, hidden] = await Promise.all([
       catalogStore.read(),
       syncState().then((state) => state.read()),
+      hiddenStyles().then((styles) => styles.list()),
     ]);
+    // The admin lists read the stored catalog directly: this page is behind the
+    // sign-in, so the date and the hidden flag are allowed here in a way they
+    // never are in the public payload (see lib/catalog/public.ts).
+    const styles: ReviewStyle[] = catalog.products.map((product) => ({
+      sku: product.sku,
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      photo: product.images[0]?.url ?? null,
+      addedAt: product.createdAt,
+      hidden: hidden.has(product.sku),
+    }));
+
     return (
-      <Frame>
+      <Frame wide>
         <CatalogStatus
           productCount={catalog.products.length}
           syncedAt={catalog.syncedAt}
           lastRun={sync.lastRun}
           syncRequestedAt={sync.requestedAt}
         />
+        <HiddenStylesReview styles={styles} />
+        <RecentArrivals styles={styles} />
       </Frame>
     );
   }
@@ -71,12 +90,20 @@ export default async function AdminPage() {
 function Frame({
   children,
   heading = "Admin panel",
+  wide = false,
 }: {
   children: ReactNode;
   heading?: string;
+  /** The team's view holds lists; the sign-in door holds a form. */
+  wide?: boolean;
 }) {
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-6 py-24">
+    <main
+      className={cn(
+        "mx-auto flex w-full flex-1 flex-col justify-center gap-8 px-6 py-24",
+        wide ? "max-w-lg" : "max-w-sm",
+      )}
+    >
       <div className="flex flex-col gap-3 text-center">
         {/* Asked for at its full 1050px and drawn at the 32px line: the image
             optimizer is off on Workers (see next.config.ts), so the browser
