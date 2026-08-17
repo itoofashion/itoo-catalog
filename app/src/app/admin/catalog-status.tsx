@@ -9,8 +9,9 @@ import { requestSync } from "./actions";
 
 /**
  * What the team gets after signing in: how much catalog there is, when it last
- * changed, where it comes from, the button that asks for a sync, and the way
- * out.
+ * changed, the button that asks for a sync, and the way out. How the mirroring
+ * works stays out of the copy on purpose: this screen is for managers, and the
+ * plumbing is documented in the repo, not in the product.
  *
  * The button asks rather than syncs: FashionGo answers a whitelisted address
  * and the Worker has no fixed one, so the press leaves a note that the sync
@@ -77,7 +78,7 @@ export function CatalogStatus({
           </dd>
         </div>
 
-        <div className="flex flex-col gap-2.5 border-t py-3">
+        <div className="flex flex-col gap-2.5 border-y py-3">
           <dt className="tracked text-[10px] text-muted-foreground">FashionGo sync</dt>
           <dd className="flex flex-col gap-2.5 text-sm">
             <p className="text-muted-foreground">
@@ -118,14 +119,6 @@ export function CatalogStatus({
           </dd>
         </div>
 
-        <div className="flex flex-col gap-2 border-y py-3">
-          <dt className="tracked text-[10px] text-muted-foreground">Source</dt>
-          <dd className="text-sm leading-relaxed text-muted-foreground">
-            The catalog mirrors the itoo account on FashionGo, read through the
-            official FashionGo REST API by a sync agent on its own schedule.
-            Sync now asks the agent to run sooner.
-          </dd>
-        </div>
       </dl>
 
       <div className="flex items-center justify-between gap-3">

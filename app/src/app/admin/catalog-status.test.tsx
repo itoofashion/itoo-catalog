@@ -59,11 +59,6 @@ describe("catalog status", () => {
     expect(screen.getByText("never")).toBeInTheDocument();
   });
 
-  it("names where the products come from", () => {
-    renderStatus();
-    expect(screen.getByText(/official FashionGo REST API/i)).toBeInTheDocument();
-  });
-
   it("leads back to the catalog", () => {
     renderStatus();
     expect(screen.getByRole("link", { name: /catalog/i })).toHaveAttribute("href", "/");
