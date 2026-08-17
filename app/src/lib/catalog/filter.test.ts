@@ -139,39 +139,3 @@ describe("filterProducts", () => {
     expect(result.map((p) => p.sku)).toEqual(["A-3"]);
   });
 });
-
-/**
- * The team's own lens: the day a style was added is published to them alone
- * (see public.ts), so this filter only ever has dates to read in their view.
- */
-describe("filterProducts, by the day a style was added", () => {
-  const dated = [
-    product({ sku: "D-1", addedAt: "2026-06-30T23:59:00.000Z" }),
-    product({ sku: "D-2", addedAt: "2026-07-01T09:00:00.000Z" }),
-    product({ sku: "D-3", addedAt: "2026-07-15T09:00:00.000Z" }),
-  ];
-
-  it("keeps styles added on the chosen day or after it", () => {
-    const result = filterProducts(dated, { ...NO_FILTERS, addedAfter: "2026-07-01" });
-    expect(result.map((p) => p.sku)).toEqual(["D-2", "D-3"]);
-  });
-
-  it("changes nothing when no day is chosen", () => {
-    expect(filterProducts(dated, { ...NO_FILTERS, addedAfter: null })).toHaveLength(3);
-  });
-
-  it("drops a style that carries no date, rather than guessing one", () => {
-    const undated = [...dated, product({ sku: "N-1" })];
-    const result = filterProducts(undated, { ...NO_FILTERS, addedAfter: "2026-01-01" });
-    expect(result.map((p) => p.sku)).toEqual(["D-1", "D-2", "D-3"]);
-  });
-
-  it("narrows a search further, not instead of it", () => {
-    const result = filterProducts(dated, {
-      ...NO_FILTERS,
-      query: "d-",
-      addedAfter: "2026-07-02",
-    });
-    expect(result.map((p) => p.sku)).toEqual(["D-3"]);
-  });
-});

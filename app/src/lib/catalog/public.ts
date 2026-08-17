@@ -37,12 +37,6 @@ export type PublicProduct = {
   minimumUnits: number | null;
   isNew: boolean;
   /**
-   * The day the style went on sale, ISO 8601. In the team's copy only, for their
-   * filter by date: the badge is all a client's page needs from this date, and
-   * publishing the date itself to everyone is what this boundary exists to stop.
-   */
-  addedAt?: string;
-  /**
    * Taken out of the catalog by the team. Only ever true in the team's own copy:
    * a hidden style is dropped from a client's catalog entirely rather than sent
    * with a flag on it, so a client's page never contains one to un-flag. What
@@ -71,14 +65,10 @@ export function toPublicProduct(
   product: Product,
   now: Date,
   isHidden = false,
-  forTeam = false,
 ): PublicProduct {
   // Written field by field on purpose: spreading the stored product would
   // publish every field a future migration happens to add to it.
   return {
-    // Left out entirely rather than nulled for a client, so the client's
-    // payload carries no trace of there being a date to ask about.
-    ...(forTeam ? { addedAt: product.createdAt } : {}),
     sku: product.sku,
     name: product.name,
     price: product.price,
@@ -116,9 +106,7 @@ export function toPublicCatalog(
 ): PublicCatalog {
   const products = catalog.products
     .filter((product) => visibility.isTeam || !visibility.hidden.has(product.sku))
-    .map((product) =>
-      toPublicProduct(product, now, visibility.hidden.has(product.sku), visibility.isTeam),
-    );
+    .map((product) => toPublicProduct(product, now, visibility.hidden.has(product.sku)));
   return { products };
 }
 

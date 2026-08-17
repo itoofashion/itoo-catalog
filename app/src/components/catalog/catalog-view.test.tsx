@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CatalogView } from "./catalog-view";
 import { toPublicCatalog, type PublicProduct } from "@/lib/catalog/public";
@@ -268,75 +268,6 @@ describe("searching the catalog", () => {
     await user.click(screen.getByRole("button", { name: /Show every style/ }));
     expect(cards()).toHaveLength(3);
     expect(searchBox()).toHaveValue("");
-  });
-});
-
-/**
- * The day a style was added is published to the team alone (see
- * lib/catalog/public.ts), so the filter over it exists only in their view. It is
- * deliberately not in the address: the address is the link a client gets sent.
- */
-describe("the team's filter by the day a style was added", () => {
-  const dated = [
-    product({ sku: "TOP-1", category: "Tops", addedAt: "2026-06-01T00:00:00.000Z" }),
-    product({ sku: "PANT-1", category: "Pants", addedAt: "2026-07-10T00:00:00.000Z" }),
-  ];
-
-  function renderDated({ isTeam = true } = {}) {
-    return render(
-      <CatalogView
-        products={dated}
-        selection={EMPTY_SELECTION}
-        filters={NO_FILTERS}
-        isTeam={isTeam}
-      />,
-    );
-  }
-
-  const dateBox = () => screen.getByLabelText(/added after/i);
-
-  it("narrows the grid to styles added on the chosen day or after", () => {
-    renderDated();
-    fireEvent.change(dateBox(), { target: { value: "2026-07-01" } });
-
-    expect(cards()).toHaveLength(1);
-    expect(within(grid()).getByText("Style PANT-1")).toBeInTheDocument();
-  });
-
-  it("composes with a search", async () => {
-    const user = userEvent.setup();
-    renderDated();
-    fireEvent.change(dateBox(), { target: { value: "2026-07-01" } });
-    await user.type(screen.getByRole("searchbox"), "top");
-
-    expect(cards()).toHaveLength(0);
-  });
-
-  it("is nowhere in a client's view", () => {
-    renderDated({ isTeam: false });
-    expect(screen.queryByLabelText(/added after/i)).not.toBeInTheDocument();
-  });
-
-  it("neither shows nor applies in the team's preview of the client view", async () => {
-    const user = userEvent.setup();
-    renderDated();
-    fireEvent.change(dateBox(), { target: { value: "2026-07-01" } });
-    await user.click(screen.getByRole("button", { name: /Public view/ }));
-
-    // The preview is a promise about what the client will see, and the client
-    // sees every style whatever day it arrived.
-    expect(screen.queryByLabelText(/added after/i)).not.toBeInTheDocument();
-    expect(cards()).toHaveLength(2);
-  });
-
-  it("is cleared by the way out of an empty grid", async () => {
-    const user = userEvent.setup();
-    renderDated();
-    fireEvent.change(dateBox(), { target: { value: "2027-01-01" } });
-    expect(cards()).toHaveLength(0);
-
-    await user.click(screen.getByRole("button", { name: /Show every style/ }));
-    expect(cards()).toHaveLength(2);
   });
 });
 
