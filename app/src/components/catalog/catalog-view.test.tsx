@@ -115,16 +115,25 @@ describe("browsing", () => {
   it("narrows the grid to a category", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: "Pants" }));
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
 
     expect(cards()).toHaveLength(2);
     expect(within(grid()).queryByText("Style TOP-1")).not.toBeInTheDocument();
   });
 
+  it("shows two ticked categories together, as one rack", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
+    await user.click(screen.getByRole("checkbox", { name: /Tops/ }));
+
+    expect(cards()).toHaveLength(3);
+  });
+
   it("narrows the grid to new arrivals", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: /^New$/ }));
+    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
 
     expect(cards()).toHaveLength(1);
     expect(within(grid()).getByText("Style TOP-1")).toBeInTheDocument();
@@ -132,7 +141,7 @@ describe("browsing", () => {
 
   it("marks recent styles as new", () => {
     renderCatalog();
-    // By the badge, not by the word: the filter chip says "New" as well.
+    // By the badge, not by the word: the filter rail says "New" as well.
     expect(grid().querySelectorAll('[data-badge="new"]')).toHaveLength(1);
   });
 
@@ -158,14 +167,18 @@ describe("browsing", () => {
   });
 
   it("starts from the filters the address arrived with", () => {
-    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, category: "Pants" });
+    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, categories: ["Pants"] });
     expect(cards()).toHaveLength(2);
   });
 
   it("offers a way back out of a filter that matches nothing", async () => {
     const user = userEvent.setup();
     // Nothing in Pants is new, so this pair of filters can only come up empty.
-    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, category: "Pants", newOnly: true });
+    renderCatalog(EMPTY_SELECTION, {
+      ...NO_FILTERS,
+      categories: ["Pants"],
+      newOnly: true,
+    });
     expect(cards()).toHaveLength(0);
 
     await user.click(screen.getByRole("button", { name: /Show every style/ }));
@@ -185,28 +198,73 @@ describe("the header", () => {
     expect(logo).toHaveAttribute("height", "483");
   });
 
-  it("keeps the logo, New and the categories on one line, in that order", () => {
+  it("holds the logo and the search, and leaves the filters to the rail", () => {
     renderCatalog();
     const header = screen.getByRole("banner");
-    // What makes one line fit a phone: everything after the logo is a single
-    // strip that runs out of screen sideways instead of onto a second row.
-    const strip = header.querySelector("[data-filter-strip]") as HTMLElement;
 
-    expect(strip.className).toContain("overflow-x-auto");
-    expect(within(strip).getByRole("button", { name: /^New$/ })).toBeInTheDocument();
-    expect(within(strip).getByRole("button", { name: "Pants" })).toBeInTheDocument();
-    // New at the head of the strip, where it sits on a laptop.
-    expect(within(strip).getAllByRole("button")[0]).toHaveTextContent("New");
-    // The logo is held out of the scroll, so it stays reachable at any width.
-    expect(
-      within(header).getByRole("img", { name: "itoo" }).closest("[data-filter-strip]"),
-    ).toBeNull();
+    expect(within(header).getByRole("img", { name: "itoo" })).toBeInTheDocument();
+    expect(within(header).getByRole("searchbox")).toBeInTheDocument();
+    // The categories are not up here: they live in the rail beside the grid.
+    expect(within(header).queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+});
+
+describe("the filter rail", () => {
+  const rail = () => screen.getByRole("complementary", { name: /filters/i });
+
+  it("stands beside the grid with every category and its count", () => {
+    renderCatalog();
+
+    expect(within(rail()).getByRole("checkbox", { name: /Tops/ })).toBeInTheDocument();
+    // The count is what ticking the category would show.
+    expect(within(rail()).getByText("Pants").parentElement).toHaveTextContent("Pants2");
   });
 
-  it("does not wrap onto a second line on a phone", () => {
+  it("recounts under a search, so the numbers stay a promise", async () => {
+    const user = userEvent.setup();
     renderCatalog();
-    const row = screen.getByRole("banner").firstElementChild as HTMLElement;
-    expect(row.className).not.toContain("flex-wrap");
+    await user.type(screen.getByRole("searchbox"), "TOP");
+
+    expect(within(rail()).getByText("Tops").parentElement).toHaveTextContent("Tops1");
+    // A category the search empties says 0 rather than disappearing.
+    expect(within(rail()).getByText("Pants").parentElement).toHaveTextContent("Pants0");
+  });
+
+  it("offers the way back once something is narrowed, and not before", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    expect(
+      within(rail()).queryByRole("button", { name: /Show everything/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
+    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+    expect(cards()).toHaveLength(0);
+
+    await user.click(within(rail()).getByRole("button", { name: /Show everything/i }));
+    expect(cards()).toHaveLength(3);
+  });
+
+  it("opens under its own button on a phone, the same panel word for word", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    const opener = screen.getByRole("button", { name: /^Filters/ });
+    expect(opener).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(opener);
+    expect(opener).toHaveAttribute("aria-expanded", "true");
+    // Two instances of the same panel are now mounted: the rail's and the
+    // drawer's. They are one component, so counting is all that is left to say.
+    expect(screen.getAllByRole("checkbox", { name: /Pants/ })).toHaveLength(2);
+  });
+
+  it("says on the closed button how many of its filters are narrowing the grid", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
+    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+
+    expect(screen.getByRole("button", { name: /Filters · 2/ })).toBeInTheDocument();
   });
 });
 
@@ -239,7 +297,7 @@ describe("searching the catalog", () => {
   it("narrows a category rather than escaping it", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: "Pants" }));
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
     await user.type(searchBox(), "PANT-1");
 
     expect(cards()).toHaveLength(1);
@@ -280,7 +338,11 @@ describe("the logo", () => {
   it("clears the category, the New filter and the page number", async () => {
     const user = userEvent.setup();
     // Nothing in Pants is new, so this pair of filters shows an empty grid.
-    renderCatalog(EMPTY_SELECTION, { ...NO_FILTERS, category: "Pants", newOnly: true });
+    renderCatalog(EMPTY_SELECTION, {
+      ...NO_FILTERS,
+      categories: ["Pants"],
+      newOnly: true,
+    });
     expect(cards()).toHaveLength(0);
 
     await user.click(screen.getByRole("link", { name: /itoo/ }));
@@ -302,7 +364,7 @@ describe("the count above the grid", () => {
   it("moves the moment a filter is applied, which is the whole point of it", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: /^New$/ }));
+    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
 
     expect(styleCount()).toBe("1 style");
   });
@@ -310,7 +372,7 @@ describe("the count above the grid", () => {
   it("follows a category as well", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: "Pants" }));
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
 
     expect(styleCount()).toBe("2 styles");
   });
@@ -612,12 +674,15 @@ describe("one frame shared by the card and the open style", () => {
 });
 
 describe("the address bar", () => {
-  it("follows the category being browsed, so it can just be copied", async () => {
+  it("follows the categories being browsed, so it can just be copied", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: "Pants" }));
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
 
     expect(replace).toHaveBeenCalledWith("/?show=pants", expect.anything());
+
+    await user.click(screen.getByRole("checkbox", { name: /Tops/ }));
+    expect(replace).toHaveBeenCalledWith("/?show=pants%2Ctops", expect.anything());
   });
 
   it("writes a category as a slug rather than as a run of percent signs", async () => {
@@ -630,7 +695,7 @@ describe("the address bar", () => {
         isTeam
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Jumpsuits & Rompers" }));
+    await user.click(screen.getByRole("checkbox", { name: /Jumpsuits & Rompers/ }));
 
     expect(replace).toHaveBeenCalledWith("/?show=jumpsuits-rompers", expect.anything());
   });
@@ -638,7 +703,7 @@ describe("the address bar", () => {
   it("follows the new-arrivals filter", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: /^New$/ }));
+    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
 
     expect(replace).toHaveBeenCalledWith("/?new=1", expect.anything());
   });
@@ -752,8 +817,8 @@ describe("the client's view", () => {
   it("offers only categories the shared selection can fill", () => {
     renderCatalog({ categories: [], skus: ["TOP-1"] });
 
-    expect(screen.getByRole("button", { name: "Tops" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Pants" })).not.toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: /Tops/ })).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /Pants/ })).not.toBeInTheDocument();
   });
 
   it("gives no way back to a client who was simply sent the link", () => {
@@ -953,7 +1018,7 @@ describe("an address of its own for every style", () => {
   it("keeps the filters of the catalog it came from in that address", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: "Pants" }));
+    await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
     await user.click(within(cards()[0]).getByRole("img"));
     await screen.findByRole("dialog");
     await user.keyboard("{Escape}");
@@ -1140,96 +1205,6 @@ describe("a style the team has hidden", () => {
     renderWithHidden({ isTeam: false });
     expect(screen.queryByRole("button", { name: /from clients/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /to clients again/ })).not.toBeInTheDocument();
-  });
-});
-
-/**
- * Sold-out styles pile up over weeks and come back one by one. The review
- * filter puts every hidden style on one screen instead of leaving the team to
- * page through the whole catalog looking for dimmed cards.
- */
-describe("the team's review of hidden styles", () => {
-  const someHidden = [
-    product({ sku: "TOP-1", category: "Tops" }),
-    product({ sku: "TOP-2", category: "Tops", isHidden: true }),
-    product({ sku: "PANT-1", category: "Pants", isHidden: true }),
-  ];
-
-  function renderReview({ isTeam = true } = {}) {
-    return render(
-      <CatalogView
-        products={someHidden}
-        selection={EMPTY_SELECTION}
-        filters={NO_FILTERS}
-        isTeam={isTeam}
-      />,
-    );
-  }
-
-  const reviewToggle = () => screen.getByRole("button", { name: /Hidden only/ });
-
-  it("narrows the grid to the hidden styles alone", async () => {
-    const user = userEvent.setup();
-    renderReview();
-    await user.click(reviewToggle());
-
-    expect(cards()).toHaveLength(2);
-    expect(within(grid()).queryByText("Style TOP-1")).not.toBeInTheDocument();
-    expect(styleCount()).toBe("2 styles");
-  });
-
-  it("composes with a category", async () => {
-    const user = userEvent.setup();
-    renderReview();
-    await user.click(reviewToggle());
-    await user.click(screen.getByRole("button", { name: "Pants" }));
-
-    expect(cards()).toHaveLength(1);
-    expect(within(grid()).getByText("Style PANT-1")).toBeInTheDocument();
-  });
-
-  it("lets a style leave the review as it is brought back", async () => {
-    const user = userEvent.setup();
-    renderReview();
-    await user.click(reviewToggle());
-    await user.click(screen.getByRole("button", { name: "Show TOP-2 to clients again" }));
-
-    expect(cards()).toHaveLength(1);
-    expect(within(grid()).queryByText("Style TOP-2")).not.toBeInTheDocument();
-  });
-
-  it("is nowhere in a client's view", () => {
-    renderReview({ isTeam: false });
-    expect(screen.queryByRole("button", { name: /Hidden only/ })).not.toBeInTheDocument();
-  });
-
-  it("neither shows nor applies in the team's preview of the client view", async () => {
-    const user = userEvent.setup();
-    renderReview();
-    await user.click(reviewToggle());
-    await user.click(screen.getByRole("button", { name: /Public view/ }));
-
-    expect(screen.queryByRole("button", { name: /Hidden only/ })).not.toBeInTheDocument();
-    // The client's page holds the visible style, and only that.
-    expect(cards()).toHaveLength(1);
-    expect(within(grid()).getByText("Style TOP-1")).toBeInTheDocument();
-  });
-
-  it("is cleared by the way out of an empty grid", async () => {
-    const user = userEvent.setup();
-    render(
-      <CatalogView
-        products={[product({ sku: "TOP-1" })]}
-        selection={EMPTY_SELECTION}
-        filters={NO_FILTERS}
-        isTeam
-      />,
-    );
-    await user.click(reviewToggle());
-    expect(cards()).toHaveLength(0);
-
-    await user.click(screen.getByRole("button", { name: /Show every style/ }));
-    expect(cards()).toHaveLength(1);
   });
 });
 

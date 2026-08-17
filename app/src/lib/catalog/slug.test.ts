@@ -78,13 +78,13 @@ describe("the address of one style", () => {
 describe("categories in the catalog address", () => {
   const address = {
     selection: { categories: ["Jumpsuits & Rompers"], skus: ["Y-542"] },
-    filters: { ...NO_FILTERS, category: "Sweaters & Cardigans" },
+    filters: { ...NO_FILTERS, categories: ["Sweaters & Cardigans"] },
   };
 
   it("goes into the address as slugs", () => {
     const slugged = slugifyCategories(address);
     expect(slugged.selection.categories).toEqual(["jumpsuits-rompers"]);
-    expect(slugged.filters.category).toBe("sweaters-cardigans");
+    expect(slugged.filters.categories).toEqual(["sweaters-cardigans"]);
   });
 
   it("leaves the style numbers alone", () => {

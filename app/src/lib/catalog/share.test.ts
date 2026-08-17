@@ -32,15 +32,21 @@ describe("buildCatalogQuery", () => {
   it("puts the open filters in the address, so it can just be copied", () => {
     const query = buildCatalogQuery(EMPTY_SELECTION, {
       ...NO_FILTERS,
-      category: "Dresses",
+      categories: ["Dresses"],
       newOnly: true,
     });
     expect(query).toBe("?show=Dresses&new=1");
   });
 
+  it("carries several open categories as one list", () => {
+    expect(
+      buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, categories: ["Dresses", "Tops"] }),
+    ).toBe("?show=Dresses%2CTops");
+  });
+
   it("leaves All out, because it is the absence of a filter", () => {
     expect(
-      buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, category: "All" }),
+      buildCatalogQuery(EMPTY_SELECTION, { ...NO_FILTERS, categories: ["All"] }),
     ).toBe("");
   });
 
@@ -64,7 +70,7 @@ describe("buildCatalogQuery", () => {
 describe("parseCatalogQuery", () => {
   it("round-trips a selection and its filters", () => {
     const selection = { categories: ["Tops"], skus: ["Y-542", "21034"] };
-    const filters = { category: "Tops", newOnly: true, page: 2, query: "lace" };
+    const filters = { categories: ["Tops", "Skirts"], newOnly: true, page: 2, query: "lace" };
     const parsed = parseCatalogQuery(new URLSearchParams(buildCatalogQuery(selection, filters)));
 
     expect(parsed.selection).toEqual(selection);
@@ -89,7 +95,11 @@ describe("parseCatalogQuery", () => {
   });
 
   it("treats a stray All the same as no filter", () => {
-    expect(parseCatalogQuery({ show: "All" }).filters.category).toBeNull();
+    expect(parseCatalogQuery({ show: "All" }).filters.categories).toEqual([]);
+  });
+
+  it("reads an address written when the grid showed one category at a time", () => {
+    expect(parseCatalogQuery({ show: "Dresses" }).filters.categories).toEqual(["Dresses"]);
   });
 
   it("reads a page number, and ignores a nonsensical one", () => {

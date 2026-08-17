@@ -114,7 +114,7 @@ export type CatalogAddress = { selection: CatalogSelection; filters: CatalogFilt
 export function slugifyCategories({ selection, filters }: CatalogAddress): CatalogAddress {
   return {
     selection: { ...selection, categories: selection.categories.map(toSlug) },
-    filters: { ...filters, category: filters.category ? toSlug(filters.category) : null },
+    filters: { ...filters, categories: filters.categories.map(toSlug) },
   };
 }
 
@@ -136,9 +136,9 @@ export function resolveCategories(
     },
     filters: {
       ...filters,
-      category: filters.category
-        ? (resolveSlug(filters.category, categories) ?? filters.category)
-        : null,
+      categories: filters.categories.map(
+        (value) => resolveSlug(value, categories) ?? value,
+      ),
     },
   };
 }

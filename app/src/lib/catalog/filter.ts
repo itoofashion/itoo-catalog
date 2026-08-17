@@ -44,12 +44,15 @@ export function selectedProducts(
 export function filterProducts(
   products: PublicProduct[],
   // Paging is not filtering, so the page number is deliberately not asked for.
-  filters: Pick<CatalogFilters, "category" | "newOnly" | "query">,
+  filters: Pick<CatalogFilters, "categories" | "newOnly" | "query">,
 ): PublicProduct[] {
   let result = products;
 
-  if (filters.category && filters.category !== ALL_CATEGORIES) {
-    result = result.filter((p) => p.category === filters.category);
+  const chosen = new Set(filters.categories.filter((name) => name !== ALL_CATEGORIES));
+  if (chosen.size > 0) {
+    // Together, not one at a time: two ticked categories read as one rack
+    // holding both.
+    result = result.filter((p) => chosen.has(p.category));
   }
   if (filters.newOnly) {
     result = result.filter((p) => p.isNew);
@@ -64,4 +67,23 @@ export function filterProducts(
     );
   }
   return result;
+}
+
+/**
+ * How many styles each category would show, counted under the other filters but
+ * before the category choice itself. That order is what makes the number an
+ * honest promise: with "New" on and "lace" typed, the count beside Dresses is
+ * exactly what ticking Dresses will put on screen, whether or not it is ticked.
+ */
+export function categoryCounts(
+  products: PublicProduct[],
+  filters: Pick<CatalogFilters, "newOnly" | "query">,
+): Map<string, number> {
+  const counted = filterProducts(products, { ...filters, categories: [] });
+  const counts = new Map<string, number>();
+  for (const product of counted) {
+    if (!product.category) continue;
+    counts.set(product.category, (counts.get(product.category) ?? 0) + 1);
+  }
+  return counts;
 }

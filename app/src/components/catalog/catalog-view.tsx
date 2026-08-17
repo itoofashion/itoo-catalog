@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Eye, EyeOff, Search, SlidersHorizontal, Undo2 } from "lucide-react";
+import { Eye, ListFilter, Search, SlidersHorizontal, Undo2 } from "lucide-react";
 import { setStyleHidden } from "@/app/actions";
 import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   categoriesOf,
+  categoryCounts,
   filterProducts,
   isSelected,
   selectedProducts,
@@ -34,7 +35,7 @@ import {
   resolveSlug,
   slugifyCategories,
 } from "@/lib/catalog/slug";
-import { CategoryRow, NewFilterToggle } from "./category-filters";
+import { FilterPanel } from "./filter-panel";
 import { LinkPanel } from "./link-panel";
 import { PaginationBar } from "./pagination-bar";
 import { ProductCard } from "./product-card";
@@ -93,12 +94,11 @@ export function CatalogView({
   const [selection, setSelection] = useState(initialSelection);
   const [filters, setFilters] = useState(initialFilters);
   /**
-   * Only the styles the team has hidden, so sold-out ones can be reviewed and
-   * brought back from one screen instead of hunted for page by page. Local
-   * state rather than a CatalogFilters field on purpose — the address is the
-   * link a client gets sent, and this is not something to send a client.
+   * The filter rail on a phone, where it opens under its own button instead of
+   * standing beside the grid. Closed on arrival: the catalogue itself comes
+   * first, and the button says what is waiting inside.
    */
-  const [hiddenOnly, setHiddenOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   // Opening one's own client link lands in the client's view, which is the point
   // of the link; the way back is a button, since this visitor is still the team.
   const [previewingAsClient, setPreviewingAsClient] = useState(arrivedViaClientLink);
@@ -314,7 +314,9 @@ export function CatalogView({
     setFilters(merged);
     syncAddress(selection, merged);
     posthog.capture("catalog_filter_changed", {
-      category: merged.category ?? ALL_CATEGORIES,
+      // The same property the single-category grid reported, so the dashboard
+      // keeps one column: a list now, joined the way the address joins it.
+      category: merged.categories.join(",") || ALL_CATEGORIES,
       new_arrivals_only: merged.newOnly,
       page: merged.page,
     });
@@ -372,6 +374,19 @@ export function CatalogView({
     changeSelection(toggleStyle(selection, sku));
   }
 
+  /** Ticking a category open or shut in the filter rail. */
+  function toggleShown(category: string) {
+    const shown = filters.categories.includes(category)
+      ? filters.categories.filter((name) => name !== category)
+      : [...filters.categories, category];
+    changeFilters({ categories: shown, page: 1 });
+  }
+
+  /** The rail's own way back: its filters, not the search. */
+  function clearFilters() {
+    changeFilters({ categories: [], newOnly: false, page: 1 });
+  }
+
   // What this visitor can reach: the whole catalog for the team, only what was
   // shared for a client.
   const scope = useMemo(() => {
@@ -385,31 +400,35 @@ export function CatalogView({
 
   // Offering a category the page cannot fill would let a client filter their own
   // selection down to nothing.
-  const categories = useMemo(() => categoriesOf(scope), [scope]);
-  const activeCategory =
-    filters.category && categories.includes(filters.category)
-      ? filters.category
-      : ALL_CATEGORIES;
+  const categories = useMemo(
+    () => categoriesOf(scope).filter((name) => name !== ALL_CATEGORIES),
+    [scope],
+  );
+  const activeCategories = useMemo(
+    () => filters.categories.filter((name) => categories.includes(name)),
+    [filters.categories, categories],
+  );
+  /** What the number beside each category promises. See lib/catalog/filter.ts. */
+  const counts = useMemo(
+    () => categoryCounts(scope, { newOnly: filters.newOnly, query: filters.query }),
+    [scope, filters.newOnly, filters.query],
+  );
 
-  const matching = useMemo(() => {
-    const result = filterProducts(scope, {
-      category: activeCategory,
-      newOnly: filters.newOnly,
-      query: filters.query,
-    });
-    // Against hiddenOf rather than the product's own flag, so a style leaves
-    // the review the moment the eye brings it back, before the server answers.
-    return showTools && hiddenOnly ? result.filter((p) => hiddenOf(p)) : result;
-  }, [scope, activeCategory, filters.newOnly, filters.query, showTools, hiddenOnly, hiddenOf]);
+  const matching = useMemo(
+    () =>
+      filterProducts(scope, {
+        categories: activeCategories,
+        newOnly: filters.newOnly,
+        query: filters.query,
+      }),
+    [scope, activeCategories, filters.newOnly, filters.query],
+  );
 
   const page = paginate(matching, filters.page);
   const visible = page.items;
   /** An empty page is a dead end when it was asked for, and a bug when it was not. */
   const filtered =
-    activeCategory !== ALL_CATEGORIES ||
-    filters.newOnly ||
-    Boolean(filters.query) ||
-    (showTools && hiddenOnly);
+    activeCategories.length > 0 || filters.newOnly || Boolean(filters.query);
 
   // What the link will actually open, which is what the panel promises. A
   // hidden style ticked before it was hidden is still in the selection, and
@@ -419,20 +438,40 @@ export function CatalogView({
     [products, selection, hiddenOf],
   );
 
+  /** What the Filters button reports while the rail is folded away. */
+  const activeFilterCount = activeCategories.length + (filters.newOnly ? 1 : 0);
+
+  // Written once and placed twice — beside the grid on a laptop, under the
+  // Filters button on a phone — so the two can never disagree.
+  const filterPanel = (
+    <FilterPanel
+      categories={categories}
+      counts={counts}
+      activeCategories={activeCategories}
+      onToggleShown={toggleShown}
+      newOnly={filters.newOnly}
+      onToggleNew={() => changeFilters({ newOnly: !filters.newOnly, page: 1 })}
+      onClear={clearFilters}
+      selectable={showTools}
+      selectedCategories={selection.categories}
+      onToggleLink={pickCategory}
+    />
+  );
+
   return (
     <>
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-        {/* One line, on a phone as much as on a laptop, and in the same order on
-            both: the logo, then New, then the categories. What makes it fit on a
-            390px screen is that everything after the logo is one strip that
-            scrolls sideways, so the row runs out of screen instead of running
-            onto a second line. Every pixel above the first photograph is one the
-            catalogue does not get. */}
-        <div className="mx-auto flex max-w-[1680px] items-center gap-x-3 px-4 py-3 sm:gap-x-5 sm:px-6 lg:px-10">
+        {/* The logo on the left and the search in the middle, the way every
+            shop the team's buyers already use arranges them. The categories are
+            no longer up here: they moved into the rail beside the grid, where
+            more than one of them can be open at a time. On a phone the search
+            takes the second line at full width, because a search box narrowed
+            to a third of a 390px screen is a search box nobody uses. */}
+        <div className="mx-auto flex max-w-[1680px] flex-col gap-y-2.5 px-4 py-3 sm:grid sm:grid-cols-[1fr_minmax(0,28rem)_1fr] sm:items-center sm:gap-x-6 sm:px-6 lg:px-10">
           <Link
             href="/"
             onClick={goHome}
-            className="shrink-0"
+            className="shrink-0 justify-self-start"
             aria-label="itoo, back to the whole catalog"
           >
             {/* Served at its full 1050px because the image optimizer is off on
@@ -449,39 +488,9 @@ export function CatalogView({
             />
           </Link>
 
-          <CategoryRow
-            categories={categories}
-            active={activeCategory}
-            onSelect={(category) =>
-              changeFilters({
-                category: category === ALL_CATEGORIES ? null : category,
-                page: 1,
-              })
-            }
-            selectable={showTools}
-            selectedCategories={selection.categories}
-            onToggleCategory={pickCategory}
-            className="min-w-0 flex-1"
-            /* Inside the strip rather than pinned beside the logo: it is a
-               filter like the categories are, it has always sat at the head of
-               them on a laptop, and a phone has no width to hold it out of the
-               scroll. */
-            leading={
-              <>
-                <NewFilterToggle
-                  newOnly={filters.newOnly}
-                  onToggle={() => changeFilters({ newOnly: !filters.newOnly, page: 1 })}
-                />
-                <div className="h-5 w-px shrink-0 bg-border" />
-              </>
-            }
-          />
-
-          {/* Held out of the scroll with the logo: a search box that can drift
-              off screen is a search box nobody trusts. Narrow on a phone and
-              wider on a laptop, and it stays a filter among filters: it narrows
-              the grid keystroke by keystroke rather than opening a page. */}
-          <div className="relative shrink-0">
+          {/* It stays a filter among filters: it narrows the grid keystroke by
+              keystroke rather than opening a page. */}
+          <div className="relative w-full">
             <Search
               aria-hidden
               className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
@@ -490,9 +499,9 @@ export function CatalogView({
               type="search"
               value={filters.query ?? ""}
               onChange={(event) => changeQuery(event.target.value)}
-              placeholder="Search"
+              placeholder="Search styles"
               aria-label="Search by name or style number"
-              className="w-24 rounded-sm border border-border bg-transparent py-1.5 pl-8 pr-2 text-[13px] outline-none transition placeholder:text-muted-foreground focus:border-foreground sm:w-52"
+              className="w-full rounded-sm border border-border bg-transparent py-1.5 pl-8 pr-2 text-[13px] outline-none transition placeholder:text-muted-foreground focus:border-foreground"
             />
           </div>
         </div>
@@ -547,6 +556,19 @@ export function CatalogView({
           showTools ? "pb-36" : "pb-16",
         )}
       >
+        <div className="flex items-start lg:gap-10">
+          {/* The rail stands beside the grid and stays put while it scrolls;
+              under the sticky header, which is what the offset is. On anything
+              narrower than a laptop it is not drawn at all — the same panel
+              opens under the Filters button instead. */}
+          <aside
+            aria-label="Filters"
+            className="sticky top-[69px] hidden max-h-[calc(100vh-85px)] w-52 shrink-0 self-start overflow-y-auto py-5 pr-1 lg:block"
+          >
+            {filterPanel}
+          </aside>
+
+          <div className="min-w-0 flex-1">
         {/* The count on the left is the answer to "did that filter do
             anything": it is the first thing under the filters that just moved,
             and it changes as they do. The page number is not repeated here, the
@@ -555,36 +577,30 @@ export function CatalogView({
             count do not share 358 pixels. A client, who has neither control,
             never sees it wrap. */}
         <div className="flex min-h-[3.25rem] flex-wrap items-center justify-between gap-x-3 gap-y-1 py-3">
+          {/* The way into the rail on a phone. The number on it is the rail
+              speaking while closed: how many of its filters are narrowing the
+              grid right now. */}
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            aria-expanded={filtersOpen}
+            className={cn(
+              "tracked flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition lg:hidden",
+              filtersOpen
+                ? "border-foreground bg-foreground text-background"
+                : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+            )}
+          >
+            <ListFilter className="size-3" /> Filters
+            {activeFilterCount > 0 && ` · ${activeFilterCount}`}
+          </button>
+
           <p
             className="tracked shrink-0 whitespace-nowrap text-[11px] text-muted-foreground"
             data-style-count=""
           >
             {page.total} {page.total === 1 ? "style" : "styles"}
           </p>
-
-          {/* The team's own filter, beside the count it moves. */}
-          {showTools && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              {/* The same shape as the New toggle in the header: it is the same
-                  kind of thing, a filter that is on or off. */}
-              <button
-                type="button"
-                onClick={() => {
-                  setHiddenOnly(!hiddenOnly);
-                  changeFilters({ page: 1 });
-                }}
-                aria-pressed={hiddenOnly}
-                className={cn(
-                  "tracked flex shrink-0 cursor-pointer items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
-                  hiddenOnly
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-                )}
-              >
-                <EyeOff className="size-3" /> Hidden only
-              </button>
-            </div>
-          )}
 
           {/* One slot, the same slot in both views, so pressing it does not move
               the thing that was just pressed. */}
@@ -621,6 +637,13 @@ export function CatalogView({
           )}
         </div>
 
+        {/* The same panel the laptop shows beside the grid, in a bordered box
+            so it reads as the drawer the button opened rather than as content
+            that arrived on its own. */}
+        {filtersOpen && (
+          <div className="mb-4 rounded-sm border p-4 lg:hidden">{filterPanel}</div>
+        )}
+
         {visible.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-28 text-center">
             <p className="tracked text-[11px] text-muted-foreground">Nothing here</p>
@@ -634,10 +657,9 @@ export function CatalogView({
                 variant="outline"
                 size="sm"
                 className="mt-1"
-                onClick={() => {
-                  setHiddenOnly(false);
-                  changeFilters({ category: null, newOnly: false, query: null, page: 1 });
-                }}
+                onClick={() =>
+                  changeFilters({ categories: [], newOnly: false, query: null, page: 1 })
+                }
               >
                 Show every style
               </Button>
@@ -691,6 +713,8 @@ export function CatalogView({
             changeFilters({ page: next });
           }}
         />
+          </div>
+        </div>
       </main>
 
       {/* The only thing left floating over the catalogue. The team's other

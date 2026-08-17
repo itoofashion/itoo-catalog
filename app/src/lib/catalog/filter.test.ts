@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { categoriesOf, filterProducts, isSelected, selectedProducts } from "./filter";
+import {
+  categoriesOf,
+  categoryCounts,
+  filterProducts,
+  isSelected,
+  selectedProducts,
+} from "./filter";
 import type { PublicProduct } from "./public";
 import { EMPTY_SELECTION, NO_FILTERS } from "./share";
 
@@ -92,12 +98,20 @@ describe("filterProducts", () => {
   });
 
   it("narrows to a category", () => {
-    const result = filterProducts(catalog, { ...NO_FILTERS, category: "Dresses" });
+    const result = filterProducts(catalog, { ...NO_FILTERS, categories: ["Dresses"] });
     expect(result.map((p) => p.sku)).toEqual(["A-2", "A-3"]);
   });
 
+  it("shows two ticked categories together, in catalog order", () => {
+    const result = filterProducts(catalog, {
+      ...NO_FILTERS,
+      categories: ["Dresses", "Tops"],
+    });
+    expect(result.map((p) => p.sku)).toEqual(["A-1", "A-2", "A-3"]);
+  });
+
   it("treats All as no filter", () => {
-    expect(filterProducts(catalog, { ...NO_FILTERS, category: "All" })).toHaveLength(3);
+    expect(filterProducts(catalog, { ...NO_FILTERS, categories: ["All"] })).toHaveLength(3);
   });
 
   it("narrows to new arrivals", () => {
@@ -106,7 +120,11 @@ describe("filterProducts", () => {
   });
 
   it("applies both together", () => {
-    const result = filterProducts(catalog, { ...NO_FILTERS, category: "Dresses", newOnly: true });
+    const result = filterProducts(catalog, {
+      ...NO_FILTERS,
+      categories: ["Dresses"],
+      newOnly: true,
+    });
     expect(result.map((p) => p.sku)).toEqual(["A-3"]);
   });
 
@@ -133,9 +151,28 @@ describe("filterProducts", () => {
   it("narrows a category with a search, not instead of one", () => {
     const result = filterProducts(catalog, {
       ...NO_FILTERS,
-      category: "Dresses",
+      categories: ["Dresses"],
       query: "lace",
     });
     expect(result.map((p) => p.sku)).toEqual(["A-3"]);
+  });
+});
+
+describe("categoryCounts", () => {
+  it("counts every category of the plain catalog", () => {
+    const counts = categoryCounts(catalog, NO_FILTERS);
+    expect(counts.get("Dresses")).toBe(2);
+    expect(counts.get("Tops")).toBe(1);
+  });
+
+  it("counts under the other filters, so a count is what ticking would show", () => {
+    const counts = categoryCounts(catalog, { newOnly: false, query: "lace" });
+    expect(counts.get("Dresses")).toBe(1);
+    expect(counts.get("Tops")).toBe(1);
+  });
+
+  it("drops a category the filters empty out, rather than promising zero", () => {
+    const counts = categoryCounts(catalog, { newOnly: true, query: "wrap" });
+    expect(counts.size).toBe(0);
   });
 });

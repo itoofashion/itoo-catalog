@@ -17,8 +17,12 @@ export type CatalogSelection = {
 };
 
 export type CatalogFilters = {
-  /** Which category the grid is narrowed to, or null for all of them. */
-  category: string | null;
+  /**
+   * Which categories the grid is narrowed to, shown together, or empty for all
+   * of them. More than one at a time on purpose: a buyer stocking up on skirts
+   * and blazers reads them as one rack, not as two visits.
+   */
+  categories: string[];
   newOnly: boolean;
   /** What was typed into the search box, or null for nothing. */
   query: string | null;
@@ -30,7 +34,7 @@ export const ALL_CATEGORIES = "All";
 
 export const EMPTY_SELECTION: CatalogSelection = { categories: [], skus: [] };
 export const NO_FILTERS: CatalogFilters = {
-  category: null,
+  categories: [],
   newOnly: false,
   query: null,
   page: 1,
@@ -102,8 +106,9 @@ export function buildCatalogQuery(
   if (selection.skus.length > 0) {
     params.set("items", selection.skus.join(SEPARATOR));
   }
-  if (filters.category && filters.category !== ALL_CATEGORIES) {
-    params.set("show", filters.category);
+  const shown = filters.categories.filter((name) => name !== ALL_CATEGORIES);
+  if (shown.length > 0) {
+    params.set("show", shown.join(SEPARATOR));
   }
   if (filters.newOnly) {
     params.set("new", "1");
@@ -129,7 +134,9 @@ export function parseCatalogQuery(
       skus: list(params.get("items")),
     },
     filters: {
-      category: clean(params.get("show")),
+      // An address written when the grid showed one category at a time carries
+      // a single name here, and reads back as a list of one.
+      categories: list(params.get("show")).filter((name) => name !== ALL_CATEGORIES),
       newOnly: params.get("new") === "1",
       query: text(params.get("q")),
       page: pageNumber(params.get("page")),
@@ -149,12 +156,7 @@ function pageNumber(value: string | null): number {
   return Number.isFinite(parsed) && parsed > 1 ? parsed : 1;
 }
 
-function clean(value: string | null): string | null {
-  const trimmed = value?.trim();
-  return !trimmed || trimmed === ALL_CATEGORIES ? null : trimmed;
-}
-
-/** Not clean(): a visitor searching for the word "All" means the word. */
+/** Trimmed only: a visitor searching for the word "All" means the word. */
 function text(value: string | null): string | null {
   const trimmed = value?.trim();
   return trimmed || null;
