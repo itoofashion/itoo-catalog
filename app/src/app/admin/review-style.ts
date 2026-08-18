@@ -37,8 +37,23 @@ export function toReviewStyles(catalog: Catalog, hidden: ReadonlySet<string>): R
  */
 export const ARRIVALS_COOKIE = "arrivals-after";
 
-/** How far back the arrivals list looks until a day is chosen. */
+/** The fallback window when the catalog is empty and has no arrivals to point at. */
 export const DEFAULT_WINDOW_DAYS = 30;
+
+/**
+ * The day the newest style arrived, "YYYY-MM-DD", or null for an empty catalog.
+ *
+ * The arrivals list opens on this day when nobody has chosen one: "what came in
+ * last time" is the question the page exists to answer, and this is the latest
+ * day with an answer, however long ago the last delivery was.
+ */
+export function latestArrivalDay(styles: ReviewStyle[]): string | null {
+  let latest: string | null = null;
+  for (const style of styles) {
+    if (latest === null || style.addedAt > latest) latest = style.addedAt;
+  }
+  return latest ? latest.slice(0, 10) : null;
+}
 
 /** "YYYY-MM-DD" or nothing: a cookie is typed by nobody but still checked. */
 export function validDay(value: string | undefined): string | null {

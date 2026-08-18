@@ -10,6 +10,7 @@ import {
   ARRIVALS_COOKIE,
   daysAgo,
   DEFAULT_WINDOW_DAYS,
+  latestArrivalDay,
   toReviewStyles,
   validDay,
 } from "./review-style";
@@ -49,10 +50,15 @@ export default async function AdminSyncPage() {
     cookies(),
   ]);
 
+  const styles = toReviewStyles(catalog, hidden);
   // The day the list was left open on, so a reload keeps answering the same
-  // question; without one, the same month the New badge reads.
+  // question. With no day chosen, the day the newest style arrived: "what came
+  // in last time" is the question this list is for, and that day always has an
+  // answer. A month back is only for a catalog with no arrivals at all.
   const since =
-    validDay(jar.get(ARRIVALS_COOKIE)?.value) ?? daysAgo(DEFAULT_WINDOW_DAYS);
+    validDay(jar.get(ARRIVALS_COOKIE)?.value) ??
+    latestArrivalDay(styles) ??
+    daysAgo(DEFAULT_WINDOW_DAYS);
 
   return (
     <AdminShell current="sync">
@@ -62,7 +68,7 @@ export default async function AdminSyncPage() {
         lastRun={sync.lastRun}
         syncRequestedAt={sync.requestedAt}
       />
-      <RecentArrivals styles={toReviewStyles(catalog, hidden)} initialSince={since} />
+      <RecentArrivals styles={styles} initialSince={since} />
     </AdminShell>
   );
 }

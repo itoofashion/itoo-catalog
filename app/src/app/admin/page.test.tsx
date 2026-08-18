@@ -116,7 +116,17 @@ describe("admin page, signed in", () => {
     expect(screen.getByLabelText(/added after/i)).toHaveValue("2026-07-01");
   });
 
-  it("falls back to the last month when the cookie holds nonsense", async () => {
+  it("opens on the day the newest style arrived when no day was chosen", async () => {
+    await renderAdmin({ signedIn: true });
+    const newest = seedProducts()
+      .map((product) => product.createdAt)
+      .sort()
+      .at(-1)!
+      .slice(0, 10);
+    expect(screen.getByLabelText(/added after/i)).toHaveValue(newest);
+  });
+
+  it("treats a nonsense cookie as no day chosen", async () => {
     getCookie.mockReturnValue({ name: "arrivals-after", value: "yesterday-ish" });
     await renderAdmin({ signedIn: true });
     const value = (screen.getByLabelText(/added after/i) as HTMLInputElement).value;
