@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
-import { ArrowLeft, LogOut, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SyncRun } from "@/lib/sync/state";
 import { requestSync } from "./actions";
 
 /**
- * What the team gets after signing in: how much catalog there is, when it last
- * changed, the button that asks for a sync, and the way out. How the mirroring
- * works stays out of the copy on purpose: this screen is for managers, and the
- * plumbing is documented in the repo, not in the product.
+ * How much catalog there is, when it last changed, and the button that asks for
+ * a sync. How the mirroring works stays out of the copy on purpose: this screen
+ * is for managers, and the plumbing is documented in the repo, not in the
+ * product. Navigation is the shell's job, not this block's.
  *
  * The button asks rather than syncs: FashionGo answers a whitelisted address
  * and the Worker has no fixed one, so the press leaves a note that the sync
@@ -120,22 +119,6 @@ export function CatalogStatus({
         </div>
 
       </dl>
-
-      <div className="flex items-center justify-between gap-3">
-        <Button asChild variant="outline">
-          <Link href="/">
-            <ArrowLeft /> Catalog
-          </Link>
-        </Button>
-
-        {/* A plain form, not a fetch: signing out has to work even when the
-            page's JavaScript never loaded. */}
-        <form action="/admin/sign-out" method="post">
-          <Button type="submit" variant="ghost">
-            <LogOut /> Sign out
-          </Button>
-        </form>
-      </div>
     </div>
   );
 }

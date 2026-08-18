@@ -1,15 +1,20 @@
-import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { adminGate, NOT_CONFIGURED_MESSAGE, readAdminConfig } from "@/lib/admin/auth";
+import { cookies } from "next/headers";
 import { isTeamViewer } from "@/lib/admin/request";
 import { hiddenStyles } from "@/lib/catalog/hidden";
 import { catalogStore } from "@/lib/catalog/store";
 import { syncState } from "@/lib/sync/state";
-import { HiddenStylesReview, RecentArrivals, type ReviewStyle } from "./catalog-review";
+import { RecentArrivals } from "./catalog-review";
 import { CatalogStatus } from "./catalog-status";
-import { SignInForm } from "./sign-in-form";
+import {
+  ARRIVALS_COOKIE,
+  daysAgo,
+  DEFAULT_WINDOW_DAYS,
+  toReviewStyles,
+  validDay,
+} from "./review-style";
+import { AdminShell } from "./shell";
+import { SignInDoor } from "./sign-in-door";
 
 /**
  * Rendered per request, not at build time: it reports the catalog as it stands
@@ -26,103 +31,38 @@ export const metadata: Metadata = {
 };
 
 /**
- * The team's own page: the way in, and once in, the state of the catalog. The
- * catalog itself stays public at "/" and gives none of this away.
+ * The first room of the admin area: where the catalog comes from and what
+ * arrived when. One page on purpose — a sync's whole point is new arrivals, so
+ * pressing the button and reading its result happen in the same place.
  *
- * Which of the two a visitor gets is decided here, on the server, from the
- * session cookie. Nothing about the catalog is put into the page for someone
- * without one, so there is no hidden panel to be uncovered in the markup.
+ * Gated here, per request, not in a layout: layouts are cached across client
+ * navigations in this Next version, and a door that can be remembered open is
+ * not a door.
  */
-export default async function AdminPage() {
-  // On a server with no password configured, which is only ever a development
-  // one, everybody is the team and nobody sees the form: see lib/admin/auth.ts.
-  if (await isTeamViewer()) {
-    const [catalog, sync, hidden] = await Promise.all([
-      catalogStore.read(),
-      syncState().then((state) => state.read()),
-      hiddenStyles().then((styles) => styles.list()),
-    ]);
-    // The admin lists read the stored catalog directly: this page is behind the
-    // sign-in, so the date and the hidden flag are allowed here in a way they
-    // never are in the public payload (see lib/catalog/public.ts).
-    const styles: ReviewStyle[] = catalog.products.map((product) => ({
-      sku: product.sku,
-      name: product.name,
-      price: product.price,
-      category: product.category,
-      photo: product.images[0]?.url ?? null,
-      addedAt: product.createdAt,
-      hidden: hidden.has(product.sku),
-    }));
+export default async function AdminSyncPage() {
+  if (!(await isTeamViewer())) return <SignInDoor />;
 
-    return (
-      <Frame wide>
-        <CatalogStatus
-          productCount={catalog.products.length}
-          syncedAt={catalog.syncedAt}
-          lastRun={sync.lastRun}
-          syncRequestedAt={sync.requestedAt}
-        />
-        <HiddenStylesReview styles={styles} />
-        <RecentArrivals styles={styles} />
-      </Frame>
-    );
-  }
+  const [catalog, sync, hidden, jar] = await Promise.all([
+    catalogStore.read(),
+    syncState().then((state) => state.read()),
+    hiddenStyles().then((styles) => styles.list()),
+    cookies(),
+  ]);
+
+  // The day the list was left open on, so a reload keeps answering the same
+  // question; without one, the same month the New badge reads.
+  const since =
+    validDay(jar.get(ARRIVALS_COOKIE)?.value) ?? daysAgo(DEFAULT_WINDOW_DAYS);
 
   return (
-    <Frame heading="Sign in to the admin panel">
-      {adminGate(readAdminConfig()) === "unconfigured" ? (
-        <p className="text-center text-sm text-muted-foreground">
-          {NOT_CONFIGURED_MESSAGE}
-        </p>
-      ) : (
-        <SignInForm />
-      )}
-    </Frame>
-  );
-}
-
-/**
- * The same mark the catalog opens with, so this reads as the same shop. The
- * heading differs by state on purpose: at the door it says what the door is
- * for, and inside it is the name of the room.
- */
-function Frame({
-  children,
-  heading = "Admin panel",
-  wide = false,
-}: {
-  children: ReactNode;
-  heading?: string;
-  /** The team's view holds lists; the sign-in door holds a form. */
-  wide?: boolean;
-}) {
-  return (
-    <main
-      className={cn(
-        "mx-auto flex w-full flex-1 flex-col justify-center gap-8 px-6 py-24",
-        wide ? "max-w-lg" : "max-w-sm",
-      )}
-    >
-      <div className="flex flex-col gap-3 text-center">
-        {/* Asked for at its full 1050px and drawn at the 32px line: the image
-            optimizer is off on Workers (see next.config.ts), so the browser
-            gets the file as shipped and scales it down itself, which keeps it
-            sharp on a retina screen. */}
-        <Image
-          src="/logo.png"
-          alt="itoo"
-          width={1050}
-          height={483}
-          priority
-          className="mx-auto h-8 w-auto"
-        />
-        {/* Semibold, like every other heading here: 500 is not one of the three
-            weights Raleway is loaded in (see layout.tsx), so a medium heading
-            was the browser faking a weight the page never had. */}
-        <h1 className="text-lg font-semibold">{heading}</h1>
-      </div>
-      {children}
-    </main>
+    <AdminShell current="sync">
+      <CatalogStatus
+        productCount={catalog.products.length}
+        syncedAt={catalog.syncedAt}
+        lastRun={sync.lastRun}
+        syncRequestedAt={sync.requestedAt}
+      />
+      <RecentArrivals styles={toReviewStyles(catalog, hidden)} initialSince={since} />
+    </AdminShell>
   );
 }

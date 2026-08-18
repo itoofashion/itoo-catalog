@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { HiddenStylesReview, RecentArrivals, type ReviewStyle } from "./catalog-review";
+import { HiddenStylesReview, RecentArrivals } from "./catalog-review";
+import type { ReviewStyle } from "./review-style";
 
 /**
  * Restoring goes through the same action the eye on a card uses, and what it
@@ -88,9 +89,10 @@ describe("recent arrivals", () => {
     style({ sku: "NEW-1", addedAt: daysAgo(3) }),
     style({ sku: "NEW-2", addedAt: daysAgo(10), hidden: true }),
   ];
+  const monthBack = daysAgo(30).slice(0, 10);
 
-  it("opens on the last month, newest first", () => {
-    render(<RecentArrivals styles={styles} />);
+  it("opens on the day it was handed, newest first", () => {
+    render(<RecentArrivals styles={styles} initialSince={monthBack} />);
     const rows = screen.getAllByRole("listitem");
 
     expect(rows).toHaveLength(2);
@@ -99,12 +101,12 @@ describe("recent arrivals", () => {
   });
 
   it("counts what it shows", () => {
-    render(<RecentArrivals styles={styles} />);
+    render(<RecentArrivals styles={styles} initialSince={monthBack} />);
     expect(screen.getByRole("status")).toHaveTextContent(/^2 styles added since/);
   });
 
   it("reaches further back when an earlier day is chosen", async () => {
-    render(<RecentArrivals styles={styles} />);
+    render(<RecentArrivals styles={styles} initialSince={monthBack} />);
     const dayBox = screen.getByLabelText(/added after/i);
 
     // fireEvent-style direct change: typing into a date input character by
@@ -116,8 +118,21 @@ describe("recent arrivals", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
   });
 
+  it("writes the chosen day down, so a reload reopens on it", async () => {
+    render(<RecentArrivals styles={styles} initialSince={monthBack} />);
+    const day = daysAgo(120).slice(0, 10);
+
+    const user = userEvent.setup();
+    await user.clear(screen.getByLabelText(/added after/i));
+    await user.type(screen.getByLabelText(/added after/i), day);
+
+    // The other half of the round trip lives in the page, which reads this
+    // cookie on the way in (see page.test).
+    expect(document.cookie).toContain(`arrivals-after=${day}`);
+  });
+
   it("marks a hidden arrival rather than pretending it is on sale", () => {
-    render(<RecentArrivals styles={styles} />);
+    render(<RecentArrivals styles={styles} initialSince={monthBack} />);
     expect(screen.getByText(/NEW-2 · Tops · hidden/)).toBeInTheDocument();
   });
 
@@ -125,7 +140,7 @@ describe("recent arrivals", () => {
     const many = Array.from({ length: 60 }, (_, i) =>
       style({ sku: `N-${i}`, addedAt: daysAgo(2) }),
     );
-    render(<RecentArrivals styles={many} />);
+    render(<RecentArrivals styles={many} initialSince={monthBack} />);
 
     expect(screen.getAllByRole("listitem")).toHaveLength(50);
     expect(screen.getByText(/Showing the first 50/)).toBeInTheDocument();

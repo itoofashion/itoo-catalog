@@ -1,21 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { seedProducts } from "@/lib/catalog/seed";
 import AdminPage, { metadata } from "./page";
+import HiddenPage, { metadata as hiddenMetadata } from "./hidden/page";
 
 /**
- * The session itself is tested in lib/admin; what matters here is that the page
- * asks, and that a "no" leaves nothing about the catalog in the markup.
+ * The session itself is tested in lib/admin; what matters here is that every
+ * admin page asks per request, and that a "no" leaves nothing about the catalog
+ * in the markup.
  */
 const { isTeamViewer } = vi.hoisted(() => ({ isTeamViewer: vi.fn() }));
 vi.mock("@/lib/admin/request", () => ({ isTeamViewer }));
+
+/** The pages read the arrivals cookie on the way in; the tests own its value. */
+const { getCookie } = vi.hoisted(() => ({ getCookie: vi.fn() }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: getCookie }),
+}));
 
 async function renderAdmin({ signedIn }: { signedIn: boolean }) {
   isTeamViewer.mockResolvedValue(signedIn);
   return render(await AdminPage());
 }
 
-beforeEach(() => isTeamViewer.mockReset());
+beforeEach(() => {
+  isTeamViewer.mockReset();
+  getCookie.mockReset().mockReturnValue(undefined);
+});
 
 describe.each([
   ["signed out", false],
@@ -42,9 +53,10 @@ describe.each([
   });
 });
 
-describe("admin page", () => {
-  it("goes by the same name in the browser tab as on the page", () => {
+describe("admin pages", () => {
+  it("go by the same names in the browser tab as on the page", () => {
     expect(metadata.title).toBe("Admin panel");
+    expect(hiddenMetadata.title).toBe("Hidden styles");
   });
 });
 
@@ -70,6 +82,13 @@ describe("admin page, signed out", () => {
     const { container } = await renderAdmin({ signedIn: false });
     expect(container.querySelector('form[action="/admin/sign-out"]')).toBeNull();
   });
+
+  it("keeps the door on the hidden styles page too", async () => {
+    isTeamViewer.mockResolvedValue(false);
+    render(await HiddenPage());
+    expect(screen.getByLabelText(/team password/i)).toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).toBeNull();
+  });
 });
 
 describe("admin page, signed in", () => {
@@ -80,7 +99,65 @@ describe("admin page, signed in", () => {
       String(seedProducts().length),
     );
     expect(container.querySelector("time")).toBeInTheDocument();
-    expect(container.querySelector('form[action="/admin/sign-out"]')).toBeInTheDocument();
     expect(screen.queryByLabelText(/team password/i)).toBeNull();
+  });
+
+  it("holds sync and arrivals in one room", async () => {
+    await renderAdmin({ signedIn: true });
+    expect(screen.getByRole("button", { name: /sync now/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/added after/i)).toBeInTheDocument();
+  });
+
+  it("opens the arrivals on the day the cookie remembered", async () => {
+    getCookie.mockReturnValue({ name: "arrivals-after", value: "2026-07-01" });
+    await renderAdmin({ signedIn: true });
+    expect(screen.getByLabelText(/added after/i)).toHaveValue("2026-07-01");
+  });
+
+  it("falls back to the last month when the cookie holds nonsense", async () => {
+    getCookie.mockReturnValue({ name: "arrivals-after", value: "yesterday-ish" });
+    await renderAdmin({ signedIn: true });
+    const value = (screen.getByLabelText(/added after/i) as HTMLInputElement).value;
+    expect(value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(value).not.toBe("yesterday-ish");
+  });
+
+  it("names the rooms and marks the one it is in", async () => {
+    await renderAdmin({ signedIn: true });
+    const nav = screen.getByRole("navigation", { name: /admin pages/i });
+
+    expect(within(nav).getByRole("link", { name: /catalog/i })).toHaveAttribute("href", "/");
+    expect(within(nav).getByRole("link", { name: /sync & arrivals/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(within(nav).getByRole("link", { name: /hidden styles/i })).toHaveAttribute(
+      "href",
+      "/admin/hidden",
+    );
+  });
+
+  it("signs out with a plain form, which works without JavaScript", async () => {
+    const { container } = await renderAdmin({ signedIn: true });
+    const form = container.querySelector('form[action="/admin/sign-out"]');
+    expect(form).not.toBeNull();
+    expect((form as HTMLFormElement).method).toBe("post");
+  });
+});
+
+describe("the hidden styles page, signed in", () => {
+  it("is its own room, marked in the navigation, with the list in it", async () => {
+    isTeamViewer.mockResolvedValue(true);
+    render(await HiddenPage());
+
+    const nav = screen.getByRole("navigation", { name: /admin pages/i });
+    expect(within(nav).getByRole("link", { name: /hidden styles/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    // The seed catalog has nothing hidden, so the room says what it is for.
+    expect(screen.getByText(/Nothing is hidden/)).toBeInTheDocument();
+    // The sync lives in the other room.
+    expect(screen.queryByRole("button", { name: /sync now/i })).toBeNull();
   });
 });

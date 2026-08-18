@@ -6,24 +6,7 @@ import { useMemo, useState, useTransition } from "react";
 import { setStyleHidden } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-/**
- * One style as the admin lists read it: enough to recognise it and act on it,
- * nothing more. Built on the server from the stored catalog — these lists are
- * the team's own pages, behind the sign-in, so the date and the hidden flag are
- * allowed here in a way they never are in the public payload.
- */
-export type ReviewStyle = {
-  sku: string;
-  name: string;
-  price: number;
-  category: string;
-  /** Our own /i/ address of the first photo, or null for a style without one. */
-  photo: string | null;
-  /** The day the style went on sale on FashionGo, ISO 8601. */
-  addedAt: string;
-  hidden: boolean;
-};
+import { ARRIVALS_COOKIE, type ReviewStyle } from "./review-style";
 
 /**
  * Every hidden style on one screen, with the way back beside each.
@@ -101,18 +84,30 @@ export function HiddenStylesReview({ styles }: { styles: ReviewStyle[] }) {
   );
 }
 
-/** How far back the arrivals list looks until a day is chosen. */
-const DEFAULT_WINDOW_DAYS = 30;
 /** Rows drawn before the list says how many more there are. */
 const ARRIVALS_SHOWN = 50;
 
 /**
  * What arrived when — the delivery answer to "what came in since I last
- * looked". Newest first, from a chosen day; the day starts a month back, which
- * is the same window the New badge reads.
+ * looked". Newest first, from a chosen day. The day arrives from the server,
+ * which read it from the cookie this component writes: the list reopens on the
+ * question it was left with, and reloading is not starting over.
  */
-export function RecentArrivals({ styles }: { styles: ReviewStyle[] }) {
-  const [since, setSince] = useState(() => daysAgo(DEFAULT_WINDOW_DAYS));
+export function RecentArrivals({
+  styles,
+  initialSince,
+}: {
+  styles: ReviewStyle[];
+  initialSince: string;
+}) {
+  const [since, setSince] = useState(initialSince);
+
+  function chooseDay(value: string) {
+    setSince(value);
+    // Path "/" rather than "/admin" so the whole admin area, present and
+    // future, reads one answer. A year, renewed on every choice.
+    document.cookie = `${ARRIVALS_COOKIE}=${value}; path=/; max-age=31536000; samesite=lax`;
+  }
 
   const arrived = useMemo(
     () =>
@@ -134,7 +129,7 @@ export function RecentArrivals({ styles }: { styles: ReviewStyle[] }) {
         <input
           type="date"
           value={since}
-          onChange={(event) => setSince(event.target.value)}
+          onChange={(event) => chooseDay(event.target.value)}
           className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] text-foreground outline-none transition focus:border-foreground"
         />
       </label>
@@ -194,9 +189,3 @@ function Thumb({ style }: { style: ReviewStyle }) {
   );
 }
 
-/** "YYYY-MM-DD", n days back, in the reader's own calendar. */
-function daysAgo(days: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date.toISOString().slice(0, 10);
-}

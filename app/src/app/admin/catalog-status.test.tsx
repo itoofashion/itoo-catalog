@@ -59,11 +59,6 @@ describe("catalog status", () => {
     expect(screen.getByText("never")).toBeInTheDocument();
   });
 
-  it("leads back to the catalog", () => {
-    renderStatus();
-    expect(screen.getByRole("link", { name: /catalog/i })).toHaveAttribute("href", "/");
-  });
-
   it("says in plain words how long ago the last sync landed, and what it brought", () => {
     renderStatus({ lastRun: { finishedAt: threeHoursAgo(), styleCount: 737 } });
     // The relative time sits in its own <time>, so the line is read whole.
@@ -109,14 +104,4 @@ describe("catalog status", () => {
     expect(screen.getByRole("button", { name: /sync now/i })).toBeInTheDocument();
   });
 
-  it("signs out with a plain form, which works without JavaScript", () => {
-    const { container } = renderStatus();
-    const form = container.querySelector("form");
-    expect(form).toHaveAttribute("action", "/admin/sign-out");
-    expect(form?.method).toBe("post");
-    expect(screen.getByRole("button", { name: /sign out/i })).toHaveAttribute(
-      "type",
-      "submit",
-    );
-  });
 });
