@@ -600,7 +600,10 @@ export function CatalogView({
               opens under the Filters button instead. */}
           <aside
             aria-label="Filters"
-            className="sticky top-[69px] hidden max-h-[calc(100vh-85px)] w-60 shrink-0 self-start overflow-y-auto py-5 pr-2 lg:block"
+            /* The offset is exactly the header's height: any more and the rail
+               rests pushed-down on a long page but not on a short one, so the
+               first filter click, which shortens the page, made it hop up. */
+            className="sticky top-[61px] hidden max-h-[calc(100vh-77px)] w-60 shrink-0 self-start overflow-y-auto py-5 pr-2 lg:block"
           >
             {filterPanel}
           </aside>

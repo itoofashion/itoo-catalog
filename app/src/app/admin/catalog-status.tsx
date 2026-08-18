@@ -65,6 +65,11 @@ export function CatalogStatus({
 
   const pending = asked || syncRequestedAt !== null;
 
+  // One timestamp for one event: a completed sync is also the last time the
+  // catalog changed, so the run's own time speaks, and the catalog's write
+  // stamp stands in for history that predates run records.
+  const lastSyncedAt = validStamp(lastRun?.finishedAt) ?? validStamp(syncedAt);
+
   // The numbers on this page belong to the server, so the page goes back for
   // them instead of letting a tab opened before lunch report the morning.
   useEffect(() => {
@@ -95,82 +100,67 @@ export function CatalogStatus({
         FashionGo synchronization
       </h2>
 
-      <div className="flex flex-col rounded-sm border p-5">
-        {/* Two stats side by side, each read the way the rows below read:
-            label on the left, value against the right edge of its column, a
-            rule between them so neither trails off into a gap. */}
-        <dl className="grid grid-cols-2 divide-x divide-border pb-4">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pr-4">
-            {/* "Styles" here because that is the word the catalog counts in:
-                the grid says "737 styles" and this board has to say the same
-                thing about the same number. */}
-            <dt className="tracked text-[10px] text-muted-foreground">Styles</dt>
-            <dd className="text-sm font-semibold">{productCount}</dd>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pl-4">
-            <dt className="tracked text-[10px] text-muted-foreground">Last updated</dt>
-            <dd className="text-sm font-semibold">
-              {/* Rendered in the reader's own locale and timezone, which the
-                  server cannot know, so the first client render is allowed to
-                  differ from the markup it hydrates. */}
-              <time dateTime={syncedAt} suppressHydrationWarning>
-                {formatSyncTime(syncedAt)}
-              </time>
-            </dd>
-          </div>
-        </dl>
-
-        {/* One fact in two lines on the left — how fresh, and when it freshens
-            itself — and the way to freshen it sooner on the right. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-4">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm">
-              {lastRun ? (
-                <>
-                  Last synced{" "}
-                  {/* Against the reader's clock, so it may disagree with the
-                      markup the server rendered a moment earlier. */}
-                  <time dateTime={lastRun.finishedAt} suppressHydrationWarning>
-                    {timeAgo(lastRun.finishedAt)}
-                  </time>{" "}
-                  — {lastRun.styleCount} {lastRun.styleCount === 1 ? "style" : "styles"}
-                </>
-              ) : (
-                "No sync has completed yet."
-              )}
-            </p>
-            {/* No timezone on purpose: managers need "it happens every night",
-                not an exercise in time arithmetic. */}
-            <p className="text-xs text-muted-foreground">
-              Updates automatically every night at midnight.
-            </p>
-          </div>
-
-          {pending ? (
-            /* Announced, because it replaces the button that was pressed. */
-            <p role="status" className="flex items-center gap-2 text-sm font-semibold">
-              <RefreshCw className="size-3.5 animate-spin" /> Sync in progress…
-            </p>
-          ) : (
-            <Button
-              type="button"
-              size="sm"
-              disabled={sending}
-              onClick={ask}
-              /* The brand's own pink, the one the New badges wear: the only
-                 press on the page, allowed to be the only colour on it. */
-              className="bg-brand text-brand-foreground hover:bg-brand/80"
-            >
-              <RefreshCw /> Sync now
-            </Button>
-          )}
+      {/* One fact, told once: how much catalog, how fresh, when it freshens
+          itself — and the way to freshen it sooner on the right. "Styles" and
+          "Last updated" used to stand here as their own tiles, and both were
+          this same sentence wearing labels. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-sm border p-5">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-semibold">
+            {productCount} {productCount === 1 ? "style" : "styles"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {lastSyncedAt ? (
+              <>
+                Last synced{" "}
+                {/* Relative against the reader's clock, absolute in their own
+                    locale and timezone; the server can know neither, so the
+                    first client render is allowed to differ from the markup
+                    it hydrates. */}
+                <time dateTime={lastSyncedAt} suppressHydrationWarning>
+                  {timeAgo(lastSyncedAt)}
+                </time>{" "}
+                <span suppressHydrationWarning>({formatSyncTime(lastSyncedAt)})</span>
+              </>
+            ) : (
+              "No sync has completed yet."
+            )}
+          </p>
+          {/* No timezone on purpose: managers need "it happens every night",
+              not an exercise in time arithmetic. */}
+          <p className="text-xs text-muted-foreground">
+            Updates automatically every night at midnight.
+          </p>
         </div>
 
-        {refusal && <p className="pt-2 text-xs text-destructive">{refusal}</p>}
+        {pending ? (
+          /* Announced, because it replaces the button that was pressed. */
+          <p role="status" className="flex items-center gap-2 text-sm font-semibold">
+            <RefreshCw className="size-3.5 animate-spin" /> Sync in progress…
+          </p>
+        ) : (
+          <Button
+            type="button"
+            size="sm"
+            disabled={sending}
+            onClick={ask}
+            /* The brand's own pink, the one the New badges wear: the only
+               press on the page, allowed to be the only colour on it. */
+            className="bg-brand text-brand-foreground hover:bg-brand/80"
+          >
+            <RefreshCw /> Sync now
+          </Button>
+        )}
+
+        {refusal && <p className="w-full text-xs text-destructive">{refusal}</p>}
       </div>
     </section>
   );
+}
+
+/** A stamp worth printing, or nothing; a blank or unreadable one says nothing. */
+function validStamp(value: string | null | undefined): string | null {
+  return value && !Number.isNaN(new Date(value).getTime()) ? value : null;
 }
 
 function formatSyncTime(value: string): string {

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, Loader2, Plus } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
 import { packSummary } from "@/lib/catalog/pack";
@@ -208,6 +209,8 @@ export function ProductCard({
         {(hideable || selectable) && (
           <div className="absolute right-2.5 top-2.5 flex items-center gap-2">
             {hideable && (
+              <Tooltip>
+                <TooltipTrigger asChild>
               <button
                 type="button"
                 disabled={saving}
@@ -217,22 +220,19 @@ export function ProductCard({
                     : `Hide ${product.sku} from clients`
                 }
                 aria-pressed={hidden}
-                title={
-                  hidden
-                    ? "Hidden from clients. Press to put it back in the catalog."
-                    : "Hide from clients"
-                }
                 onClick={toggleHidden}
-                /* The tick's box, to the pixel, for the reason it is that box:
-                   20px reads, a thumb needs more, and the pseudo-element gives
-                   it more without moving anything on the card. Filled when the
-                   style is hidden, the same way the tick fills when it is
-                   picked, so the corner has one grammar and not two. */
+                /* The plus's box, to the pixel: 20px reads, a thumb needs more,
+                   and the pseudo-element gives it more without moving anything
+                   on the card. Filled when the style is hidden, the same way
+                   the plus fills when it is picked, so the corner has one
+                   grammar and not two. White at rest, over any photograph:
+                   these are controls for people who do not go hunting, and a
+                   ghost of a button is a button not found. */
                 className={cn(
-                  "relative flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
+                  "relative flex size-5 items-center justify-center rounded-sm border shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
                   hidden
-                    ? "border-foreground bg-foreground"
-                    : "border-white/80 bg-black/25 hover:bg-black/45",
+                    ? "border-foreground bg-foreground text-white"
+                    : "border-black/10 bg-white/85 text-foreground hover:bg-white",
                   saving ? "cursor-wait opacity-70" : "cursor-pointer",
                 )}
               >
@@ -244,12 +244,24 @@ export function ProductCard({
                   <Eye className="size-3.5" strokeWidth={2.5} />
                 )}
               </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {hidden
+                    ? "Hidden from clients. Press to put it back."
+                    : "Hide from clients"}
+                </TooltipContent>
+              </Tooltip>
             )}
 
             {selectable && (
+              <Tooltip>
+                <TooltipTrigger asChild>
               <button
                 type="button"
-                disabled={lockedByCategory}
+                /* aria-disabled rather than disabled: a disabled button hears
+                   no hover, and the tooltip explaining *why* it cannot be
+                   pressed is the whole point of hovering it. */
+                aria-disabled={lockedByCategory}
                 aria-label={
                   lockedByCategory
                     ? `${product.sku} is included through its category`
@@ -258,12 +270,7 @@ export function ProductCard({
                       : `Add ${product.sku} to selection`
                 }
                 aria-pressed={selected || lockedByCategory}
-                title={
-                  lockedByCategory
-                    ? `Included because all of ${product.category} is selected`
-                    : undefined
-                }
-                onClick={() => onToggleSelect(product.sku)}
+                onClick={() => !lockedByCategory && onToggleSelect(product.sku)}
                 /* The same button as the one beside a category in the rail: a
                    plus that fills into a check, one control picked in two
                    places, wearing the card's over-photo whites here. It reads
@@ -275,10 +282,10 @@ export function ProductCard({
                    dimmed check says "already in, not yours to take out" without
                    anyone having to work out what the picture means. */
                 className={cn(
-                  "relative flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
+                  "relative flex size-5 items-center justify-center rounded-sm border shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
                   selected || lockedByCategory
-                    ? "border-foreground bg-foreground"
-                    : "border-white/80 bg-black/25 hover:bg-black/45",
+                    ? "border-foreground bg-foreground text-white"
+                    : "border-black/10 bg-white/85 text-foreground hover:bg-white",
                   lockedByCategory ? "cursor-not-allowed opacity-45" : "cursor-pointer",
                 )}
               >
@@ -288,6 +295,15 @@ export function ProductCard({
                   <Plus className="size-3.5" strokeWidth={2.5} />
                 )}
               </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {lockedByCategory
+                    ? `Included because all of ${product.category} is in the link`
+                    : selected
+                      ? "Remove from the client link"
+                      : "Add to the client link"}
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         )}

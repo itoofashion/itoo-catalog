@@ -735,7 +735,11 @@ describe("picking whole categories", () => {
     const locked = within(grid()).getByRole("button", {
       name: /PANT-1 is included through its category/,
     });
-    expect(locked).toBeDisabled();
+    // aria-disabled rather than disabled, so the button can still explain
+    // itself on hover; pressing it must still do nothing.
+    expect(locked).toHaveAttribute("aria-disabled", "true");
+    await user.click(locked);
+    expect(screen.getByText(/all of Pants · 2 styles/)).toBeInTheDocument();
   });
 
   it("leaves styles outside the category free to pick", async () => {

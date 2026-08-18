@@ -135,7 +135,9 @@ describe("the pick control", () => {
     const { onToggleSelect } = renderCard({}, { lockedByCategory: true });
 
     const box = screen.getByRole("button", { name: /included through its category/ });
-    expect(box).toBeDisabled();
+    // aria-disabled rather than disabled, so the button can still explain
+    // itself on hover; the click test below is what "cannot be pressed" means.
+    expect(box).toHaveAttribute("aria-disabled", "true");
     expect(box).toHaveAttribute("aria-pressed", "true");
     // No padlock: the tick itself, faded.
     expect(box.className).toContain("opacity-45");

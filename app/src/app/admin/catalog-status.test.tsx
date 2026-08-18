@@ -44,34 +44,30 @@ beforeEach(() => {
 });
 
 describe("catalog status", () => {
-  it("reports how much catalog there is", () => {
+  it("reports how much catalog there is, in the word the grid counts in", () => {
     renderStatus({ productCount: 137 });
-    expect(screen.getByText("Styles").parentElement).toHaveTextContent("137");
+    expect(screen.getByText("137 styles")).toBeInTheDocument();
   });
 
   it("prints the sync time for a reader to read, and for a machine to parse", () => {
+    // No run on record, so the catalog's own write stamp stands in.
     const { container } = renderStatus();
     const stamp = container.querySelector("time");
     expect(stamp).toHaveAttribute("datetime", SYNCED_AT);
     // Formatted in the reader's own timezone, so the test can only insist that
     // the raw timestamp is not what ends up on screen.
     expect(stamp?.textContent).not.toBe(SYNCED_AT);
-    expect(stamp?.textContent).toMatch(/2026/);
   });
 
-  it("says never rather than showing an unreadable date", () => {
-    renderStatus({ syncedAt: "" });
-    expect(screen.getByText("never")).toBeInTheDocument();
-  });
-
-  it("says in plain words how long ago the last sync landed, and what it brought", () => {
+  it("says in plain words how long ago the last sync landed, and exactly when", () => {
     renderStatus({ lastRun: { finishedAt: threeHoursAgo(), styleCount: 737 } });
-    // The relative time sits in its own <time>, so the line is read whole.
+    // Relative and absolute in one line; the style count is not repeated here,
+    // the bold count above it is the same number.
     expect(
       screen.getByText(
         (_, element) =>
           element?.tagName === "P" &&
-          /Last synced 3 hours ago — 737 styles/.test(element.textContent ?? ""),
+          /Last synced 3 hours ago \(.*2026.*\)/.test(element.textContent ?? ""),
       ),
     ).toBeInTheDocument();
   });
@@ -83,8 +79,8 @@ describe("catalog status", () => {
     ).toBeInTheDocument();
   });
 
-  it("admits when no sync has ever landed", () => {
-    renderStatus({ lastRun: null });
+  it("admits when no sync has ever landed, rather than faking a date", () => {
+    renderStatus({ syncedAt: "", lastRun: null });
     expect(screen.getByText(/No sync has completed yet/)).toBeInTheDocument();
   });
 

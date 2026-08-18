@@ -99,9 +99,7 @@ describe("admin page, signed in", () => {
   it("reports the catalog and drops the password form", async () => {
     const { container } = await renderAdmin({ signedIn: true });
 
-    expect(screen.getByText("Styles").parentElement).toHaveTextContent(
-      String(seedProducts().length),
-    );
+    expect(screen.getByText(`${seedProducts().length} styles`)).toBeInTheDocument();
     expect(container.querySelector("time")).toBeInTheDocument();
     expect(screen.queryByLabelText(/team password/i)).toBeNull();
   });

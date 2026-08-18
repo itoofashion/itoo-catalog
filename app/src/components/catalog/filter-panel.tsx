@@ -2,6 +2,7 @@
 
 import { Check, Plus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 /**
@@ -107,28 +108,37 @@ export function FilterPanel({
               </label>
 
               {selectable && (
-                <button
-                  type="button"
-                  onClick={() => onToggleLink(name)}
-                  aria-pressed={picked}
-                  aria-label={
-                    picked
-                      ? `Remove all of ${name} from the link`
-                      : `Add all of ${name} to the link`
-                  }
-                  className={cn(
-                    "flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border transition",
-                    picked
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-                  )}
-                >
-                  {picked ? (
-                    <Check className="size-3.5" strokeWidth={3} />
-                  ) : (
-                    <Plus className="size-3" />
-                  )}
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => onToggleLink(name)}
+                      aria-pressed={picked}
+                      aria-label={
+                        picked
+                          ? `Remove all of ${name} from the link`
+                          : `Add all of ${name} to the link`
+                      }
+                      className={cn(
+                        "flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border transition",
+                        picked
+                          ? "border-foreground bg-foreground text-background"
+                          : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+                      )}
+                    >
+                      {picked ? (
+                        <Check className="size-3.5" strokeWidth={3} />
+                      ) : (
+                        <Plus className="size-3" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {picked
+                      ? `Remove all of ${name} from the client link`
+                      : `Add all of ${name} to the client link`}
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           );
