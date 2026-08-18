@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Plus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 /**
@@ -134,30 +135,19 @@ export function FilterPanel({
         })}
       </fieldset>
 
+      {/* A switch rather than one more checkbox, the way the client's own
+          reference draws it: the categories pick what kind, this flips the
+          whole rack to the fresh part. */}
       <div className="flex flex-col border-t pt-4">
-        <label className="flex cursor-pointer items-center gap-2.5 py-1.5 text-[13px]">
-          <input
-            type="checkbox"
-            checked={newOnly}
-            onChange={onToggleNew}
-            className="peer sr-only"
-          />
-          <span
-            aria-hidden
-            className={cn(
-              "flex size-5 shrink-0 items-center justify-center rounded-sm border transition peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring",
-              newOnly ? "border-foreground bg-foreground text-background" : "border-border",
-            )}
-          >
-            {newOnly && <Check className="size-3.5" strokeWidth={3} />}
-          </span>
+        <label className="flex cursor-pointer items-center justify-between gap-2.5 py-1.5 text-[13px]">
           <span
             className={cn(
               newOnly ? "font-semibold text-foreground" : "text-muted-foreground",
             )}
           >
-            New arrivals only
+            New arrivals
           </span>
+          <Switch checked={newOnly} onCheckedChange={onToggleNew} />
         </label>
       </div>
 

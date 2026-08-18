@@ -133,7 +133,7 @@ describe("browsing", () => {
   it("narrows the grid to new arrivals", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
 
     expect(cards()).toHaveLength(1);
     expect(within(grid()).getByText("Style TOP-1")).toBeInTheDocument();
@@ -238,7 +238,7 @@ describe("the filter rail", () => {
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
-    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
     expect(cards()).toHaveLength(0);
 
     await user.click(within(rail()).getByRole("button", { name: /Show everything/i }));
@@ -262,7 +262,7 @@ describe("the filter rail", () => {
     const user = userEvent.setup();
     renderCatalog();
     await user.click(screen.getByRole("checkbox", { name: /Pants/ }));
-    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
 
     expect(screen.getByRole("button", { name: /Filters · 2/ })).toBeInTheDocument();
   });
@@ -364,7 +364,7 @@ describe("the count above the grid", () => {
   it("moves the moment a filter is applied, which is the whole point of it", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
 
     expect(styleCount()).toBe("1 style");
   });
@@ -703,7 +703,7 @@ describe("the address bar", () => {
   it("follows the new-arrivals filter", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("checkbox", { name: /New arrivals only/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
 
     expect(replace).toHaveBeenCalledWith("/?new=1", expect.anything());
   });
