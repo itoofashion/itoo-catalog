@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "itoo",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-04",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "itoo",
+      "database_id": "43c8d418-1f17-4021-991a-8364460ca76a"
+    }
+  ]
+}
