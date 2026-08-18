@@ -122,17 +122,20 @@ export function RecentArrivals({
 
   return (
     <section aria-label="Recent arrivals" className="flex flex-col rounded-sm border p-5">
-      <h2 className="tracked pb-2 text-[10px] text-muted-foreground">Recent arrivals</h2>
-
-      <label className="flex items-center gap-2 pb-3 text-[13px] text-muted-foreground">
-        Added after
-        <input
-          type="date"
-          value={since}
-          onChange={(event) => chooseDay(event.target.value)}
-          className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] text-foreground outline-none transition focus:border-foreground"
-        />
-      </label>
+      {/* The chooser rides in the section's own header: it is the header's
+          question ("since when?") rather than a row of content. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-2">
+        <h2 className="tracked text-[10px] text-muted-foreground">Recent arrivals</h2>
+        <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          Added after
+          <input
+            type="date"
+            value={since}
+            onChange={(event) => chooseDay(event.target.value)}
+            className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] text-foreground outline-none transition focus:border-foreground"
+          />
+        </label>
+      </div>
 
       <p className="pb-2 text-[11px] text-muted-foreground" role="status">
         {arrived.length} {arrived.length === 1 ? "style" : "styles"} added since{" "}
@@ -141,8 +144,10 @@ export function RecentArrivals({
 
       {arrived.length > 0 && (
         /* Capped and scrolled: a month of arrivals is a long list, and this
-           card is one of two on the page, not the page itself. */
-        <ul className="flex max-h-96 flex-col overflow-y-auto border-t">
+           card is one of two on the page, not the page itself. The cap lands
+           mid-row on purpose — a half-cut row is what says "there is more"
+           without a scrollbar having to. */
+        <ul className="flex max-h-[21rem] flex-col overflow-y-auto border-t">
           {shown.map((style) => (
             <li
               key={style.sku}

@@ -95,29 +95,46 @@ export function CatalogStatus({
       <h2 className="tracked pb-2 text-[10px] text-muted-foreground">Synchronization</h2>
 
       <dl className="flex flex-col">
-        <div className="flex items-center justify-between gap-4 border-t py-3">
-          {/* "Styles" here because that is the word the catalog counts in: the
-              grid says "737 styles" and this board has to say the same thing
-              about the same number. */}
-          <dt className="tracked text-[10px] text-muted-foreground">Styles</dt>
-          <dd className="text-sm font-semibold">{productCount}</dd>
+        {/* Two stats side by side: they answer one glance ("how much, how
+            fresh") and neither earns a row of its own. */}
+        <div className="grid grid-cols-2 gap-4 border-t py-3">
+          <div className="flex flex-col gap-1">
+            {/* "Styles" here because that is the word the catalog counts in:
+                the grid says "737 styles" and this board has to say the same
+                thing about the same number. */}
+            <dt className="tracked text-[10px] text-muted-foreground">Styles</dt>
+            <dd className="text-sm font-semibold">{productCount}</dd>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <dt className="tracked text-[10px] text-muted-foreground">Last updated</dt>
+            <dd className="text-sm font-semibold">
+              {/* Rendered in the reader's own locale and timezone, which the
+                  server cannot know, so the first client render is allowed to
+                  differ from the markup it hydrates. */}
+              <time dateTime={syncedAt} suppressHydrationWarning>
+                {formatSyncTime(syncedAt)}
+              </time>
+            </dd>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t py-3">
-          <dt className="tracked text-[10px] text-muted-foreground">Last updated</dt>
+          {/* Midnight in FashionGo's own timezone, which is when their day's
+              changes are all in; spelled out so nobody has to ask when the
+              catalog catches up on its own. */}
+          <dt className="tracked text-[10px] text-muted-foreground">Schedule</dt>
           <dd className="text-sm font-semibold">
-            {/* Rendered in the reader's own locale and timezone, which the
-                server cannot know, so the first client render is allowed to
-                differ from the markup it hydrates. */}
-            <time dateTime={syncedAt} suppressHydrationWarning>
-              {formatSyncTime(syncedAt)}
-            </time>
+            Nightly at midnight, Los Angeles time
           </dd>
         </div>
 
-        <div className="flex flex-col gap-2.5 border-t pt-3">
+        {/* One row like the rows above it: the label on the left, the state and
+            the button that moves it on the right, together because they are one
+            fact — how fresh, and how to make it fresher. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-3">
           <dt className="tracked text-[10px] text-muted-foreground">FashionGo sync</dt>
-          <dd className="flex flex-col gap-2.5 text-sm">
+          <dd className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
             <p className="text-muted-foreground">
               {lastRun ? (
                 <>
@@ -144,17 +161,16 @@ export function CatalogStatus({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="self-start"
                 disabled={sending}
                 onClick={ask}
               >
                 <RefreshCw /> Sync now
               </Button>
             )}
-
-            {refusal && <p className="text-xs text-destructive">{refusal}</p>}
           </dd>
         </div>
+
+        {refusal && <p className="pt-2 text-xs text-destructive">{refusal}</p>}
       </dl>
     </section>
   );

@@ -38,7 +38,7 @@ export function AdminShell({
   return (
     <div className="flex flex-1 flex-col sm:flex-row">
       <aside className="flex shrink-0 flex-col border-b sm:w-56 sm:border-b-0 sm:border-r">
-        <div className="flex items-center justify-between px-4 pb-2 pt-4 sm:block sm:px-5 sm:pt-6">
+        <div className="flex items-center justify-between px-4 pb-2 pt-4 sm:justify-start sm:gap-3 sm:px-5 sm:pt-6">
           <Link href="/" aria-label="itoo, back to the catalog" className="inline-block">
             {/* Full-size file drawn small: the optimizer is off on Workers
                 (see next.config.ts), the browser scales it sharply itself. */}
@@ -48,10 +48,10 @@ export function AdminShell({
               width={1050}
               height={483}
               priority
-              className="h-6 w-auto sm:h-7"
+              className="h-6 w-auto"
             />
           </Link>
-          <h1 className="tracked text-[10px] text-muted-foreground sm:pt-2">
+          <h1 className="tracked whitespace-nowrap text-[10px] text-muted-foreground">
             Admin panel
           </h1>
         </div>

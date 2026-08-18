@@ -76,6 +76,13 @@ describe("catalog status", () => {
     ).toBeInTheDocument();
   });
 
+  it("says when the catalog catches up on its own", () => {
+    renderStatus();
+    expect(screen.getByText("Schedule").parentElement).toHaveTextContent(
+      /Nightly at midnight, Los Angeles time/,
+    );
+  });
+
   it("admits when no sync has ever landed", () => {
     renderStatus({ lastRun: null });
     expect(screen.getByText(/No sync has completed yet/)).toBeInTheDocument();
