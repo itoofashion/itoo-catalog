@@ -59,15 +59,24 @@ describe("catalog status", () => {
     expect(stamp?.textContent).not.toBe(SYNCED_AT);
   });
 
-  it("says in plain words how long ago the last sync landed, and exactly when", () => {
+  it("reads a fresh sync as a distance, with no date to double it", () => {
     renderStatus({ lastRun: { finishedAt: threeHoursAgo(), styleCount: 737 } });
-    // Relative and absolute in one line; the style count is not repeated here,
-    // the bold count above it is the same number.
+    const line = screen.getByText(
+      (_, element) =>
+        element?.tagName === "P" &&
+        /Last synced 3 hours ago$/.test(element.textContent?.trim() ?? ""),
+    );
+    expect(line).toBeInTheDocument();
+  });
+
+  it("reads an old sync as a date, once a day has passed", () => {
+    const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+    renderStatus({ lastRun: { finishedAt: fourDaysAgo, styleCount: 737 } });
     expect(
       screen.getByText(
         (_, element) =>
           element?.tagName === "P" &&
-          /Last synced 3 hours ago \(.*2026.*\)/.test(element.textContent ?? ""),
+          /Last synced on .*20\d\d/.test(element.textContent ?? ""),
       ),
     ).toBeInTheDocument();
   });

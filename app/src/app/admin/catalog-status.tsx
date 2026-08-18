@@ -113,14 +113,12 @@ export function CatalogStatus({
             {lastSyncedAt ? (
               <>
                 Last synced{" "}
-                {/* Relative against the reader's clock, absolute in their own
-                    locale and timezone; the server can know neither, so the
-                    first client render is allowed to differ from the markup
-                    it hydrates. */}
+                {/* Against the reader's own clock, locale and timezone, none
+                    of which the server can know, so the first client render is
+                    allowed to differ from the markup it hydrates. */}
                 <time dateTime={lastSyncedAt} suppressHydrationWarning>
-                  {timeAgo(lastSyncedAt)}
-                </time>{" "}
-                <span suppressHydrationWarning>({formatSyncTime(lastSyncedAt)})</span>
+                  {syncedWhen(lastSyncedAt)}
+                </time>
               </>
             ) : (
               "No sync has completed yet."
@@ -161,6 +159,18 @@ export function CatalogStatus({
 /** A stamp worth printing, or nothing; a blank or unreadable one says nothing. */
 function validStamp(value: string | null | undefined): string | null {
   return value && !Number.isNaN(new Date(value).getTime()) ? value : null;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * "43 minutes ago" while the sync is today's news, "on Aug 11, 2026, 11:59 AM"
+ * once a day has passed: fresh is read as a distance, old as a date, and
+ * showing both at once was saying one thing twice.
+ */
+function syncedWhen(value: string, now = new Date()): string {
+  const age = now.getTime() - new Date(value).getTime();
+  return age < DAY_MS ? timeAgo(value, now) : `on ${formatSyncTime(value)}`;
 }
 
 function formatSyncTime(value: string): string {
