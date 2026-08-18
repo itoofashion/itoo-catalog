@@ -135,8 +135,10 @@ export function FilterPanel({
                   </TooltipTrigger>
                   {/* The same words as on a card: one control, one sentence,
                       wherever it is met. The aria-label keeps the category's
-                      name for whoever cannot see which row they are on. */}
-                  <TooltipContent>
+                      name for whoever cannot see which row they are on. To the
+                      side, not above: above it sat on the neighbouring row and
+                      chased the pointer travelling up the list. */}
+                  <TooltipContent side="right">
                     {picked ? "Remove from the client link" : "Add to the client link"}
                   </TooltipContent>
                 </Tooltip>
