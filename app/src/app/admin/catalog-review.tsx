@@ -42,18 +42,18 @@ export function HiddenStylesReview({ styles }: { styles: ReviewStyle[] }) {
   }
 
   return (
-    <section aria-label="Hidden styles" className="flex flex-col rounded-sm border p-5">
-      <h2 className="tracked pb-2 text-[10px] text-muted-foreground">
+    <section aria-label="Hidden styles" className="flex flex-col gap-2">
+      <h2 className="tracked text-[10px] text-muted-foreground">
         Hidden styles{hidden.length > 0 && ` — ${hidden.length}`}
       </h2>
 
       {hidden.length === 0 ? (
-        <p className="border-t pt-4 text-sm text-muted-foreground">
+        <p className="rounded-sm border p-5 text-sm text-muted-foreground">
           Nothing is hidden. The eye on a card in the catalog is what puts a
           style here.
         </p>
       ) : (
-        <ul className="flex flex-col border-t">
+        <ul className="flex flex-col rounded-sm border px-5 py-1">
           {hidden.map((style) => (
             <li
               key={style.sku}
@@ -63,7 +63,7 @@ export function HiddenStylesReview({ styles }: { styles: ReviewStyle[] }) {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{style.name}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  Style {style.sku} · {style.category} · ${style.price.toFixed(2)}
+                  SKU: {style.sku} · {style.category} · ${style.price.toFixed(2)}
                 </p>
               </div>
               <Button
@@ -121,33 +121,40 @@ export function RecentArrivals({
   const shown = arrived.slice(0, ARRIVALS_SHOWN);
 
   return (
-    <section aria-label="Recent arrivals" className="flex flex-col rounded-sm border p-5">
-      {/* The chooser rides in the section's own header: it is the header's
-          question ("since when?") rather than a row of content. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-2">
-        <h2 className="tracked text-[10px] text-muted-foreground">Recent arrivals</h2>
-        <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
-          Added after
-          <input
-            type="date"
-            value={since}
-            onChange={(event) => chooseDay(event.target.value)}
-            className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] text-foreground outline-none transition focus:border-foreground"
-          />
-        </label>
-      </div>
+    <section aria-label="Recent arrivals" className="flex flex-col gap-2">
+      <h2 className="tracked text-[10px] text-muted-foreground">Recent arrivals</h2>
 
-      <p className="pb-2 text-[11px] text-muted-foreground" role="status">
-        {arrived.length} {arrived.length === 1 ? "style" : "styles"} added since{" "}
-        {since || "the beginning"}
-      </p>
+      <div
+        className={cn(
+          "flex flex-col rounded-sm border p-5",
+          // The list runs to the card's own bottom edge, so the row the cap
+          // cuts in half is cut by the card itself.
+          arrived.length > 0 && "pb-0",
+        )}
+      >
+        {/* The count is the card's answer and wears the boldest text in it;
+            the chooser beside it is the question being answered. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-3">
+          <p className="text-sm font-semibold" role="status">
+            {arrived.length} {arrived.length === 1 ? "style" : "styles"}
+          </p>
+          <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            Added after
+            <input
+              type="date"
+              value={since}
+              onChange={(event) => chooseDay(event.target.value)}
+              className="rounded-sm border border-border bg-transparent px-2 py-1 font-sans text-[13px] text-foreground outline-none transition focus:border-foreground"
+            />
+          </label>
+        </div>
 
-      {arrived.length > 0 && (
-        /* Capped and scrolled: a month of arrivals is a long list, and this
-           card is one of two on the page, not the page itself. The cap lands
-           mid-row on purpose — a half-cut row is what says "there is more"
-           without a scrollbar having to. */
-        <ul className="flex max-h-[21rem] flex-col overflow-y-auto border-t">
+        {arrived.length > 0 && (
+          /* Capped and scrolled: a month of arrivals is a long list, and this
+             card is one of two on the page, not the page itself. The cap lands
+             mid-row on purpose — a half-cut row is what says "there is more"
+             without a scrollbar having to. */
+          <ul className="flex max-h-[21rem] flex-col overflow-y-auto border-t">
           {shown.map((style) => (
             <li
               key={style.sku}
@@ -160,7 +167,7 @@ export function RecentArrivals({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{style.name}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  Style {style.sku} · {style.category}
+                  SKU: {style.sku} · {style.category}
                   {style.hidden && " · hidden"}
                 </p>
               </div>
@@ -172,14 +179,15 @@ export function RecentArrivals({
               </time>
             </li>
           ))}
-        </ul>
-      )}
+          </ul>
+        )}
 
-      {arrived.length > shown.length && (
-        <p className="pt-2 text-[11px] text-muted-foreground">
-          Showing the first {shown.length}; narrow the day to see the rest.
-        </p>
-      )}
+        {arrived.length > shown.length && (
+          <p className="border-t py-2.5 text-[11px] text-muted-foreground">
+            Showing the first {shown.length}; narrow the day to see the rest.
+          </p>
+        )}
+      </div>
     </section>
   );
 }

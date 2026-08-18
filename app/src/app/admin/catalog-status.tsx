@@ -88,16 +88,17 @@ export function CatalogStatus({
   }
 
   return (
-    <section
-      aria-label="Synchronization"
-      className="flex flex-col rounded-sm border p-5"
-    >
-      <h2 className="tracked pb-2 text-[10px] text-muted-foreground">Synchronization</h2>
+    // The heading stands over the card rather than inside it, so the card
+    // itself holds nothing but the facts.
+    <section aria-label="FashionGo synchronization" className="flex flex-col gap-2">
+      <h2 className="tracked text-[10px] text-muted-foreground">
+        FashionGo synchronization
+      </h2>
 
-      <dl className="flex flex-col">
+      <div className="flex flex-col rounded-sm border p-5">
         {/* Two stats side by side: they answer one glance ("how much, how
             fresh") and neither earns a row of its own. */}
-        <div className="grid grid-cols-2 gap-4 border-t py-3">
+        <dl className="grid grid-cols-2 gap-4 pb-4">
           <div className="flex flex-col gap-1">
             {/* "Styles" here because that is the word the catalog counts in:
                 the grid says "737 styles" and this board has to say the same
@@ -117,25 +118,13 @@ export function CatalogStatus({
               </time>
             </dd>
           </div>
-        </div>
+        </dl>
 
-        <div className="flex items-center justify-between gap-4 border-t py-3">
-          {/* Midnight in FashionGo's own timezone, which is when their day's
-              changes are all in; spelled out so nobody has to ask when the
-              catalog catches up on its own. */}
-          <dt className="tracked text-[10px] text-muted-foreground">Schedule</dt>
-          <dd className="text-sm font-semibold">
-            Nightly at midnight, Los Angeles time
-          </dd>
-        </div>
-
-        {/* One row like the rows above it: the label on the left, the state and
-            the button that moves it on the right, together because they are one
-            fact — how fresh, and how to make it fresher. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-3">
-          <dt className="tracked text-[10px] text-muted-foreground">FashionGo sync</dt>
-          <dd className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-            <p className="text-muted-foreground">
+        {/* One fact in two lines on the left — how fresh, and when it freshens
+            itself — and the way to freshen it sooner on the right. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-4">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm">
               {lastRun ? (
                 <>
                   Last synced{" "}
@@ -150,28 +139,33 @@ export function CatalogStatus({
                 "No sync has completed yet."
               )}
             </p>
+            {/* No timezone on purpose: managers need "it happens every night",
+                not an exercise in time arithmetic. */}
+            <p className="text-xs text-muted-foreground">
+              Updates automatically every night at midnight.
+            </p>
+          </div>
 
-            {pending ? (
-              /* Announced, because it replaces the button that was pressed. */
-              <p role="status" className="flex items-center gap-2 font-semibold">
-                <RefreshCw className="size-3.5 animate-spin" /> Sync in progress…
-              </p>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={sending}
-                onClick={ask}
-              >
-                <RefreshCw /> Sync now
-              </Button>
-            )}
-          </dd>
+          {pending ? (
+            /* Announced, because it replaces the button that was pressed. */
+            <p role="status" className="flex items-center gap-2 text-sm font-semibold">
+              <RefreshCw className="size-3.5 animate-spin" /> Sync in progress…
+            </p>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={sending}
+              onClick={ask}
+            >
+              <RefreshCw /> Sync now
+            </Button>
+          )}
         </div>
 
         {refusal && <p className="pt-2 text-xs text-destructive">{refusal}</p>}
-      </dl>
+      </div>
     </section>
   );
 }

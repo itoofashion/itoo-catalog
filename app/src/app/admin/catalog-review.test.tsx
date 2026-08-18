@@ -51,9 +51,9 @@ describe("the review of hidden styles", () => {
     expect(within(list).queryByText("Style TOP-1")).not.toBeInTheDocument();
   });
 
-  it("says what a row is: the style, its category, its price", () => {
+  it("says what a row is: the SKU, its category, its price", () => {
     render(<HiddenStylesReview styles={styles} />);
-    expect(screen.getByText(/Style TOP-2 · Tops · \$19.75/)).toBeInTheDocument();
+    expect(screen.getByText(/SKU: TOP-2 · Tops · \$19.75/)).toBeInTheDocument();
   });
 
   it("takes the way back to the server, and the row leaves at once", async () => {
@@ -102,7 +102,7 @@ describe("recent arrivals", () => {
 
   it("counts what it shows", () => {
     render(<RecentArrivals styles={styles} initialSince={monthBack} />);
-    expect(screen.getByRole("status")).toHaveTextContent(/^2 styles added since/);
+    expect(screen.getByRole("status")).toHaveTextContent(/^2 styles$/);
   });
 
   it("reaches further back when an earlier day is chosen", async () => {
@@ -133,7 +133,7 @@ describe("recent arrivals", () => {
 
   it("marks a hidden arrival rather than pretending it is on sale", () => {
     render(<RecentArrivals styles={styles} initialSince={monthBack} />);
-    expect(screen.getByText(/NEW-2 · Tops · hidden/)).toBeInTheDocument();
+    expect(screen.getByText(/SKU: NEW-2 · Tops · hidden/)).toBeInTheDocument();
   });
 
   it("says when a long answer is cut, instead of cutting it quietly", () => {

@@ -78,9 +78,9 @@ describe("catalog status", () => {
 
   it("says when the catalog catches up on its own", () => {
     renderStatus();
-    expect(screen.getByText("Schedule").parentElement).toHaveTextContent(
-      /Nightly at midnight, Los Angeles time/,
-    );
+    expect(
+      screen.getByText(/Updates automatically every night at midnight/),
+    ).toBeInTheDocument();
   });
 
   it("admits when no sync has ever landed", () => {
