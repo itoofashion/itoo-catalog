@@ -721,9 +721,12 @@ export function CatalogView({
       </main>
 
       {/* The only thing left floating over the catalogue. The team's other
-          controls are in the header and on /admin. */}
+          controls are in the header and on /admin. It stands at the bottom
+          left, under the rail whose pluses feed it: what goes into the link is
+          picked on that side of the page, so the answer appears on that side
+          too. */}
       {showTools && !isEmptySelection(selection) && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:justify-end sm:p-0">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:inset-x-auto sm:bottom-5 sm:left-5 sm:justify-start sm:p-0">
           <LinkPanel
             // A different selection is a different link: remounting drops the
             // one made for the previous selection rather than resetting it.
