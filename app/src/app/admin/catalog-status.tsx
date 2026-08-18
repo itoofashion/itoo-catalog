@@ -96,10 +96,11 @@ export function CatalogStatus({
       </h2>
 
       <div className="flex flex-col rounded-sm border p-5">
-        {/* Two stats side by side: they answer one glance ("how much, how
-            fresh") and neither earns a row of its own. */}
-        <dl className="grid grid-cols-2 gap-4 pb-4">
-          <div className="flex flex-col gap-1">
+        {/* Two stats side by side, each read the way the rows below read:
+            label on the left, value against the right edge of its column, a
+            rule between them so neither trails off into a gap. */}
+        <dl className="grid grid-cols-2 divide-x divide-border pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pr-4">
             {/* "Styles" here because that is the word the catalog counts in:
                 the grid says "737 styles" and this board has to say the same
                 thing about the same number. */}
@@ -107,7 +108,7 @@ export function CatalogStatus({
             <dd className="text-sm font-semibold">{productCount}</dd>
           </div>
 
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pl-4">
             <dt className="tracked text-[10px] text-muted-foreground">Last updated</dt>
             <dd className="text-sm font-semibold">
               {/* Rendered in the reader's own locale and timezone, which the
@@ -154,10 +155,12 @@ export function CatalogStatus({
           ) : (
             <Button
               type="button"
-              variant="outline"
               size="sm"
               disabled={sending}
               onClick={ask}
+              /* The brand's own pink, the one the New badges wear: the only
+                 press on the page, allowed to be the only colour on it. */
+              className="bg-brand text-brand-foreground hover:bg-brand/80"
             >
               <RefreshCw /> Sync now
             </Button>

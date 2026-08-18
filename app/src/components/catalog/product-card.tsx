@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Eye, EyeOff, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatColorName, swatchFor } from "@/lib/catalog/color";
 import { packSummary } from "@/lib/catalog/pack";
@@ -264,14 +264,15 @@ export function ProductCard({
                     : undefined
                 }
                 onClick={() => onToggleSelect(product.sku)}
-                /* The same box as the one on a category, down to the corner: one
-                   control, picked in two places. It reads at 20px and is hit
-                   with a thumb, so the target around it is grown by a
-                   pseudo-element.
+                /* The same button as the one beside a category in the rail: a
+                   plus that fills into a check, one control picked in two
+                   places, wearing the card's over-photo whites here. It reads
+                   at 20px and is hit with a thumb, so the target around it is
+                   grown by a pseudo-element.
 
-                   A style held by its category shows the same tick, faded and
+                   A style held by its category shows the same check, faded and
                    unpressable. A padlock was tried here and read as a puzzle: a
-                   dimmed tick says "already in, not yours to take out" without
+                   dimmed check says "already in, not yours to take out" without
                    anyone having to work out what the picture means. */
                 className={cn(
                   "relative flex size-5 items-center justify-center rounded-sm border text-white shadow-sm transition before:absolute before:-inset-1.5 before:content-['']",
@@ -281,8 +282,10 @@ export function ProductCard({
                   lockedByCategory ? "cursor-not-allowed opacity-45" : "cursor-pointer",
                 )}
               >
-                {(selected || lockedByCategory) && (
+                {selected || lockedByCategory ? (
                   <Check className="size-3.5" strokeWidth={3} />
+                ) : (
+                  <Plus className="size-3.5" strokeWidth={2.5} />
                 )}
               </button>
             )}
