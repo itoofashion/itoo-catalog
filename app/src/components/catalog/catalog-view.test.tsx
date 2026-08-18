@@ -419,13 +419,13 @@ describe("switching between the two views", () => {
     expect(container.querySelector("[data-status-bar]")).toBeNull();
   });
 
-  it("keeps the switch out of the header, where it used to jump to", async () => {
+  it("keeps the switch in the header, in the same place in both views", async () => {
     const user = userEvent.setup();
     renderCatalog();
-    await user.click(screen.getByRole("button", { name: /Public view/ }));
-
     const header = screen.getByRole("banner");
-    expect(within(header).queryByRole("button", { name: /view$/ })).not.toBeInTheDocument();
+    await user.click(within(header).getByRole("button", { name: /Public view/ }));
+
+    expect(within(header).getByRole("button", { name: /Admin view/ })).toBeInTheDocument();
   });
 });
 

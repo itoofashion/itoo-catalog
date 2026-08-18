@@ -468,29 +468,66 @@ export function CatalogView({
             takes the second line at full width, because a search box narrowed
             to a third of a 390px screen is a search box nobody uses. */}
         <div className="mx-auto flex max-w-[1680px] flex-col gap-y-2.5 px-4 py-3 sm:grid sm:grid-cols-[1fr_minmax(0,28rem)_1fr] sm:items-center sm:gap-x-6 sm:px-6 lg:px-10">
-          <Link
-            href="/"
-            onClick={goHome}
-            className="shrink-0 justify-self-start"
-            aria-label="itoo, back to the whole catalog"
-          >
-            {/* Served at its full 1050px because the image optimizer is off on
-                Workers (see next.config.ts) and the file is only 15 KB: the
-                browser scales it down to the 28px line, so it stays sharp on a
-                retina screen at any density. */}
-            <Image
-              src="/logo.png"
-              alt="itoo"
-              width={1050}
-              height={483}
-              priority
-              className="h-6 w-auto sm:h-7"
-            />
-          </Link>
+          {/* One row on a phone, dissolved into the grid's outer columns on a
+              laptop: the logo on the left, the team's own doors on the right,
+              and for a client the right side simply stays empty. */}
+          <div className="flex items-center justify-between sm:contents">
+            <Link
+              href="/"
+              onClick={goHome}
+              className="shrink-0 justify-self-start"
+              aria-label="itoo, back to the whole catalog"
+            >
+              {/* Served at its full 1050px because the image optimizer is off on
+                  Workers (see next.config.ts) and the file is only 15 KB: the
+                  browser scales it down to the 28px line, so it stays sharp on a
+                  retina screen at any density. */}
+              <Image
+                src="/logo.png"
+                alt="itoo"
+                width={1050}
+                height={483}
+                priority
+                className="h-6 w-auto sm:h-7"
+              />
+            </Link>
+
+            {/* One slot, the same slot in both views, so pressing the switch
+                does not move the thing that was just pressed. */}
+            {isTeam && (
+              <div className="flex shrink-0 items-center gap-1 sm:col-start-3 sm:row-start-1 sm:justify-self-end">
+                {showTools && (
+                  /* The way into the service pages, and it has to say so: on
+                     its own the word "Admin" read as one more filter. Left as
+                     a ghost so it stays the quieter of the two. */
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/admin">
+                      <SlidersHorizontal /> Admin panel
+                    </Link>
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPreviewingAsClient(!previewingAsClient)}
+                >
+                  {showTools ? (
+                    <>
+                      <Eye /> Public view
+                    </>
+                  ) : (
+                    <>
+                      <Undo2 /> Admin view
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* It stays a filter among filters: it narrows the grid keystroke by
               keystroke rather than opening a page. */}
-          <div className="relative w-full">
+          <div className="relative w-full sm:col-start-2 sm:row-start-1">
             <Search
               aria-hidden
               className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
@@ -563,7 +600,7 @@ export function CatalogView({
               opens under the Filters button instead. */}
           <aside
             aria-label="Filters"
-            className="sticky top-[69px] hidden max-h-[calc(100vh-85px)] w-52 shrink-0 self-start overflow-y-auto py-5 pr-1 lg:block"
+            className="sticky top-[69px] hidden max-h-[calc(100vh-85px)] w-60 shrink-0 self-start overflow-y-auto py-5 pr-2 lg:block"
           >
             {filterPanel}
           </aside>
@@ -601,40 +638,6 @@ export function CatalogView({
           >
             {page.total} {page.total === 1 ? "style" : "styles"}
           </p>
-
-          {/* One slot, the same slot in both views, so pressing it does not move
-              the thing that was just pressed. */}
-          {isTeam && (
-            <div className="ml-auto flex shrink-0 items-center gap-1">
-              {showTools && (
-                /* The way into the service pages, and it has to say so: on its
-                   own the word "Admin" read as one more filter. Given the same
-                   type and the same icon-and-label shape as the switch beside
-                   it, so the row looks assembled rather than accumulated, and
-                   left as a ghost so it stays the quieter of the two. */
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/admin">
-                    <SlidersHorizontal /> Admin panel
-                  </Link>
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewingAsClient(!previewingAsClient)}
-              >
-                {showTools ? (
-                  <>
-                    <Eye /> Public view
-                  </>
-                ) : (
-                  <>
-                    <Undo2 /> Admin view
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* The same panel the laptop shows beside the grid, in a bordered box
@@ -718,8 +721,7 @@ export function CatalogView({
       </main>
 
       {/* The only thing left floating over the catalogue. The team's other
-          controls are on /admin, and the view switch is in the row above the
-          grid, where it stays put instead of jumping into the header. */}
+          controls are in the header and on /admin. */}
       {showTools && !isEmptySelection(selection) && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:justify-end sm:p-0">
           <LinkPanel

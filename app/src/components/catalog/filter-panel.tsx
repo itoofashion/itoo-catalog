@@ -50,7 +50,10 @@ export function FilterPanel({
 
   return (
     <div className="flex flex-col gap-6">
-      <fieldset className="flex flex-col">
+      {/* min-w-0 matters: a fieldset's default minimum is its content, so
+          without it one long category name pushes every row past the rail's
+          edge and the controls on the right get clipped. */}
+      <fieldset className="flex min-w-0 flex-col">
         <legend className="tracked pb-2 text-[10px] text-muted-foreground">
           Categories
         </legend>
@@ -89,6 +92,7 @@ export function FilterPanel({
                   {shown && <Check className="size-3.5" strokeWidth={3} />}
                 </span>
                 <span
+                  title={name}
                   className={cn(
                     "truncate",
                     shown ? "font-semibold text-foreground" : "text-muted-foreground",
