@@ -129,14 +129,15 @@ export function FilterPanel({
                       {picked ? (
                         <Check className="size-3.5" strokeWidth={3} />
                       ) : (
-                        <Plus className="size-3" />
+                        <Plus className="size-3.5" strokeWidth={2.5} />
                       )}
                     </button>
                   </TooltipTrigger>
+                  {/* The same words as on a card: one control, one sentence,
+                      wherever it is met. The aria-label keeps the category's
+                      name for whoever cannot see which row they are on. */}
                   <TooltipContent>
-                    {picked
-                      ? `Remove all of ${name} from the client link`
-                      : `Add all of ${name} to the client link`}
+                    {picked ? "Remove from the client link" : "Add to the client link"}
                   </TooltipContent>
                 </Tooltip>
               )}
