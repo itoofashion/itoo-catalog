@@ -791,6 +791,35 @@ describe("picking whole categories", () => {
   });
 });
 
+/**
+ * The complaint this answers: with the New lens on, the grid showed 68 styles
+ * while the panel promised 359. The panel promises what the client will see,
+ * and while the lens is on, that is the new arrivals of the selection.
+ */
+describe("the link under the new-arrivals lens", () => {
+  it("promises only the new arrivals while the lens is on, and says so", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(screen.getByRole("button", { name: /Add all of Pants to the link/ }));
+    expect(screen.getByText("all of Pants · 2 styles")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
+    // Nothing in Pants is new, and the panel must say that plainly rather
+    // than promise the whole category.
+    expect(screen.getByText("all of Pants · 0 styles · new arrivals")).toBeInTheDocument();
+  });
+
+  it("promises everything again the moment the lens comes off", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+    await user.click(screen.getByRole("button", { name: /Add all of Pants to the link/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
+    await user.click(screen.getByRole("switch", { name: /New arrivals/ }));
+
+    expect(screen.getByText("all of Pants · 2 styles")).toBeInTheDocument();
+  });
+});
+
 describe("the client's view", () => {
   it("opens straight into it for a shared link", () => {
     renderCatalog({ categories: [], skus: ["TOP-1", "PANT-1"] });

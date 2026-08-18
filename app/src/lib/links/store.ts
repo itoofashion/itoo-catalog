@@ -22,18 +22,30 @@ import { database, type Database } from "@/lib/db/client";
  */
 export interface LinkStore {
   /** What a code points at, or null if it was never minted. */
-  findSelection(code: string): Promise<CatalogSelection | null>;
+  findLink(code: string): Promise<SharedLink | null>;
   /** The code already minted for this selection, if there is one. */
   findCode(fingerprint: string): Promise<string | null>;
   /** Writes a link, or reports which of the two rules refused it. */
   insert(link: StoredLink): Promise<InsertOutcome>;
 }
 
+/**
+ * What a code means when it is opened: the selection, and whether the link was
+ * made with the new-arrivals lens on. The lens travels with the link because
+ * the panel promised the client the new arrivals, not the whole categories.
+ */
+export type SharedLink = {
+  selection: CatalogSelection;
+  newOnly: boolean;
+};
+
 export type StoredLink = {
   code: string;
   fingerprint: string;
   selection: CatalogSelection;
   createdAt: string;
+  /** Absent means off: every link minted before the lens existed reads false. */
+  newOnly?: boolean;
 };
 
 export type InsertOutcome =
@@ -56,12 +68,12 @@ export function createD1LinkStore(db: Database): LinkStore {
   }
 
   return {
-    async findSelection(code) {
+    async findLink(code) {
       const row = await db
         .prepare(`SELECT selection FROM ${TABLE} WHERE code = ?1`)
         .bind(code)
         .first<{ selection: string }>();
-      return row ? parseSelection(row.selection) : null;
+      return row ? parseStoredLink(row.selection) : null;
     },
 
     findCode,
@@ -79,7 +91,12 @@ export function createD1LinkStore(db: Database): LinkStore {
         .bind(
           link.code,
           link.fingerprint,
-          JSON.stringify(link.selection),
+          // The lens rides inside the selection column: it is part of what the
+          // code means, and a column migration for one boolean would be more
+          // machinery than the meaning needs.
+          JSON.stringify(
+            link.newOnly ? { ...link.selection, newOnly: true } : link.selection,
+          ),
           link.createdAt,
         )
         .run();
@@ -102,8 +119,9 @@ export function createMemoryLinkStore(): LinkStore {
   const byFingerprint = new Map<string, string>();
 
   return {
-    async findSelection(code) {
-      return byCode.get(code)?.selection ?? null;
+    async findLink(code) {
+      const link = byCode.get(code);
+      return link ? { selection: link.selection, newOnly: link.newOnly === true } : null;
     },
     async findCode(fingerprint) {
       return byFingerprint.get(fingerprint) ?? null;
@@ -124,15 +142,18 @@ export function createMemoryLinkStore(): LinkStore {
  * this code, or by hand in the D1 console, must not be able to hand the catalog
  * something that is not a selection.
  */
-function parseSelection(value: string): CatalogSelection | null {
+function parseStoredLink(value: string): SharedLink | null {
   try {
     const parsed: unknown = JSON.parse(value);
     if (typeof parsed !== "object" || parsed === null) return null;
-    const { categories, skus } = parsed as Record<string, unknown>;
+    const { categories, skus, newOnly } = parsed as Record<string, unknown>;
     const selection = { categories: strings(categories), skus: strings(skus) };
     // An empty selection is a broken row, not an invitation to show everything.
     if (selection.categories.length === 0 && selection.skus.length === 0) return null;
-    return selection;
+    // Strictly true, never truthy: a hand-typed row must not smuggle a string
+    // in as the lens. A row from before the lens existed has nothing here and
+    // reads false, which is what its link meant when it was sent.
+    return { selection, newOnly: newOnly === true };
   } catch {
     return null;
   }

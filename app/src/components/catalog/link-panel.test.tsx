@@ -28,11 +28,12 @@ function pressing() {
   return user;
 }
 
-function renderPanel() {
+function renderPanel({ newOnly = false } = {}) {
   return render(
     <LinkPanel
       selection={{ categories: ["Dresses"], skus: [] }}
       productCount={12}
+      newOnly={newOnly}
       onClear={vi.fn()}
     />,
   );
@@ -51,7 +52,7 @@ describe("the link panel", () => {
     const link = `${window.location.origin}/s/K7M2QP`;
     expect(screen.getByTitle(link)).toBeInTheDocument();
     expect(writeText).toHaveBeenCalledWith(link);
-    expect(createLink).toHaveBeenCalledWith({ categories: ["Dresses"], skus: [] });
+    expect(createLink).toHaveBeenCalledWith({ categories: ["Dresses"], skus: [] }, false);
   });
 
   it("waits on the server without letting the button be pressed twice", async () => {
@@ -109,6 +110,22 @@ describe("the link panel", () => {
     renderPanel();
     expect(screen.getByText("all of Dresses · 12 styles")).toBeInTheDocument();
   });
+
+  it("sends the new-arrivals lens with the link when it is on", async () => {
+    createLink.mockResolvedValue({ code: "K7M2QP" });
+    const user = pressing();
+    renderPanel({ newOnly: true });
+    await user.click(button());
+
+    expect(createLink).toHaveBeenCalledWith({ categories: ["Dresses"], skus: [] }, true);
+  });
+
+  it("says on its face that the link is only the new arrivals", () => {
+    renderPanel({ newOnly: true });
+    expect(
+      screen.getByText("all of Dresses · 12 styles · new arrivals"),
+    ).toBeInTheDocument();
+  });
 });
 
 /**
@@ -131,6 +148,12 @@ describe("what the link promises", () => {
   it("spells out the total for a category, which is the part nobody counted", () => {
     expect(describeSelection({ categories: ["Dresses"], skus: [] }, 67)).toBe(
       "all of Dresses · 67 styles",
+    );
+  });
+
+  it("names the lens, so a shrunken number explains itself", () => {
+    expect(describeSelection({ categories: ["Dresses"], skus: [] }, 3, true)).toBe(
+      "all of Dresses · 3 styles · new arrivals",
     );
   });
 

@@ -2,7 +2,7 @@ import { isEmptySelection, type CatalogSelection } from "@/lib/catalog/share";
 import { CODE_LENGTH, isShortCode, randomCode } from "./code";
 import { fingerprintSelection } from "./fingerprint";
 import { decodeLegacyCode } from "./legacy";
-import type { LinkStore } from "./store";
+import type { LinkStore, SharedLink } from "./store";
 
 /**
  * Minting a link, and opening one.
@@ -29,12 +29,14 @@ export async function createShortLink(
   selection: CatalogSelection,
   store: LinkStore,
   now: Date = new Date(),
+  /** Whether the link carries the new-arrivals lens the panel promised. */
+  newOnly = false,
 ): Promise<string> {
   if (isEmptySelection(selection)) {
     throw new Error("A short link needs something selected.");
   }
 
-  const fingerprint = fingerprintSelection(selection);
+  const fingerprint = fingerprintSelection(selection, newOnly);
 
   // The button gets pressed again on the same selection all the time, by the
   // same person wanting the link a second time. That must not mint a second
@@ -45,7 +47,7 @@ export async function createShortLink(
   const createdAt = now.toISOString();
   for (let draw = 0; draw < MAX_DRAWS; draw += 1) {
     const code = randomCode(CODE_LENGTH + Math.floor(draw / DRAWS_PER_LENGTH));
-    const outcome = await store.insert({ code, fingerprint, selection, createdAt });
+    const outcome = await store.insert({ code, fingerprint, selection, createdAt, newOnly });
 
     if (outcome === "stored") return code;
     if (outcome === "selection-stored") {
@@ -74,14 +76,14 @@ export async function createShortLink(
 export async function resolveShortLink(
   code: string,
   store: LinkStore,
-): Promise<CatalogSelection | null> {
+): Promise<SharedLink | null> {
   const trimmed = code.trim();
   if (!trimmed) return null;
 
   try {
     for (const candidate of candidates(trimmed)) {
-      const selection = await store.findSelection(candidate);
-      if (selection) return selection;
+      const link = await store.findLink(candidate);
+      if (link) return link;
     }
   } catch {
     // A database that is unreachable, or a table not yet migrated, must not
@@ -91,7 +93,9 @@ export async function resolveShortLink(
     // the site looking broken.
   }
 
-  return decodeLegacyCode(trimmed);
+  // Legacy codes predate the lens, so they open the way they always have.
+  const legacy = decodeLegacyCode(trimmed);
+  return legacy ? { selection: legacy, newOnly: false } : null;
 }
 
 /**

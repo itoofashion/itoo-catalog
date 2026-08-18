@@ -15,29 +15,31 @@ export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ code: string }> };
 
-async function selectionFor(params: PageProps["params"]) {
+async function linkFor(params: PageProps["params"]) {
   return resolveShortLink((await params).code, await linkStore());
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const selection = await selectionFor(params);
-  if (!selection) return { title: "itoo" };
-  return catalogMetadata(selection);
+  const link = await linkFor(params);
+  if (!link) return { title: "itoo" };
+  return catalogMetadata(link.selection, link.newOnly);
 }
 
 export default async function ShortLinkPage({ params }: PageProps) {
-  const selection = await selectionFor(params);
+  const link = await linkFor(params);
   // A code nobody minted is a broken link. Falling through to an unfiltered
   // catalog would show a client the entire line sheet instead.
-  if (!selection) notFound();
+  if (!link) notFound();
 
   const { products } = await publishedCatalog();
 
   return (
     <CatalogView
       products={products}
-      selection={selection}
-      filters={NO_FILTERS}
+      selection={link.selection}
+      // A link minted under the new-arrivals lens opens with the lens on: that
+      // is what the panel promised when the number beside Get link shrank.
+      filters={link.newOnly ? { ...NO_FILTERS, newOnly: true } : NO_FILTERS}
       isTeam={await isTeamViewer()}
       // The address is the short link; rewriting it with a query string as the
       // client browses would undo the reason it was shortened.

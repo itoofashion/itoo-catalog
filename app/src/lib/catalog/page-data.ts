@@ -39,7 +39,11 @@ export async function publishedCatalog() {
  * Rendering the title, description and lead photo on the server is what makes
  * that card name the categories a client asked for instead of showing a bare URL.
  */
-export async function catalogMetadata(selection: CatalogSelection): Promise<Metadata> {
+export async function catalogMetadata(
+  selection: CatalogSelection,
+  /** A link minted under the new-arrivals lens unfurls with the lens applied. */
+  newOnly = false,
+): Promise<Metadata> {
   const { products } = await publishedCatalog();
   // The address carries category slugs, and only the catalog can say which names
   // they stand for. A short link hands over the names themselves, which come
@@ -48,7 +52,10 @@ export async function catalogMetadata(selection: CatalogSelection): Promise<Meta
     { selection, filters: NO_FILTERS },
     categoriesOf(products),
   );
-  const shown = selectedProducts(products, named);
+  const reachable = selectedProducts(products, named);
+  // The preview card counts what the link will open on, and a lensed link
+  // opens on the new arrivals alone.
+  const shown = newOnly ? reachable.filter((product) => product.isNew) : reachable;
   const meta = catalogMeta(named, shown.length);
 
   return preview(meta, shown[0]?.images[0]?.url);

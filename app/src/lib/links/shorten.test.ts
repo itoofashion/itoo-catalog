@@ -44,7 +44,7 @@ describe("minting a short link", () => {
     const store = createMemoryLinkStore();
     const code = await createShortLink(tops, store);
 
-    expect(await resolveShortLink(code, store)).toEqual(tops);
+    expect(await resolveShortLink(code, store)).toEqual({ selection: tops, newOnly: false });
   });
 
   it("gives the same selection the same code, however many times it is asked", async () => {
@@ -85,7 +85,7 @@ describe("minting a short link", () => {
 
     draws.push("AAAAAA", "BBBBBB");
     expect(await createShortLink(dresses, store)).toBe("BBBBBB");
-    expect(await resolveShortLink("AAAAAA", store)).toEqual(tops);
+    expect(await resolveShortLink("AAAAAA", store)).toEqual({ selection: tops, newOnly: false });
   });
 
   it("grows a character rather than failing when a length runs out of luck", async () => {
@@ -105,7 +105,7 @@ describe("minting a short link", () => {
     // gets written. Reaching this needs a table with millions of rows in it.
     const code = await createShortLink(dresses, store);
     expect(code).toHaveLength(7);
-    expect(await resolveShortLink(code, store)).toEqual(dresses);
+    expect(await resolveShortLink(code, store)).toEqual({ selection: dresses, newOnly: false });
   });
 
   it("takes the code another isolate minted for the same selection", async () => {
@@ -138,6 +138,46 @@ describe("minting a short link", () => {
   });
 });
 
+describe("the new-arrivals lens on a link", () => {
+  it("carries the lens through minting and opening", async () => {
+    const store = createMemoryLinkStore();
+    const code = await createShortLink(dresses, store, new Date(), true);
+
+    expect(await resolveShortLink(code, store)).toEqual({
+      selection: dresses,
+      newOnly: true,
+    });
+  });
+
+  it("opens a plain link with the lens off", async () => {
+    const store = createMemoryLinkStore();
+    const code = await createShortLink(dresses, store);
+
+    expect(await resolveShortLink(code, store)).toEqual({
+      selection: dresses,
+      newOnly: false,
+    });
+  });
+
+  it("mints different codes for the lensed and the plain link", async () => {
+    // "New arrivals of Dresses" and "all of Dresses" are different promises;
+    // reusing one code for both would quietly change what a sent link means.
+    const store = createMemoryLinkStore();
+    const plain = await createShortLink(dresses, store);
+    const lensed = await createShortLink(dresses, store, new Date(), true);
+
+    expect(lensed).not.toBe(plain);
+  });
+
+  it("hands the lensed selection back the same code every time", async () => {
+    const store = createMemoryLinkStore();
+    const first = await createShortLink(dresses, store, new Date(), true);
+    const second = await createShortLink(dresses, store, new Date(), true);
+
+    expect(second).toBe(first);
+  });
+});
+
 describe("opening a short link", () => {
   it("is nothing for a code nobody minted, which is a 404", async () => {
     expect(await resolveShortLink("ZZZZZZ", createMemoryLinkStore())).toBeNull();
@@ -151,8 +191,8 @@ describe("opening a short link", () => {
     const legacy = encodeLegacyCode({ categories: ["Dresses"], skus: ["8980"] });
 
     expect(await resolveShortLink(legacy, createMemoryLinkStore())).toEqual({
-      categories: ["Dresses"],
-      skus: ["8980"],
+      selection: { categories: ["Dresses"], skus: ["8980"] },
+      newOnly: false,
     });
   });
 
@@ -162,7 +202,10 @@ describe("opening a short link", () => {
         "RHJlc3Nlc35DbHV0Y2hlcyAmIFBvdWNoZXMhODk4MH5XUC0yMTYw",
         createMemoryLinkStore(),
       ),
-    ).toEqual({ categories: ["Dresses", "Clutches & Pouches"], skus: ["8980", "WP-2160"] });
+    ).toEqual({
+      selection: { categories: ["Dresses", "Clutches & Pouches"], skus: ["8980", "WP-2160"] },
+      newOnly: false,
+    });
   });
 
   it("forgives a code typed in lower case after being read out", async () => {
@@ -170,21 +213,21 @@ describe("opening a short link", () => {
     draws.push("K7M2QP");
     await createShortLink(dresses, store);
 
-    expect(await resolveShortLink("k7m2qp", store)).toEqual(dresses);
+    expect(await resolveShortLink("k7m2qp", store)).toEqual({ selection: dresses, newOnly: false });
   });
 
   it("forgives stray whitespace around a pasted code", async () => {
     const store = createMemoryLinkStore();
     const code = await createShortLink(dresses, store);
 
-    expect(await resolveShortLink(`  ${code} `, store)).toEqual(dresses);
+    expect(await resolveShortLink(`  ${code} `, store)).toEqual({ selection: dresses, newOnly: false });
   });
 
   it("keeps opening the old links when the database is unreachable", async () => {
     // Which is also what happens in the window between a deploy and the
     // migration being applied.
     const broken: LinkStore = {
-      findSelection: async () => {
+      findLink: async () => {
         throw new Error("D1_ERROR: no such table: short_links");
       },
       findCode: async () => null,
@@ -192,7 +235,7 @@ describe("opening a short link", () => {
     };
     const legacy = encodeLegacyCode(dresses);
 
-    expect(await resolveShortLink(legacy, broken)).toEqual(dresses);
+    expect(await resolveShortLink(legacy, broken)).toEqual({ selection: dresses, newOnly: false });
     expect(await resolveShortLink("K7M2QP", broken)).toBeNull();
   });
 
@@ -202,7 +245,7 @@ describe("opening a short link", () => {
     draws.push("K7M2QP");
     await createShortLink(tops, store);
 
-    expect(await resolveShortLink("K7M2QP", store)).toEqual(tops);
+    expect(await resolveShortLink("K7M2QP", store)).toEqual({ selection: tops, newOnly: false });
   });
 });
 
@@ -214,7 +257,7 @@ describe("opening a short link", () => {
 function racingStore(theirCode: string): LinkStore {
   let raced = false;
   return {
-    async findSelection() {
+    async findLink() {
       return null;
     },
     async findCode() {

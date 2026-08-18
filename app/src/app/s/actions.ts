@@ -17,12 +17,20 @@ export type NewLink = { code: string } | { error: string };
  * action is a public endpoint like any other, and a stranger who found it could
  * otherwise write rows into the links table all day.
  */
-export async function createLink(selection: CatalogSelection): Promise<NewLink> {
+export async function createLink(
+  selection: CatalogSelection,
+  /**
+   * Whether the panel had the new-arrivals lens on. Compared to true rather
+   * than trusted: it arrives over the wire, and anything that is not plainly
+   * true must mean the plain link.
+   */
+  newOnly = false,
+): Promise<NewLink> {
   if (!(await isTeamViewer())) return { error: "Sign in to make a link." };
   if (!isValid(selection)) return { error: "Pick something for the link first." };
 
   try {
-    const code = await createShortLink(selection, await linkStore());
+    const code = await createShortLink(selection, await linkStore(), new Date(), newOnly === true);
     return { code };
   } catch {
     // The shortener only fails when it cannot find a free code, which needs the

@@ -69,11 +69,24 @@ for (const [name, create] of implementations) {
       const store = create();
       await store.insert({ code: "K7M2QP", fingerprint: "dresses", selection: dresses, createdAt });
 
-      expect(await store.findSelection("K7M2QP")).toEqual(dresses);
+      expect(await store.findLink("K7M2QP")).toEqual({ selection: dresses, newOnly: false });
+    });
+
+    it("keeps the new-arrivals lens a link was stored with", async () => {
+      const store = create();
+      await store.insert({
+        code: "N1N1N1",
+        fingerprint: "dresses-new",
+        selection: dresses,
+        createdAt,
+        newOnly: true,
+      });
+
+      expect(await store.findLink("N1N1N1")).toEqual({ selection: dresses, newOnly: true });
     });
 
     it("knows nothing about a code that was never minted", async () => {
-      expect(await create().findSelection("ZZZZZZ")).toBeNull();
+      expect(await create().findLink("ZZZZZZ")).toBeNull();
     });
 
     it("refuses a code that is already somebody else's", async () => {
@@ -84,7 +97,7 @@ for (const [name, create] of implementations) {
         await store.insert({ code: "K7M2QP", fingerprint: "tops", selection: tops, createdAt }),
       ).toBe("code-taken");
       // And the first link is untouched by the attempt.
-      expect(await store.findSelection("K7M2QP")).toEqual(dresses);
+      expect(await store.findLink("K7M2QP")).toEqual({ selection: dresses, newOnly: false });
     });
 
     it("refuses a second code for a selection that already has one", async () => {
@@ -99,7 +112,7 @@ for (const [name, create] of implementations) {
           createdAt,
         }),
       ).toBe("selection-stored");
-      expect(await store.findSelection("W4XN9B")).toBeNull();
+      expect(await store.findLink("W4XN9B")).toBeNull();
     });
 
     it("finds the code a selection was already given", async () => {
@@ -114,7 +127,7 @@ for (const [name, create] of implementations) {
       const store = create();
       await store.insert({ code: "W4XN9B", fingerprint: "tops", selection: tops, createdAt });
 
-      expect(await store.findSelection("W4XN9B")).toEqual(tops);
+      expect(await store.findLink("W4XN9B")).toEqual({ selection: tops, newOnly: false });
     });
   });
 }
@@ -130,9 +143,9 @@ describe("the D1 link store, on a row it should not trust", () => {
 
     // The last one matters most: an empty selection would open the whole
     // catalog to whoever holds the link.
-    expect(await store.findSelection("AAAAAA")).toBeNull();
-    expect(await store.findSelection("BBBBBB")).toBeNull();
-    expect(await store.findSelection("CCCCCC")).toBeNull();
+    expect(await store.findLink("AAAAAA")).toBeNull();
+    expect(await store.findLink("BBBBBB")).toBeNull();
+    expect(await store.findLink("CCCCCC")).toBeNull();
   });
 
   it("drops entries in a row that are not strings", async () => {
@@ -146,7 +159,57 @@ describe("the D1 link store, on a row it should not trust", () => {
     ];
     const store = createD1LinkStore(fakeDatabase(rows));
 
-    expect(await store.findSelection("DDDDDD")).toEqual({ categories: ["Dresses"], skus: [] });
+    expect(await store.findLink("DDDDDD")).toEqual({
+      selection: { categories: ["Dresses"], skus: [] },
+      newOnly: false,
+    });
+  });
+
+  it("opens a row written before the lens existed with the lens off", async () => {
+    // Every link minted before newOnly was stored looks like this row, and it
+    // has to keep meaning what it meant when it was sent.
+    const rows: Row[] = [
+      {
+        code: "EEEEEE",
+        fingerprint: "e",
+        selection: '{"categories":["Dresses"],"skus":[]}',
+        created_at: createdAt,
+      },
+    ];
+    const store = createD1LinkStore(fakeDatabase(rows));
+
+    expect(await store.findLink("EEEEEE")).toEqual({
+      selection: { categories: ["Dresses"], skus: [] },
+      newOnly: false,
+    });
+  });
+
+  it("reads the lens back only when the row plainly says true", async () => {
+    const rows: Row[] = [
+      {
+        code: "FFFFFF",
+        fingerprint: "f",
+        selection: '{"categories":["Dresses"],"skus":[],"newOnly":true}',
+        created_at: createdAt,
+      },
+      {
+        code: "GGGGGG",
+        fingerprint: "g",
+        selection: '{"categories":["Dresses"],"skus":[],"newOnly":"yes"}',
+        created_at: createdAt,
+      },
+    ];
+    const store = createD1LinkStore(fakeDatabase(rows));
+
+    expect(await store.findLink("FFFFFF")).toEqual({
+      selection: { categories: ["Dresses"], skus: [] },
+      newOnly: true,
+    });
+    // A hand-typed row must not smuggle a truthy string in as the lens.
+    expect(await store.findLink("GGGGGG")).toEqual({
+      selection: { categories: ["Dresses"], skus: [] },
+      newOnly: false,
+    });
   });
 
   it("counts a write that landed even when no row count comes back", async () => {

@@ -23,8 +23,19 @@ import type { CatalogSelection } from "@/lib/catalog/share";
 const GROUP_SEPARATOR = "\u001e";
 const ITEM_SEPARATOR = "\u001f";
 
-export function fingerprintSelection(selection: CatalogSelection): string {
-  return [normalize(selection.categories), normalize(selection.skus)].join(GROUP_SEPARATOR);
+export function fingerprintSelection(
+  selection: CatalogSelection,
+  /**
+   * Whether the link carries the new-arrivals lens. Part of the fingerprint
+   * because "new arrivals of Dresses" and "all of Dresses" are two different
+   * promises and each needs its own code. False adds nothing, so every code
+   * minted before the lens existed keeps its spelling and its row.
+   */
+  newOnly = false,
+): string {
+  const groups = [normalize(selection.categories), normalize(selection.skus)];
+  if (newOnly) groups.push("new");
+  return groups.join(GROUP_SEPARATOR);
 }
 
 function normalize(values: string[]): string {

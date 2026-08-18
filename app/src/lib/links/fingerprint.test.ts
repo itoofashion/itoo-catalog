@@ -35,4 +35,19 @@ describe("the fingerprint a selection is stored under", () => {
       fingerprintSelection({ categories: ["Dresses"], skus: ["A", "B"] }),
     );
   });
+
+  it("tells the same selection apart with and without the new-arrivals lens", () => {
+    // "New arrivals of Dresses" and "all of Dresses" are two different
+    // promises, and each deserves its own code.
+    expect(fingerprintSelection({ categories: ["Dresses"], skus: [] }, true)).not.toBe(
+      fingerprintSelection({ categories: ["Dresses"], skus: [] }),
+    );
+  });
+
+  it("leaves a lensless fingerprint exactly as it always was", () => {
+    // Every code minted before the lens existed is stored under this spelling.
+    expect(fingerprintSelection({ categories: ["Dresses"], skus: [] }, false)).toBe(
+      fingerprintSelection({ categories: ["Dresses"], skus: [] }),
+    );
+  });
 });

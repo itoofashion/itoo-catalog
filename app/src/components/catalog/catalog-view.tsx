@@ -433,10 +433,14 @@ export function CatalogView({
   // What the link will actually open, which is what the panel promises. A
   // hidden style ticked before it was hidden is still in the selection, and
   // counting it would promise a client a style their page will not contain.
-  const picked = useMemo(
-    () => selectedProducts(products, selection).filter((product) => !hiddenOf(product)),
-    [products, selection, hiddenOf],
-  );
+  // The new-arrivals lens narrows the promise the same way: while it is on,
+  // the link being built is a link to the new arrivals, and the count says so.
+  const picked = useMemo(() => {
+    const reachable = selectedProducts(products, selection).filter(
+      (product) => !hiddenOf(product),
+    );
+    return filters.newOnly ? reachable.filter((product) => product.isNew) : reachable;
+  }, [products, selection, hiddenOf, filters.newOnly]);
 
   /** What the Filters button reports while the rail is folded away. */
   const activeFilterCount = activeCategories.length + (filters.newOnly ? 1 : 0);
@@ -731,11 +735,13 @@ export function CatalogView({
       {showTools && !isEmptySelection(selection) && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-3 sm:inset-x-auto sm:bottom-5 sm:left-5 sm:justify-start sm:p-0">
           <LinkPanel
-            // A different selection is a different link: remounting drops the
-            // one made for the previous selection rather than resetting it.
-            key={`${selection.categories.join()}|${selection.skus.join()}`}
+            // A different selection is a different link, and so is the same
+            // selection under the lens: remounting drops the code minted for
+            // the previous meaning rather than resetting it by hand.
+            key={`${selection.categories.join()}|${selection.skus.join()}|${filters.newOnly}`}
             selection={selection}
             productCount={picked.length}
+            newOnly={filters.newOnly}
             onClear={() => changeSelection({ categories: [], skus: [] })}
           />
         </div>

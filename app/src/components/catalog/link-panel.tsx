@@ -16,10 +16,17 @@ import type { CatalogSelection } from "@/lib/catalog/share";
 export function LinkPanel({
   selection,
   productCount,
+  newOnly,
   onClear,
 }: {
   selection: CatalogSelection;
   productCount: number;
+  /**
+   * Whether the new-arrivals lens is on. It travels into the link: while the
+   * team is looking at the new arrivals, that is what they are promising, and
+   * the count above the button has already been narrowed to match.
+   */
+  newOnly: boolean;
   onClear: () => void;
 }) {
   const [link, setLink] = useState("");
@@ -46,7 +53,7 @@ export function LinkPanel({
     }
     startMinting(async () => {
       setError("");
-      const result = await createLink(selection);
+      const result = await createLink(selection, newOnly);
       if ("error" in result) {
         setError(result.error);
         return;
@@ -79,7 +86,9 @@ export function LinkPanel({
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-5">
         <div className="min-w-0 flex-1">
           <p className="tracked text-[11px] text-muted-foreground">Selected for a client</p>
-          <p className="mt-1 truncate text-sm font-semibold">{describeSelection(selection, productCount)}</p>
+          <p className="mt-1 truncate text-sm font-semibold">
+            {describeSelection(selection, productCount, newOnly)}
+          </p>
           {link && (
             <p className="mt-1 truncate text-xs text-muted-foreground" title={link}>
               {link}
@@ -118,10 +127,17 @@ export function LinkPanel({
 export function describeSelection(
   selection: CatalogSelection,
   productCount: number,
+  /** Named on the line, because a lens that shrank the number has to say so. */
+  newOnly = false,
 ): string {
   const styles = (count: number) => `${count} ${count === 1 ? "style" : "styles"}`;
+  const lens = newOnly ? " · new arrivals" : "";
 
-  if (selection.categories.length === 0) return styles(selection.skus.length);
+  if (selection.categories.length === 0) {
+    // Under the lens the total is news again: fewer styles may open than were
+    // picked, and the line must count what the client will see.
+    return newOnly ? `${styles(productCount)}${lens}` : styles(selection.skus.length);
+  }
 
   const parts =
     selection.categories.length === 1
@@ -131,5 +147,5 @@ export function describeSelection(
     parts.push(`${selection.skus.length} picked`);
   }
 
-  return `${parts.join(" + ")} · ${styles(productCount)}`;
+  return `${parts.join(" + ")} · ${styles(productCount)}${lens}`;
 }
