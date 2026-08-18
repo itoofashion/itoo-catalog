@@ -239,9 +239,9 @@ export function ProductCard({
                 {saving ? (
                   <Loader2 className="size-3.5 animate-spin" />
                 ) : hidden ? (
-                  <EyeOff className="size-3.5" strokeWidth={2.5} />
+                  <EyeOff className="size-3.5" />
                 ) : (
-                  <Eye className="size-3.5" strokeWidth={2.5} />
+                  <Eye className="size-3.5" />
                 )}
               </button>
                 </TooltipTrigger>
@@ -292,7 +292,7 @@ export function ProductCard({
                 {selected || lockedByCategory ? (
                   <Check className="size-3.5" strokeWidth={3} />
                 ) : (
-                  <Plus className="size-3.5" strokeWidth={2.5} />
+                  <Plus className="size-3.5" />
                 )}
               </button>
                 </TooltipTrigger>

@@ -129,7 +129,7 @@ export function FilterPanel({
                       {picked ? (
                         <Check className="size-3.5" strokeWidth={3} />
                       ) : (
-                        <Plus className="size-3.5" strokeWidth={2.5} />
+                        <Plus className="size-3.5" />
                       )}
                     </button>
                   </TooltipTrigger>
