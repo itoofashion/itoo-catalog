@@ -1,30 +1,28 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, EyeOff, LogOut, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * The admin area's rooms. Two today; the roadmap (prices, access control) adds
  * rooms rather than sections, which is why this is a list and not two links.
  */
+// Spelled out, not "Sync": the rail is read by managers, and a full word costs
+// nothing. The button inside the room still says "Sync now" — an action wears
+// the short word, a place wears the whole one.
 const PAGES = [
-  { key: "sync", label: "Sync & arrivals", href: "/admin" },
-  { key: "hidden", label: "Hidden styles", href: "/admin/hidden" },
+  { key: "sync", label: "Synchronization", href: "/admin", icon: RefreshCw },
+  { key: "hidden", label: "Hidden styles", href: "/admin/hidden", icon: EyeOff },
 ] as const;
 
 export type AdminPageKey = (typeof PAGES)[number]["key"];
 
 /**
- * The frame every admin page stands in: who and where at the top, the rooms on
- * the left, the work in the middle.
- *
- * The same skeleton as the catalog on purpose — logo top left, a rail beside
- * the content — so crossing between the two reads as moving around one shop.
- * On a phone the rail becomes a row of tabs under the header. The way back to
- * the catalog is the first item of the rail and the logo itself, both real
- * links.
+ * The frame every admin page stands in: a sidebar that owns all the moving
+ * around — the way back to the catalog, the rooms, and the way out at the
+ * bottom — set off from the work by its own border. On a phone the same
+ * things sit in a bar across the top instead.
  *
  * Every page names itself through `current` rather than reading the address:
  * the pages are gated per request (see the pages themselves), and this frame
@@ -38,75 +36,96 @@ export function AdminShell({
   children: ReactNode;
 }) {
   return (
-    <>
-      <header className="border-b">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
-          <div className="flex items-center gap-3">
-            <Link href="/" aria-label="itoo, back to the catalog">
-              {/* Full-size file drawn small: the optimizer is off on Workers
-                  (see next.config.ts), the browser scales it sharply itself. */}
-              <Image
-                src="/logo.png"
-                alt="itoo"
-                width={1050}
-                height={483}
-                priority
-                className="h-6 w-auto sm:h-7"
-              />
-            </Link>
-            <span aria-hidden className="h-5 w-px bg-border" />
-            <h1 className="tracked text-[11px] font-semibold text-muted-foreground">
-              Admin panel
-            </h1>
-          </div>
-
-          {/* A plain form, not a fetch: signing out has to work even when the
-              page's JavaScript never loaded. */}
-          <form action="/admin/sign-out" method="post">
-            <Button type="submit" variant="ghost" size="sm">
-              <LogOut /> Sign out
-            </Button>
-          </form>
+    <div className="flex flex-1 flex-col sm:flex-row">
+      <aside className="flex shrink-0 flex-col border-b sm:w-56 sm:border-b-0 sm:border-r">
+        <div className="flex items-center justify-between px-4 pb-2 pt-4 sm:block sm:px-5 sm:pt-6">
+          <Link href="/" aria-label="itoo, back to the catalog" className="inline-block">
+            {/* Full-size file drawn small: the optimizer is off on Workers
+                (see next.config.ts), the browser scales it sharply itself. */}
+            <Image
+              src="/logo.png"
+              alt="itoo"
+              width={1050}
+              height={483}
+              priority
+              className="h-6 w-auto sm:h-7"
+            />
+          </Link>
+          <h1 className="tracked text-[10px] text-muted-foreground sm:pt-2">
+            Admin panel
+          </h1>
         </div>
-      </header>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-5 sm:px-6 lg:flex-row lg:gap-10 lg:px-10 lg:py-8">
         <nav
           aria-label="Admin pages"
-          className="flex flex-wrap items-center gap-1.5 lg:w-52 lg:shrink-0 lg:flex-col lg:items-stretch lg:self-start"
+          className="flex items-center gap-1 overflow-x-auto px-3 pb-3 sm:flex-col sm:items-stretch sm:px-3 sm:pb-0 sm:pt-4"
         >
-          <Button variant="outline" size="sm" asChild className="lg:justify-start">
-            <Link href="/">
-              <ArrowLeft /> Catalog
-            </Link>
-          </Button>
+          <NavRow href="/" active={false}>
+            <ArrowLeft className="size-4" /> Catalog
+          </NavRow>
 
-          <span aria-hidden className="mx-1 h-5 w-px bg-border lg:mx-0 lg:my-2 lg:h-px lg:w-full" />
+          <span
+            aria-hidden
+            className="mx-1 w-px self-stretch bg-border sm:mx-2 sm:my-2 sm:h-px sm:w-auto sm:self-auto"
+          />
 
-          {PAGES.map((page) => {
-            const active = page.key === current;
-            return (
-              <Link
-                key={page.key}
-                href={page.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "tracked rounded-sm border px-3 py-1.5 text-[11px] font-semibold transition",
-                  active
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-                )}
-              >
-                {page.label}
-              </Link>
-            );
-          })}
+          {PAGES.map((page) => (
+            <NavRow key={page.key} href={page.href} active={page.key === current}>
+              <page.icon className="size-4" /> {page.label}
+            </NavRow>
+          ))}
+
+          {/* The way out rides at the end of the bar on a phone; on a laptop
+              it sits at the bottom of the rail, in its own form below. */}
+          <SignOut className="sm:hidden" />
         </nav>
 
-        <main className="flex w-full min-w-0 max-w-xl flex-1 flex-col gap-10">
-          {children}
-        </main>
-      </div>
-    </>
+        <SignOut className="mt-auto hidden px-3 pb-5 sm:block" />
+      </aside>
+
+      <main className="flex w-full min-w-0 max-w-2xl flex-1 flex-col gap-6 px-4 py-6 sm:px-8 lg:py-8">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+function NavRow({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-sm px-3 py-2 text-[13px] transition",
+        active
+          ? "bg-foreground font-semibold text-background"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
+/** A plain form, not a fetch: signing out has to work even when the page's
+    JavaScript never loaded. */
+function SignOut({ className }: { className?: string }) {
+  return (
+    <form action="/admin/sign-out" method="post" className={className}>
+      <button
+        type="submit"
+        className="flex w-full shrink-0 cursor-pointer items-center gap-2.5 whitespace-nowrap rounded-sm px-3 py-2 text-[13px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
+      >
+        <LogOut className="size-4" /> Sign out
+      </button>
+    </form>
   );
 }

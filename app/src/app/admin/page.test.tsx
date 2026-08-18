@@ -18,6 +18,10 @@ vi.mock("next/headers", () => ({
   cookies: async () => ({ get: getCookie }),
 }));
 
+// The status block asks the router to refresh its numbers; jsdom has no app
+// router mounted, so the page tests hand it a quiet one.
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+
 async function renderAdmin({ signedIn }: { signedIn: boolean }) {
   isTeamViewer.mockResolvedValue(signedIn);
   return render(await AdminPage());
@@ -127,7 +131,7 @@ describe("admin page, signed in", () => {
     const nav = screen.getByRole("navigation", { name: /admin pages/i });
 
     expect(within(nav).getByRole("link", { name: /catalog/i })).toHaveAttribute("href", "/");
-    expect(within(nav).getByRole("link", { name: /sync & arrivals/i })).toHaveAttribute(
+    expect(within(nav).getByRole("link", { name: /synchronization/i })).toHaveAttribute(
       "aria-current",
       "page",
     );

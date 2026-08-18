@@ -42,22 +42,22 @@ export function HiddenStylesReview({ styles }: { styles: ReviewStyle[] }) {
   }
 
   return (
-    <section aria-label="Hidden styles" className="flex flex-col">
+    <section aria-label="Hidden styles" className="flex flex-col rounded-sm border p-5">
       <h2 className="tracked pb-2 text-[10px] text-muted-foreground">
         Hidden styles{hidden.length > 0 && ` — ${hidden.length}`}
       </h2>
 
       {hidden.length === 0 ? (
-        <p className="border-y py-4 text-sm text-muted-foreground">
+        <p className="border-t pt-4 text-sm text-muted-foreground">
           Nothing is hidden. The eye on a card in the catalog is what puts a
           style here.
         </p>
       ) : (
-        <ul className="flex flex-col border-y">
+        <ul className="flex flex-col border-t">
           {hidden.map((style) => (
             <li
               key={style.sku}
-              className="flex items-center gap-3 border-t py-2.5 first:border-t-0"
+              className="flex items-center gap-3 border-t py-2.5 first:border-t-0 last:pb-0"
             >
               <Thumb style={style} />
               <div className="min-w-0 flex-1">
@@ -121,7 +121,7 @@ export function RecentArrivals({
   const shown = arrived.slice(0, ARRIVALS_SHOWN);
 
   return (
-    <section aria-label="Recent arrivals" className="flex flex-col">
+    <section aria-label="Recent arrivals" className="flex flex-col rounded-sm border p-5">
       <h2 className="tracked pb-2 text-[10px] text-muted-foreground">Recent arrivals</h2>
 
       <label className="flex items-center gap-2 pb-3 text-[13px] text-muted-foreground">
@@ -140,12 +140,14 @@ export function RecentArrivals({
       </p>
 
       {arrived.length > 0 && (
-        <ul className="flex flex-col border-y">
+        /* Capped and scrolled: a month of arrivals is a long list, and this
+           card is one of two on the page, not the page itself. */
+        <ul className="flex max-h-96 flex-col overflow-y-auto border-t">
           {shown.map((style) => (
             <li
               key={style.sku}
               className={cn(
-                "flex items-center gap-3 border-t py-2.5 first:border-t-0",
+                "flex items-center gap-3 border-t py-2.5 first:border-t-0 last:pb-0",
                 style.hidden && "opacity-50",
               )}
             >
