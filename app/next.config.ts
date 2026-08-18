@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   // started on, which leaves the page rendered but never hydrated. Recording a
   // walkthrough or opening the dev server from another machine both hit it.
   allowedDevOrigins: ["localhost", "127.0.0.1", "0.0.0.0"],
+  // A machine with a tight thread budget says so and gets fewer build workers;
+  // everywhere else the default stands. Without this, building on such a
+  // machine aborts mid-build with "OS can't spawn worker thread".
+  ...(process.env.NEXT_BUILD_CPUS
+    ? { experimental: { cpus: Number(process.env.NEXT_BUILD_CPUS) } }
+    : {}),
   images: {
     // Product photos come from our own /i route, which serves what FashionGo's
     // CDN produced. Next's image optimizer needs a Node runtime that Workers
